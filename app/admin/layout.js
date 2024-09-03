@@ -7,7 +7,7 @@ export const metadata = {
   title: "Asociación Animalitos Abandonados",
   description: "Sitio de la Asociación Animalitos Abandonados",
 };
-
+import ValidateUser from "./ValidateUser";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -15,6 +15,7 @@ export default function RootLayout({ children }) {
         <header>
           <NavBarAdmin />
         </header>{" "}
+        <ValidateUser />
         <ToastContainer />
         {children}
       </body>

@@ -45,7 +45,7 @@ export default function NavBarAdmin() {
             <Nav.Link href="/aboutus">Quiénes somos</Nav.Link>
             <Nav.Link href="/contacto">Contacto</Nav.Link>
           </Nav>
-          <Form inline onSubmit={handleSignout}>
+          <Form inline={true} onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>
           </Form>
         </Navbar.Collapse>
