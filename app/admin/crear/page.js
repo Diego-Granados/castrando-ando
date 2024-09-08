@@ -1,7 +1,10 @@
+import CreateForm from "./CreateForm";
+
 export default function Home() {
   return (
     <main className="container">
-      <h1>admin page</h1>
+      <h1>Crear campaña</h1>
+      <CreateForm />
     </main>
   );
 }

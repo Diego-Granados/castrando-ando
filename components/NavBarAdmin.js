@@ -40,10 +40,10 @@ export default function NavBarAdmin() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/">Crear</Nav.Link>
-            <Nav.Link href="/">Campañas</Nav.Link>
-            <Nav.Link href="/aboutus">Quiénes somos</Nav.Link>
-            <Nav.Link href="/contacto">Contacto</Nav.Link>
+            <Nav.Link href="/admin/crear">Crear</Nav.Link>
+            <Nav.Link href="/admin">Campañas</Nav.Link>
+            <Nav.Link href="/admin/aboutus">Quiénes somos</Nav.Link>
+            <Nav.Link href="/admin/contacto">Contacto</Nav.Link>
           </Nav>
           <Form inline={true} onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>
