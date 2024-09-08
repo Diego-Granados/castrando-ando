@@ -1,14 +1,14 @@
 "use client";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { CirclePlus, CircleMinus } from "lucide-react";
 
-function Price({ key, price, weight }) {
+function Price({ id, price, weight }) {
   return (
     <Row>
       <Col>
         <Form.Group
-          controlId={`price${key}`}
+          controlId={`price${id}`}
           as={Row}
           className="align-items-center"
         >
@@ -27,7 +27,7 @@ function Price({ key, price, weight }) {
       </Col>
       <Col>
         <Form.Group
-          controlId={`weight${key}`}
+          controlId={`weight${id}`}
           as={Row}
           className="align-items-center"
         >
@@ -64,16 +64,16 @@ function CreateForm() {
   const today = new Date().toISOString().split("T")[0];
 
   const [prices, setPrices] = useState([
-    <Price key={0} price={13000} weight={10} />,
-    <Price key={1} price={16000} weight={15} />,
-    <Price key={2} price={22000} weight={20} />,
-    <Price key={3} price={26000} weight={100} />,
+    <Price key={0} id={0} price={13000} weight={10} />,
+    <Price key={1} id={1} price={16000} weight={15} />,
+    <Price key={2} id={2} price={22000} weight={20} />,
+    <Price key={3} id={3} price={26000} weight={100} />,
   ]);
 
   const [reqs, setReqs] = useState([<Requirement key={0} />]);
 
   function addPrices() {
-    setPrices(prices.concat(<Price key={prices.length} />));
+    setPrices(prices.concat(<Price key={prices.length} id={prices.length} />));
   }
 
   function deletePrices() {
@@ -87,6 +87,21 @@ function CreateForm() {
   function deleteReq() {
     setReqs(reqs.slice(0, -1));
   }
+
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const handleFileChange = (e) => {
+    setSelectedFiles([...e.target.files]); // Store the selected image files
+  };
+
+  const fileInputRef = useRef(null);
+
+  const handleClearFiles = () => {
+    setSelectedFiles([]); // Clear the selected files from the state
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset the file input field
+    }
+  };
   return (
     <Container>
       <Form>
@@ -193,7 +208,39 @@ function CreateForm() {
           />
         </Form.Group>
 
-        <Button variant="primary" type="submit" className="mt-3">
+        <Form.Group controlId="formFileMultiple" className="mb-3">
+          <Form.Label className="fw-semibold">
+            Suba las fotos para promocionar la campaña (Afiche, campañas
+            pasadas, etc.)
+          </Form.Label>
+          <Form.Control
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileChange}
+            name="fotos"
+            id="fotos"
+            ref={fileInputRef}
+          />
+          <Form.Text className="text-muted">
+            Puede subir varias fotos.
+          </Form.Text>
+        </Form.Group>
+        {selectedFiles.length > 0 && (
+          <div className="mt-3">
+            <p>Imágenes seleccionadas:</p>
+            <ul>
+              {selectedFiles.map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+            <Button variant="danger" onClick={handleClearFiles}>
+              Eliminar fotos
+            </Button>
+          </div>
+        )}
+
+        <Button variant="primary" type="submit" className="mt-3 mb-5">
           Enviar
         </Button>
       </Form>
