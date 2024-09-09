@@ -8,7 +8,8 @@ import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const router = useRouter();
-  async function login_user(event) {
+
+  async function loginUser(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
 
@@ -40,7 +41,7 @@ export default function LoginForm() {
   }
 
   return (
-    <Form onSubmit={login_user}>
+    <Form onSubmit={loginUser}>
       <Form.Group className="mb-3" controlId="formBasicEmail">
         <Form.Label>Correo electrónico</Form.Label>
         <Form.Control type="email" placeholder="Enter email" name="email" />

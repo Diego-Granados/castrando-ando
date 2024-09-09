@@ -2,65 +2,15 @@
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { useState, useRef } from "react";
 import { CirclePlus, CircleMinus } from "lucide-react";
+import Price from "./Price";
+import Requirement from "./Requirement";
+import { db } from "@/lib/firebase/config";
+import { ref, push, set } from "firebase/database";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
-function Price({ id, price, weight }) {
-  return (
-    <Row>
-      <Col>
-        <Form.Group
-          controlId={`price${id}`}
-          as={Row}
-          className="align-items-center"
-        >
-          <Form.Label column sm={2}>
-            Precio:
-          </Form.Label>
-          <Col sm={10}>
-            <Form.Control
-              name="price"
-              type="number"
-              placeholder="Price para categoría"
-              defaultValue={price}
-            />
-          </Col>
-        </Form.Group>
-      </Col>
-      <Col>
-        <Form.Group
-          controlId={`weight${id}`}
-          as={Row}
-          className="align-items-center"
-        >
-          <Form.Label column sm={3}>
-            Hasta (kg):
-          </Form.Label>
-          <Col sm={9}>
-            <Form.Control
-              name="weight"
-              type="number"
-              placeholder="Peso de animal"
-              defaultValue={weight}
-            />
-          </Col>
-        </Form.Group>
-      </Col>
-    </Row>
-  );
-}
-
-function Requirement({ key }) {
-  return (
-    <Row>
-      <Col>
-        <ul className="d-flex align-items-center">
-          <li className="me-2"></li>
-          <Form.Control name="requirement" placeholder="Requisito" />
-        </ul>
-      </Col>
-    </Row>
-  );
-}
 function CreateForm() {
+  const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
 
   const [prices, setPrices] = useState([
@@ -102,8 +52,56 @@ function CreateForm() {
       fileInputRef.current.value = ""; // Reset the file input field
     }
   };
+
+  const [creating, setCreating] = useState(false);
+
+  async function createCampaign(event) {
+    event.preventDefault();
+    setCreating(true);
+    const formData = new FormData(event.target);
+    const rawFormData = {
+      title: formData.get("title"),
+      date: formData.get("date"),
+      place: formData.get("place"),
+      description: formData.get("description"),
+      phone: formData.get("phone"),
+      photos: formData.get("photos"),
+      prices: formData.getAll("price"),
+      weights: formData.getAll("weight"),
+      requirements: formData.getAll("requirement"),
+    };
+
+    console.log(rawFormData);
+
+    const pricesData = rawFormData.prices.map((price, index) => {
+      console.log({ price: price, weight: rawFormData.weights[index] });
+      return { price: price, weight: rawFormData.weights[index] };
+    });
+    console.log(pricesData);
+
+    const campaignRef = ref(db, "campaigns");
+    // const newCampaignRef = push(campaignRef);
+    // set(newCampaignRef, rawFormData)
+    //   .then(() => {
+    //     toast.success("¡Campaña creada con éxito!", {
+    //       position: "top-center",
+    //       autoClose: 5000,
+    //       toastId: "create-campaign",
+    //       onClose: () => router.push("/admin"),
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error adding document: ", error);
+    //     toast.error("¡Error al crear la campaña!", {
+    //       position: "top-center",
+    //       autoClose: 8000,
+    //       toastId: "create-campaign",
+    //     });
+    //   });
+    setCreating(false);
+  }
   return (
-    <Container>
+    <Container onSubmit={createCampaign}>
       <Form>
         <Form.Group controlId="title">
           <Form.Label className="fw-semibold">Título</Form.Label>
@@ -111,27 +109,24 @@ function CreateForm() {
             type="text"
             placeholder="Ingrese el título de la campaña"
             name="title"
+            required
           />
         </Form.Group>
-        <Row>
+        <Row className="mt-3">
           <Col>
-            <Form.Group controlId="startDate">
-              <Form.Label className="fw-semibold">Fecha de inicio</Form.Label>
-              <Form.Control
-                type="date"
-                placeholder="Seleccione la fecha de inicio"
-                defaultValue={today}
-              />
-            </Form.Group>
-          </Col>
-          <Col>
-            <Form.Group controlId="endDate">
-              <Form.Label className="fw-semibold">Fecha de fin</Form.Label>
-              <Form.Control
-                type="date"
-                placeholder="Seleccione la fecha de fin"
-                defaultValue={today}
-              />
+            <Form.Group as={Row} controlId="startDate">
+              <Form.Label className="fw-semibold" column sm={1}>
+                Fecha:
+              </Form.Label>
+              <Col sm={3}>
+                <Form.Control
+                  type="date"
+                  placeholder="Seleccione la fecha de inicio"
+                  defaultValue={today}
+                  name="date"
+                  required
+                />
+              </Col>
             </Form.Group>
           </Col>
         </Row>
@@ -141,15 +136,19 @@ function CreateForm() {
           <Form.Control
             type="text"
             placeholder="Ingrese la ubicación del evento"
+            name="place"
+            required
           />
         </Form.Group>
 
-        <Form.Group controlId="requirements">
+        <Form.Group controlId="description">
           <Form.Label className="fw-semibold">Descripción</Form.Label>
           <Form.Control
             as="textarea"
             rows={3}
             placeholder="Indique los requisitos para la campaña"
+            name="description"
+            required
           />
         </Form.Group>
         <Form.Label className="fw-semibold">Precios:</Form.Label>
@@ -205,10 +204,12 @@ function CreateForm() {
           <Form.Control
             type="tel"
             placeholder="Ingrese el número de contacto"
+            name="phone"
+            required
           />
         </Form.Group>
 
-        <Form.Group controlId="formFileMultiple" className="mb-3">
+        <Form.Group controlId="photos" className="mb-3">
           <Form.Label className="fw-semibold">
             Suba las fotos para promocionar la campaña (Afiche, campañas
             pasadas, etc.)
@@ -218,9 +219,9 @@ function CreateForm() {
             multiple
             accept="image/*"
             onChange={handleFileChange}
-            name="fotos"
-            id="fotos"
+            name="photos"
             ref={fileInputRef}
+            required
           />
           <Form.Text className="text-muted">
             Puede subir varias fotos.
@@ -240,7 +241,12 @@ function CreateForm() {
           </div>
         )}
 
-        <Button variant="primary" type="submit" className="mt-3 mb-5">
+        <Button
+          variant="primary"
+          type="submit"
+          className="mt-3 mb-5"
+          disabled={creating}
+        >
           Enviar
         </Button>
       </Form>
