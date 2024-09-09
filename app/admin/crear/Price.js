@@ -16,7 +16,7 @@ export default function Price({ id, price, weight }) {
             <Form.Control
               name="price"
               type="number"
-              placeholder="Price para categoría"
+              placeholder="Precio para categoría"
               defaultValue={price}
               required
             />

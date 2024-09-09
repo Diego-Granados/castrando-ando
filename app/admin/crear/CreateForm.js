@@ -4,10 +4,11 @@ import { useState, useRef } from "react";
 import { CirclePlus, CircleMinus } from "lucide-react";
 import Price from "./Price";
 import Requirement from "./Requirement";
-import { db } from "@/lib/firebase/config";
-import { ref, push, set } from "firebase/database";
+import { storage } from "@/lib/firebase/config";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function CreateForm() {
   const router = useRouter();
@@ -20,7 +21,19 @@ function CreateForm() {
     <Price key={3} id={3} price={26000} weight={100} />,
   ]);
 
-  const [reqs, setReqs] = useState([<Requirement key={0} />]);
+  const [reqs, setReqs] = useState([
+    <Requirement
+      key={0}
+      defaultRequirement={"Animales en perfecto estado de salud."}
+    />,
+    <Requirement
+      key={1}
+      defaultRequirement={
+        "Solo animales con 12 horas de ayuno (comida y agua)."
+      }
+    />,
+    <Requirement key={2} defaultRequirement={"Llevar cobija."} />,
+  ]);
 
   function addPrices() {
     setPrices(prices.concat(<Price key={prices.length} id={prices.length} />));
@@ -55,8 +68,35 @@ function CreateForm() {
 
   const [creating, setCreating] = useState(false);
 
+  // Función para subir múltiples archivos a Firebase Storage
+  async function uploadFiles(fileList, path) {
+    // Array para almacenar las URLs de descarga de cada archivo
+    const downloadURLs = [];
+
+    // Iterar a través del array de archivos (fileList)
+    for (const file of fileList) {
+      const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
+
+      try {
+        // Subir el archivo a Firebase Storage
+        await uploadBytes(storageRef, file);
+
+        // Obtener la URL de descarga
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Agregar la URL de descarga al array
+        downloadURLs.push(downloadURL);
+      } catch (error) {
+        throw new Error(`Error al subir el archivo ${file.name}.`);
+      }
+    }
+
+    return downloadURLs;
+  }
+
   async function createCampaign(event) {
     event.preventDefault();
+
     setCreating(true);
     const formData = new FormData(event.target);
     const rawFormData = {
@@ -65,39 +105,61 @@ function CreateForm() {
       place: formData.get("place"),
       description: formData.get("description"),
       phone: formData.get("phone"),
-      photos: formData.get("photos"),
-      prices: formData.getAll("price"),
-      weights: formData.getAll("weight"),
+      priceSpecial: formData.get("priceSpecial"),
       requirements: formData.getAll("requirement"),
     };
 
     console.log(rawFormData);
 
-    const pricesData = rawFormData.prices.map((price, index) => {
-      console.log({ price: price, weight: rawFormData.weights[index] });
-      return { price: price, weight: rawFormData.weights[index] };
+    const prices = formData.getAll("price");
+    const weights = formData.getAll("weight");
+    rawFormData.pricesData = prices.map((price, index) => {
+      return { price: price, weight: weights[index] };
     });
-    console.log(pricesData);
+    console.log(rawFormData.pricesData);
 
-    const campaignRef = ref(db, "campaigns");
-    // const newCampaignRef = push(campaignRef);
-    // set(newCampaignRef, rawFormData)
-    //   .then(() => {
-    //     toast.success("¡Campaña creada con éxito!", {
-    //       position: "top-center",
-    //       autoClose: 5000,
-    //       toastId: "create-campaign",
-    //       onClose: () => router.push("/admin"),
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error adding document: ", error);
-    //     toast.error("¡Error al crear la campaña!", {
-    //       position: "top-center",
-    //       autoClose: 8000,
-    //       toastId: "create-campaign",
-    //     });
-    //   });
+    try {
+      const path = `campaign-${Date.now()}`; // Add a timestamp
+      const fileInput = document.getElementById("photos");
+      const downloadURLs = await uploadFiles(fileInput.files, path);
+      rawFormData.photos = downloadURLs;
+      toast.success("¡Fotos subidas con éxito!");
+    } catch (error) {
+      toast.error(error.message);
+      setCreating(false);
+      return;
+    }
+
+    try {
+      console.log("fetching");
+      const response = await fetch("/api/campaigns/create", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData: rawFormData }),
+      });
+
+      if (response.ok) {
+        toast.success("¡Campaña creada con éxito!", {
+          position: "top-center",
+          autoClose: 5000,
+          toastId: "create-campaign",
+          onClose: () => router.push("/admin"),
+        });
+      } else {
+        toast.error("¡Error al crear la campaña!", {
+          position: "top-center",
+          autoClose: 8000,
+          toastId: "create-campaign",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("¡Error al crear la campaña!", {
+        position: "top-center",
+        autoClose: 8000,
+        toastId: "create-campaign",
+      });
+    }
     setCreating(false);
   }
   return (
@@ -152,6 +214,11 @@ function CreateForm() {
           />
         </Form.Group>
         <Form.Label className="fw-semibold">Precios:</Form.Label>
+        <br />
+        <Form.Text>
+          Ingrese los rangos de precios. Para la última categoría, ingrese
+          100kg.
+        </Form.Text>
         {prices}
         <div className="container">
           {prices.length < 5 && (
@@ -175,6 +242,25 @@ function CreateForm() {
             </button>
           )}
         </div>
+        <Form.Group
+          controlId={`priceSpecial`}
+          as={Row}
+          className="align-items-center"
+        >
+          <Form.Label column sm={2}>
+            Precio para situaciones especiales:
+          </Form.Label>
+          <Col sm={4}>
+            <Form.Control
+              name="priceSpecial"
+              type="number"
+              placeholder="Precio para situaciones especiales"
+              defaultValue={5000}
+              required
+            />
+          </Col>
+        </Form.Group>
+
         <Form.Label className="fw-semibold">Requisitos:</Form.Label>
         {reqs}
         <div className="container">
@@ -202,7 +288,7 @@ function CreateForm() {
         <Form.Group controlId="contactNumber">
           <Form.Label className="fw-semibold">Número de Contacto</Form.Label>
           <Form.Control
-            type="tel"
+            type="number"
             placeholder="Ingrese el número de contacto"
             name="phone"
             required
