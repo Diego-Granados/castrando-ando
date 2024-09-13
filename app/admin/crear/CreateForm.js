@@ -172,6 +172,7 @@ function CreateForm() {
             placeholder="Ingrese el título de la campaña"
             name="title"
             required
+            defaultValue={"Campaña de Castración para Perros y Gatos"}
           />
         </Form.Group>
         <Row className="mt-3">
@@ -211,6 +212,10 @@ function CreateForm() {
             placeholder="Indique los requisitos para la campaña"
             name="description"
             required
+            defaultValue={
+              "Campaña de castración. Incluye medicación inyectada, medicación para la casa, \
+              desparasitación, corte de uñas, mini limpieza dental y limpieza de orejas."
+            }
           />
         </Form.Group>
         <Form.Label className="fw-semibold">Precios:</Form.Label>

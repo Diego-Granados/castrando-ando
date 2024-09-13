@@ -25,7 +25,6 @@ export default function Campaign() {
       if (!snapshot.exists()) {
         console.log("No data available");
         return;
-      } else {
       }
       const value = snapshot.val();
       console.log(value);
@@ -52,7 +51,9 @@ export default function Campaign() {
               <Row className="card-body">
                 <Col>
                   <h5 className="card-title">Disponibilidad</h5>
-                  <p className="card-text">Citas disponibles: {0}</p>
+                  <p className="card-text">
+                    Citas disponibles: {campaign.available}
+                  </p>
                 </Col>
                 <Col>
                   <h5 className="card-title">Contacto</h5>
@@ -96,8 +97,13 @@ export default function Campaign() {
                   </strong>
                 </p>
                 <div className="d-flex justify-content-center">
-                  <Link href={`campaign/cita?id=${campaignId}`}>
-                    <Button variant="primary">AGENDAR CITA</Button>
+                  <Link href={`campaign/citas?id=${campaignId}`}>
+                    <Button
+                      variant="primary"
+                      aria-label={`Agendar cita para ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
+                    >
+                      AGENDAR CITA
+                    </Button>
                   </Link>
                 </div>
               </div>

@@ -24,7 +24,6 @@ function NavBar() {
             <Nav.Link href="/">Campañas</Nav.Link>
             <Nav.Link href="/aboutus">Quiénes somos</Nav.Link>
             <Nav.Link href="/contacto">Contacto</Nav.Link>
-            <Nav.Link href="/cita">Cita</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

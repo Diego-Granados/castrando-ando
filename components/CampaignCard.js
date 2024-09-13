@@ -25,7 +25,7 @@ export default function CampaignCard({ campaign }) {
               <strong>Lugar: {campaign.place}</strong>{" "}
             </p>
             <p>
-              <strong>Cupos: {0}</strong>
+              <strong>Cupos: {campaign.available}</strong>
             </p>
           </div>
           <Link href={`/campaign?id=${campaign.campaign}`}>

@@ -11,13 +11,9 @@ export default function Home() {
   const [campaigns, setCampaigns] = useState({});
 
   useEffect(() => {
-    const unsubscribe = onValue(
-      campaignsRef,
-      (snapshot) => {
-        setCampaigns(snapshot.val());
-      },
-      { onlyOnce: true }
-    );
+    const unsubscribe = onValue(campaignsRef, (snapshot) => {
+      setCampaigns(snapshot.val());
+    });
 
     return () => unsubscribe();
   }, []);
