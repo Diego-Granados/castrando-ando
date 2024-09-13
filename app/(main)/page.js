@@ -6,6 +6,8 @@ import CampaignCard from "@/components/CampaignCard";
 import { db } from "@/lib/firebase/config";
 import { ref, onValue } from "firebase/database";
 import { useState, useEffect } from "react";
+import { Row, Col } from "react-bootstrap";
+
 export default function Home() {
   const campaignsRef = ref(db, "campaigns");
   const [campaigns, setCampaigns] = useState({});
@@ -29,7 +31,16 @@ export default function Home() {
           );
         })}
       {/* <CampaignCard />  */}
-      <Link href="adminlogin">Ingresar como administrador</Link>
+      <Row>
+        <Col>
+          <Link href="reservaciones">
+            Ingresá con tu número de teléfono para revisar tus citas
+          </Link>
+        </Col>
+        <Col>
+          <Link href="adminlogin">Ingresar como administrador</Link>
+        </Col>
+      </Row>
     </main>
   );
 }
