@@ -1,6 +1,7 @@
 "use client";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import Image from "next/image";
 import { auth } from "@/lib/firebase/config";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { toast } from "react-toastify";
@@ -51,7 +52,7 @@ export default function LoginForm() {
         <Form.Label>Contraseña</Form.Label>
         <Form.Control type="password" placeholder="Password" name="password" />
       </Form.Group>
-      <Button variant="primary" type="submit">
+      <Button variant="primary" type="submit" className="w-100">
         Ingresar
       </Button>
     </Form>

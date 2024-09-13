@@ -4,10 +4,10 @@ import Link from "next/link";
 export default function CampaignCard({ campaign }) {
   return (
     <article
-      className="container row col-lg-6 px-5 my-5"
+      className="container row col-lg-6 px-3 my-3"
       style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)" }}
     >
-      <Carousel>
+      <Carousel className="col my-5">
         {campaign.photos.map((photo) => (
           <Carousel.Item key={photo}>
             <img className="d-block w-100" src={photo} alt="" />
