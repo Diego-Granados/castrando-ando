@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase/config";
 import { ref, get, child, onValue } from "firebase/database";
-
+import { toast } from "react-toastify";
 export default function Reservar() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
@@ -14,7 +14,7 @@ export default function Reservar() {
   const [campaign, setCampaign] = useState(null);
 
   const router = useRouter();
-  if (!campaignId) {
+  if (!campaignId || !timeslot) {
     router.push("/");
   }
 
@@ -39,31 +39,103 @@ export default function Reservar() {
     return () => unsubscribe();
   }, [db]);
 
+  const [reserving, setReserving] = useState(false);
+  async function reserveAppointment(event) {
+    event.preventDefault();
+
+    setReserving(true);
+    const formData = new FormData(event.target);
+    const rawFormData = {
+      id: formData.get("id"),
+      name: formData.get("name"),
+      phone: formData.get("phone"),
+      animal: formData.get("flexAnimal") == "perro" ? true : false,
+      sex: formData.get("flexSex") == "macho" ? true : false,
+      priceData: JSON.parse(formData.get("price")),
+      priceSpecial: formData.get("priceSpecial") ? true : false,
+      campaignId: campaignId,
+      timeslot: timeslot,
+    };
+
+    console.log(rawFormData);
+
+    try {
+      console.log("fetching");
+      const response = await fetch("/api/campaigns/reserve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData: rawFormData }),
+      });
+
+      if (response.ok) {
+        toast.success("¡Cita reservada con éxito!", {
+          position: "top-center",
+          autoClose: 5000,
+          toastId: "reserve-appointment",
+          onClose: () => {
+            setReserving(false);
+            router.push("/");
+          },
+        });
+      } else {
+        toast.error("¡Error al reservar la cita!", {
+          position: "top-center",
+          autoClose: 8000,
+          toastId: "reserve-appointment",
+        });
+        setReserving(false);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("¡Error al reservar la cita!", {
+        position: "top-center",
+        autoClose: 8000,
+        toastId: "reserve-appointment",
+      });
+      setReserving(false);
+    }
+  }
+
   return (
     <main className="container row">
-      <div class="col-lg-6 px-5">
+      <div className="col-lg-6 px-5">
         <h1>Sacar cita</h1>
-        {campaign && (
-          <Form>
+        {campaign && available && (
+          <Form onSubmit={reserveAppointment}>
             <legend className="fs-5">
               Sacar cita a las {timeslot} para {campaign.title} en{" "}
               {campaign.place} el día {campaign.date}
             </legend>
             <Form.Group className="mb-3" controlId="inputCedula">
               <Form.Label className="fw-semibold fs-5">Cédula</Form.Label>
-              <Form.Control type="text" placeholder="Cédula" />
+              <Form.Control
+                type="number"
+                placeholder="Cédula"
+                name="id"
+                required
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="inputNombre">
               <Form.Label className="fw-semibold fs-5">
                 Nombre completo
               </Form.Label>
-              <Form.Control type="text" placeholder="Nombre completo" />
+              <Form.Control
+                type="text"
+                placeholder="Nombre completo"
+                name="name"
+                required
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="inputTelefono">
               <Form.Label className="fw-semibold fs-5">Teléfono</Form.Label>
-              <Form.Control type="number" placeholder="Teléfono" />
+              <Form.Control
+                type="number"
+                placeholder="Teléfono"
+                name="phone"
+                required
+              />
             </Form.Group>
             <Form.Group className="mb-3" controlId="animal">
               <Form.Label className="fw-semibold fs-5">
@@ -76,6 +148,7 @@ export default function Reservar() {
                 id="perro"
                 defaultChecked
                 required
+                value={"perro"}
               />
               <Form.Check
                 type="radio"
@@ -83,73 +156,78 @@ export default function Reservar() {
                 name="flexAnimal"
                 id="gato"
                 required
+                value={"gato"}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="genero">
               <Form.Label className="fw-semibold fs-5">
-                Género de la mascota
+                Sexo de la mascota
               </Form.Label>
               <Form.Check
                 type="radio"
                 label="Macho"
-                name="flexGenero"
+                name="flexSex"
                 id="macho"
                 defaultChecked
                 required
+                value={"macho"}
               />
               <Form.Check
                 type="radio"
                 label="Hembra"
-                name="flexGenero"
+                name="flexSex"
                 id="hembra"
                 required
+                value={"hembra"}
               />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label className="fw-semibold fs-5">
                 Peso de la mascota
               </Form.Label>
-              <Form.Check
-                type="radio"
-                label="Hasta 10 kg (13000)"
-                name="flexRadioDefault"
-                id="10kg"
-              />
-              <Form.Check
-                type="radio"
-                label="Hasta 15 kg (16000)"
-                name="flexRadioDefault"
-                id="15kg"
-              />
-              <Form.Check
-                type="radio"
-                label="Hasta 20 kg (22000)"
-                name="flexRadioDefault"
-                id="20kg"
-              />
-              <Form.Check
-                type="radio"
-                label="Más de 20 kg (26000)"
-                name="flexRadioDefault"
-                id="+20kg"
-              />
-              <Form.Check
-                type="radio"
-                label="¿Caso especial? (preñez, celo, piometra, etc...) + 5000"
-                name="flexRadioDefault"
-                id="especial"
-              />
+              {campaign.pricesData.map((price, index) => (
+                <Form.Check
+                  key={index}
+                  type="radio"
+                  label={
+                    (price.weight != "100"
+                      ? `Hasta ${price.weight} kg`
+                      : `Más de ${campaign.pricesData[index - 1].weight} kg`) +
+                    ` (₡${price.price})`
+                  }
+                  name="price"
+                  id="10kg"
+                  required
+                  value={JSON.stringify({
+                    price: price.price,
+                    weight: price.weight,
+                  })}
+                />
+              ))}
             </Form.Group>
-
-            <Button variant="primary" type="submit">
+            <Form.Check
+              type="checkbox"
+              label="¿Caso especial? (preñez, celo, piometra, etc...) + ₡5000"
+              name="priceSpecial"
+              id="especial"
+            />
+            <Button
+              className="mt-3"
+              variant="primary"
+              type="submit"
+              disabled={!available.available || reserving}
+            >
               Reservar
             </Button>
+            <Form.Text className="text-muted px-4 fs-6">
+              Quedan {available.available} campos.
+            </Form.Text>
           </Form>
         )}
       </div>
-      <div class="col-lg-6">
+      <div className="col-lg-6">
         <img
-          class="m-5 w-75 rounded align-self-center"
+          className="m-5 w-75 rounded align-self-center"
           src="https://pawsonwheels.pet/wp-content/uploads/2023/11/chjpdmf0zs9sci9pbwfnzxmvd2vic2l0zs8ymdizlta4l3jhd3bpegvsx29mzmljzv8xnv9wag90b19vzl9hx2rvz19ydw5uaw5nx3dpdghfb3duzxjfyxrfcgfya19lcf9mm2i3mdqyzc0znwjlltrlmtqtogzhny1ky2q2owq1yzqzzjlfmi5qc.webp?resize=800%2C533"
         ></img>
       </div>
