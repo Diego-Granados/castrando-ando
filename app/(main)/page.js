@@ -5,19 +5,22 @@ import Link from "next/link";
 import CampaignCard from "@/components/CampaignCard";
 import { db } from "@/lib/firebase/config";
 import { ref, onValue } from "firebase/database";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 export default function Home() {
   const campaignsRef = ref(db, "campaigns");
   const [campaigns, setCampaigns] = useState({});
 
-  onValue(
-    campaignsRef,
-    (snapshot) => {
-      console.log(snapshot.val());
-      setCampaigns(snapshot.val());
-    },
-    { onlyOnce: true }
-  );
+  useEffect(() => {
+    const unsubscribe = onValue(
+      campaignsRef,
+      (snapshot) => {
+        setCampaigns(snapshot.val());
+      },
+      { onlyOnce: true }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <main className="container">

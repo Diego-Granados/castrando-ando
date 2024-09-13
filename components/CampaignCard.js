@@ -28,7 +28,7 @@ export default function CampaignCard({ campaign }) {
               <strong>Cupos: {0}</strong>
             </p>
           </div>
-          <Link href="/campaign">
+          <Link href={`/campaign?id=${campaign.campaign}`}>
             <Button
               variant="primary"
               type="submit"
