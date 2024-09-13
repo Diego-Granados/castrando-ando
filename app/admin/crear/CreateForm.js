@@ -143,7 +143,10 @@ function CreateForm() {
           position: "top-center",
           autoClose: 5000,
           toastId: "create-campaign",
-          onClose: () => router.push("/admin"),
+          onClose: () => {
+            setCreating(false);
+            router.push("/admin");
+          },
         });
       } else {
         toast.error("¡Error al crear la campaña!", {
@@ -151,6 +154,7 @@ function CreateForm() {
           autoClose: 8000,
           toastId: "create-campaign",
         });
+        setCreating(false);
       }
     } catch (error) {
       console.error(error);
@@ -159,8 +163,8 @@ function CreateForm() {
         autoClose: 8000,
         toastId: "create-campaign",
       });
+      setCreating(false);
     }
-    setCreating(false);
   }
   return (
     <Container onSubmit={createCampaign}>
