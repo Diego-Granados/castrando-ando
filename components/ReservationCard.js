@@ -149,16 +149,12 @@ export default function ReservationCard({
           <Modal.Footer>
             <Button
               variant="secondary"
-              onClick={handleCloseCancel}
+              onClick={handleCloseEdit}
               className="px-5"
             >
               No
             </Button>
-            <Button
-              variant="danger"
-              onClick={cancelReservation}
-              className="px-5"
-            >
+            <Button variant="danger" onClick={editReservation} className="px-5">
               Sí
             </Button>
           </Modal.Footer>
