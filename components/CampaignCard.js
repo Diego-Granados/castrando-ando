@@ -3,7 +3,7 @@ import Carousel from "react-bootstrap/Carousel";
 import Link from "next/link";
 import Badge from "react-bootstrap/Badge";
 
-export default function CampaignCard({ campaign }) {
+export default function CampaignCard({ campaign, admin }) {
   const datetime = new Date(campaign.date + "T" + "15:00:00");
   const today = new Date();
   const active = today <= datetime;
@@ -42,7 +42,9 @@ export default function CampaignCard({ campaign }) {
               <strong>Cupos: {campaign.available}</strong>
             </p>
           </div>
-          <Link href={`/campaign?id=${campaign.campaign}`}>
+          <Link
+            href={(admin ? "/admin" : "") + `/campaign?id=${campaign.campaign}`}
+          >
             <Button
               variant="primary"
               type="submit"

@@ -27,7 +27,7 @@ export default function NavBarAdmin() {
   return (
     <Navbar expand="lg" className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">
+        <Navbar.Brand href="/admin">
           <img
             alt=""
             src="/logo.jpg"
@@ -40,8 +40,8 @@ export default function NavBarAdmin() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/admin/crear">Crear</Nav.Link>
-            <Nav.Link href="/admin">Campañas</Nav.Link>
+            <Nav.Link href="/admin/crear">Crear campaña</Nav.Link>
+            <Nav.Link href="/admin">Administrar campañas</Nav.Link>
             <Nav.Link href="/admin/aboutus">Quiénes somos</Nav.Link>
             <Nav.Link href="/admin/contacto">Contacto</Nav.Link>
           </Nav>
