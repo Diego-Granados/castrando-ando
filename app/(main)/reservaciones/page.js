@@ -7,17 +7,15 @@ import ReservationCard from "@/components/ReservationCard";
 
 export default function Reservaciones() {
   const [appointments, setAppointments] = useState(null);
-  const [cedula, setCedula] = useState("");
+  const [cedula, setCedula] = useState("118790544");
   const [name, setName] = useState("");
   async function getAppointments(event) {
     event.preventDefault();
     const dbRef = ref(db);
 
     get(child(dbRef, `/appointments/${cedula}`)).then((snapshot) => {
-      console.log(snapshot.val());
       if (snapshot.exists()) {
         const data = snapshot.val();
-        console.log(data);
         Object.keys(data).forEach((appointment) => {
           if (!data[appointment].enabled) delete data[appointment];
         });
@@ -27,7 +25,6 @@ export default function Reservaciones() {
       }
     });
     get(child(dbRef, `/users/${cedula}`)).then((snapshot) => {
-      console.log(snapshot.val());
       if (snapshot.exists()) {
         setName(snapshot.val().name);
       } else {
