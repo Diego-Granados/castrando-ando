@@ -48,6 +48,7 @@ export default function Reservar() {
     const rawFormData = {
       id: formData.get("id"),
       name: formData.get("name"),
+      pet: formData.get("pet"),
       phone: formData.get("phone"),
       animal: formData.get("flexAnimal") == "perro" ? true : false,
       sex: formData.get("flexSex") == "macho" ? true : false,
@@ -55,6 +56,9 @@ export default function Reservar() {
       priceSpecial: formData.get("priceSpecial") ? true : false,
       campaignId: campaignId,
       timeslot: timeslot,
+      campaign: campaign.name,
+      date: campaign.date,
+      place: campaign.place,
     };
 
     console.log(rawFormData);
@@ -134,6 +138,18 @@ export default function Reservar() {
                 type="number"
                 placeholder="Teléfono"
                 name="phone"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="pet">
+              <Form.Label className="fw-semibold fs-5">
+                Nombre de su mascota
+              </Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Mascota"
+                name="pet"
                 required
               />
             </Form.Group>

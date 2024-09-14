@@ -22,7 +22,10 @@ export async function POST(req) {
     updates[
       `inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${newInscriptionRef.key}`
     ] = {
+      id: formData.id,
+      name: formData.name,
       phone: formData.phone,
+      pet: formData.pet,
       animal: formData.animal,
       sex: formData.sex,
       priceData: formData.priceData,
@@ -30,9 +33,21 @@ export async function POST(req) {
       enabled: true,
     };
 
-    updates[`/users/${formData.phone}`] = {
-      id: formData.id,
+    updates[`/users/${formData.id}`] = {
+      phone: formData.phone,
       name: formData.name,
+    };
+    updates[`/appointments/${formData.id}/${newInscriptionRef.key}`] = {
+      campaignId: formData.campaignId,
+      timeslot: formData.timeslot,
+      campaign: formData.campaignId,
+      date: formData.date,
+      place: formData.place,
+      animal: formData.animal,
+      pet: formData.pet,
+      priceData: formData.priceData,
+      priceSpecial: formData.priceSpecial,
+      enabled: true,
     };
 
     await update(ref(db), updates);

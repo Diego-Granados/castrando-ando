@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Button from "react-bootstrap/Button";
 import Link from "next/link";
-import Pagination from 'react-bootstrap/Pagination'
+import Pagination from "react-bootstrap/Pagination";
 import CampaignCard from "@/components/CampaignCard";
 import { db } from "@/lib/firebase/config";
 import { ref, onValue } from "firebase/database";
@@ -10,7 +10,6 @@ import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
 
 export default function Home() {
-  
   const campaignsRef = ref(db, "campaigns");
   const [campaigns, setCampaigns] = useState({});
   const [activePage, setActivePage] = useState(1);
@@ -31,8 +30,12 @@ export default function Home() {
     .reverse()
     .slice(FirstperPage, LastperPage);
 
-  {/* Esto sirve para generar la cantidad de botones*/}
-  const totalPages = Math.ceil(Object.keys(campaigns).length / campaignsPerPage);   
+  {
+    /* Esto sirve para generar la cantidad de botones*/
+  }
+  const totalPages = Math.ceil(
+    Object.keys(campaigns).length / campaignsPerPage
+  );
 
   const items = [];
   for (let number = 1; number <= totalPages; number++) {
@@ -52,24 +55,38 @@ export default function Home() {
       <h1>Asociación Animalitos Abandonados</h1>
       <div className="d-flex justify-content-center align-items-center">
         {/* Mostrar las campañas de la página actual */}
-          {currentCampaigns.map((campaign) => (
-            <CampaignCard
-              key={campaign}
-              campaign={{ campaign, ...campaigns[campaign] }}
-            />
-          ))}
+        {currentCampaigns.map((campaign) => (
+          <CampaignCard
+            key={campaign}
+            campaign={{ campaign, ...campaigns[campaign] }}
+          />
+        ))}
       </div>
       <div className="d-flex justify-content-center align-items-center">
-        
         <Pagination size="sm">
           <Pagination.First onClick={() => setActivePage(1)} />
-          <Pagination.Prev onClick={() => setActivePage(prev => Math.max(prev - 1, 1))}/>
-            {items}
-          <Pagination.Next onClick={() => setActivePage(prev => Math.min(prev + 1, totalPages))}/>
-          <Pagination.Last  onClick={() => setActivePage(totalPages)}/>
+          <Pagination.Prev
+            onClick={() => setActivePage((prev) => Math.max(prev - 1, 1))}
+          />
+          {items}
+          <Pagination.Next
+            onClick={() =>
+              setActivePage((prev) => Math.min(prev + 1, totalPages))
+            }
+          />
+          <Pagination.Last onClick={() => setActivePage(totalPages)} />
         </Pagination>
       </div>
-      <Link href="adminlogin">Ingresar como administrador</Link>
+      <Row className="d-flex justify-content-center">
+        <Col className="d-flex justify-content-center">
+          <Link href="reservaciones">
+            Ingresá con tu número de teléfono para revisar tus citas
+          </Link>
+        </Col>
+        <Col className="d-flex justify-content-center">
+          <Link href="adminlogin">Ingresar como administrador</Link>
+        </Col>
+      </Row>
     </main>
   );
 }
