@@ -10,7 +10,7 @@ import Stack from "react-bootstrap/Stack";
 import Badge from "react-bootstrap/Badge";
 import { get, ref, child } from "firebase/database";
 import { db } from "@/lib/firebase/config";
-
+import Link from "next/link";
 export default function ReservationCard({
   reservation,
   id,
@@ -131,6 +131,9 @@ export default function ReservationCard({
             <br />
             Teléfono de contacto: {phone}
           </Card.Text>
+          <Link href={`/campaign?id=${reservation.campaignId}`}>
+            <Button variant="light">Ver campaña</Button>
+          </Link>
           <Button
             variant="primary"
             className="px-3 mx-4"

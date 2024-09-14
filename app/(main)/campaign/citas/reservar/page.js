@@ -23,6 +23,12 @@ export default function Reservar() {
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       setCampaign(snapshot.val());
+      const datetime = new Date(snapshot.val().date + "T" + "15:00:00");
+      const today = new Date();
+      const active = today <= datetime;
+      if (!active) {
+        router.push("/");
+      }
     });
 
     const inscriptionsRef = ref(db, `inscriptions/${campaignId}/${timeslot}`);

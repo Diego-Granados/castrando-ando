@@ -7,11 +7,13 @@ import { ref, onValue } from "firebase/database";
 import { Carousel } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Badge from "react-bootstrap/Badge";
+
 export default function Campaign() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
   const [campaign, setCampaign] = useState(null);
-
+  const [active, setActive] = useState(true);
   const router = useRouter();
   if (!campaignId) {
     router.push("/");
@@ -28,6 +30,9 @@ export default function Campaign() {
       }
       const value = snapshot.val();
       console.log(value);
+      const datetime = new Date(value.date + "T" + "15:00:00");
+      const today = new Date();
+      setActive(today <= datetime);
       setCampaign(value);
     });
 
@@ -67,6 +72,9 @@ export default function Campaign() {
             <div className="card shadow-sm">
               <div className="card-body">
                 <h2 className="card-title text-center">{campaign.title}</h2>
+                <Badge bg={active ? "success" : "danger"} className="mb-3">
+                  {active ? "Activa" : "Terminada"}
+                </Badge>
                 <h3 className="card-title">Fecha</h3>
                 <p className="card-text">{campaign.date}</p>
                 <h3 className="card-title">Lugar</h3>
@@ -96,16 +104,18 @@ export default function Campaign() {
                     otros)
                   </strong>
                 </p>
-                <div className="d-flex justify-content-center">
-                  <Link href={`campaign/citas?id=${campaignId}`}>
-                    <Button
-                      variant="primary"
-                      aria-label={`Agendar cita para ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
-                    >
-                      AGENDAR CITA
-                    </Button>
-                  </Link>
-                </div>
+                {active && (
+                  <div className="d-flex justify-content-center">
+                    <Link href={`campaign/citas?id=${campaignId}`}>
+                      <Button
+                        variant="primary"
+                        aria-label={`Agendar cita para ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
+                      >
+                        AGENDAR CITA
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </Col>
