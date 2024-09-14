@@ -10,18 +10,13 @@ export default function CampaignCard({ campaign, admin }) {
 
   return (
     <article
-      className="container row col-lg-6 px-3 my-3"
+      className="container row col-lg-6 px-3 my-1 w-75 mh-50"
       style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)" }}
     >
-      <Carousel className="col my-5">
+      <Carousel className="col py-5">
         {campaign.photos.map((photo) => (
           <Carousel.Item key={photo}>
-            <img
-              className="d-block w-100"
-              style={{ objectFit: "cover", height: "50vh", width: "auto" }}
-              src={photo}
-              alt=""
-            />
+            <img className="d-block w-100" style={{objectFit:'contain',height:'55vh', width:'auto'}} src={photo} alt="" />
           </Carousel.Item>
         ))}
       </Carousel>

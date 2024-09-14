@@ -49,7 +49,7 @@ export default function Campaign() {
               <Carousel>
                 {campaign.photos.map((photo) => (
                   <Carousel.Item key={photo}>
-                    <img className="d-block w-100" src={photo} alt="" />
+                    <img className="img-fluid d-block w-100"style={{objectFit:'contain',height:'50vh', width:'auto'}} src={photo} alt="" />
                   </Carousel.Item>
                 ))}
               </Carousel>
