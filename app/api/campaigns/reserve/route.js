@@ -40,7 +40,7 @@ export async function POST(req) {
     updates[`/appointments/${formData.id}/${newInscriptionRef.key}`] = {
       campaignId: formData.campaignId,
       timeslot: formData.timeslot,
-      campaign: formData.campaignId,
+      campaign: formData.campaign,
       date: formData.date,
       place: formData.place,
       animal: formData.animal,

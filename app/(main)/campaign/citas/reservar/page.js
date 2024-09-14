@@ -56,7 +56,7 @@ export default function Reservar() {
       priceSpecial: formData.get("priceSpecial") ? true : false,
       campaignId: campaignId,
       timeslot: timeslot,
-      campaign: campaign.name,
+      campaign: campaign.title,
       date: campaign.date,
       place: campaign.place,
     };
