@@ -133,7 +133,9 @@ export default function Reservar() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="inputTelefono">
-              <Form.Label className="fw-semibold fs-5">Teléfono</Form.Label>
+              <Form.Label className="fw-semibold fs-5">
+                Teléfono de contacto
+              </Form.Label>
               <Form.Control
                 type="number"
                 placeholder="Teléfono"

@@ -9,6 +9,7 @@ export default function Reservaciones() {
   const [appointments, setAppointments] = useState(null);
   const [cedula, setCedula] = useState("118790544");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   async function getAppointments(event) {
     event.preventDefault();
     const dbRef = ref(db);
@@ -27,6 +28,7 @@ export default function Reservaciones() {
     get(child(dbRef, `/users/${cedula}`)).then((snapshot) => {
       if (snapshot.exists()) {
         setName(snapshot.val().name);
+        setPhone(snapshot.val().phone);
       } else {
         setName(cedula);
       }
@@ -65,6 +67,10 @@ export default function Reservaciones() {
                   appointmentKey={appointment}
                   appointments={appointments}
                   setAppointments={setAppointments}
+                  name={name}
+                  setName={setName}
+                  phone={phone}
+                  setPhone={setPhone}
                 />
               );
             }

@@ -8,76 +8,104 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import Stack from "react-bootstrap/Stack";
 import Badge from "react-bootstrap/Badge";
+import { get, ref, child } from "firebase/database";
+import { db } from "@/lib/firebase/config";
+
 export default function ReservationCard({
   reservation,
   id,
   appointmentKey,
   appointments,
   setAppointments,
+  name,
+  setName,
+  phone,
+  setPhone,
 }) {
-  const [showCancel, setShowCancel] = useState(false);
-
-  const handleCloseCancel = () => setShowCancel(false);
-  const handleShowCancel = () => setShowCancel(true);
   const datetime = new Date(reservation.date + "T" + reservation.timeslot);
   const today = new Date();
   const active = today <= datetime;
-  console.log(active);
+
+  const [showCancel, setShowCancel] = useState(false);
+  const handleCloseCancel = () => setShowCancel(false);
+  const handleShowCancel = () => setShowCancel(true);
+
   async function cancelReservation() {
-    const currentDate = new Date();
-    if (currentDate > datetime) {
-      toast.error("No se puede cancelar una cita pasada.");
+    const response = await fetch("/api/reservations/cancel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        formData: { id, appointmentKey, ...reservation },
+      }),
+    });
+    if (response.ok) {
+      toast.success("Cita cancelada correctamente.");
+      const updated = { ...appointments };
+      delete updated[appointmentKey];
+      setAppointments(updated);
     } else {
-      const response = await fetch("/api/reservations/cancel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          formData: { id, appointmentKey, ...reservation },
-        }),
-      });
-      if (response.ok) {
-        toast.success("Cita cancelada correctamente.");
-        const updated = { ...appointments };
-        delete updated[appointmentKey];
-        setAppointments(updated);
-      } else {
-        toast.error("Error al cancelar la cita.");
-      }
+      toast.error("Error al cancelar la cita.");
     }
     handleCloseCancel();
   }
 
   const [showEdit, setShowEdit] = useState(false);
+  const [campaign, setCampaign] = useState(null);
 
   const handleCloseEdit = () => setShowEdit(false);
-  const handleShowEdit = () => setShowEdit(true);
+  const handleShowEdit = () => {
+    get(child(ref(db), `campaigns/${reservation.campaignId}`)).then(
+      (snapshot) => {
+        setCampaign(snapshot.val());
+      }
+    );
+    setShowEdit(true);
+  };
 
-  async function editReservation() {
-    const currentDate = new Date();
-    // if (currentDate > datetime) {
-    //   toast.error("No se puede cancelar una cita pasada.");
-    // } else {
-    //   const response = await fetch("/api/reservations/cancel", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       formData: { id, appointmentKey, ...reservation },
-    //     }),
-    //   });
-    //   if (response.ok) {
-    //     toast.success("Cita cancelada correctamente.");
-    //     const updated = { ...appointments };
-    //     delete updated[appointmentKey];
-    //     setAppointments(updated);
-    //   } else {
-    //     toast.error("Error al cancelar la cita.");
-    //   }
-    // }
-    handleCloseCancel();
+  async function editReservation(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const rawFormData = {
+      name: formData.get("name"),
+      pet: formData.get("pet"),
+      phone: formData.get("phone"),
+      animal: formData.get("flexAnimal") == "perro" ? true : false,
+      sex: formData.get("flexSex") == "macho" ? true : false,
+      priceData: JSON.parse(formData.get("price")),
+      priceSpecial: formData.get("priceSpecial") ? true : false,
+      appointmentKey,
+      id,
+      campaignId: reservation.campaignId,
+      timeslot: reservation.timeslot,
+    };
+    console.log(rawFormData);
+
+    const response = await fetch("/api/reservations/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        formData: { id, appointmentKey, ...reservation, name, phone },
+      }),
+    });
+    if (response.ok) {
+      toast.success("Cita actualizada correctamente.");
+      const updated = { ...appointments };
+      updated[appointmentKey] = {
+        ...appointments[appointmentKey],
+        ...rawFormData,
+      };
+      setAppointments(updated);
+      setName(rawFormData.name);
+      setPhone(rawFormData.phone);
+    } else {
+      toast.error("Error al actualizar la cita.");
+    }
+
+    handleCloseEdit();
   }
 
   return (
@@ -99,13 +127,15 @@ export default function ReservationCard({
             Animal: {reservation.animal ? "Perro" : "Gato"} <br />
             Sexo: {reservation.sex ? "Macho" : "Hembra"} <br />
             Precio: ₡{reservation.priceData.price}{" "}
-            {reservation.priceSpecial && "+ cargo por situación especial"}
+            {reservation.priceSpecial && "+ cargo por situación especial"}{" "}
+            <br />
+            Teléfono de contacto: {phone}
           </Card.Text>
           <Button
             variant="primary"
             className="px-3 mx-4"
             onClick={handleShowEdit}
-            disabled={active}
+            disabled={!active}
           >
             Editar
           </Button>
@@ -141,21 +171,144 @@ export default function ReservationCard({
       </Modal>
 
       <Modal show={showEdit} onHide={handleCloseEdit} centered>
-        <Form>
-          <Modal.Header closeButton>
-            <Modal.Title>Editar cita para {reservation.pet}?</Modal.Title>
-          </Modal.Header>
-          <Modal.Body></Modal.Body>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar cita para {reservation.pet}?</Modal.Title>
+        </Modal.Header>
+        <Form id="editForm" onSubmit={editReservation}>
+          <Modal.Body>
+            {campaign && (
+              <>
+                <Form.Group className="mb-3" controlId="inputNombre">
+                  <Form.Label className="fw-semibold fs-5">
+                    Nombre completo
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Nombre completo"
+                    name="name"
+                    required
+                    defaultValue={name}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="inputTelefono">
+                  <Form.Label className="fw-semibold fs-5">
+                    Teléfono de contacto
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Teléfono"
+                    name="phone"
+                    required
+                    defaultValue={phone}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="pet">
+                  <Form.Label className="fw-semibold fs-5">
+                    Nombre de su mascota
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Mascota"
+                    name="pet"
+                    required
+                    defaultValue={reservation.pet}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="animal">
+                  <Form.Label className="fw-semibold fs-5">
+                    ¿Perro o gato?
+                  </Form.Label>
+                  <Form.Check
+                    type="radio"
+                    label="Perro"
+                    name="flexAnimal"
+                    id="perro"
+                    defaultChecked={reservation.animal}
+                    required
+                    value={"perro"}
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="Gato"
+                    name="flexAnimal"
+                    id="gato"
+                    required
+                    value={"gato"}
+                    defaultChecked={!reservation.animal}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="genero">
+                  <Form.Label className="fw-semibold fs-5">
+                    Sexo de la mascota
+                  </Form.Label>
+                  <Form.Check
+                    type="radio"
+                    label="Macho"
+                    name="flexSex"
+                    id="macho"
+                    defaultChecked={reservation.sex}
+                    required
+                    value={"macho"}
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="Hembra"
+                    name="flexSex"
+                    id="hembra"
+                    required
+                    value={"hembra"}
+                    defaultChecked={!reservation.sex}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-semibold fs-5">
+                    Peso de la mascota
+                  </Form.Label>
+                  {campaign.pricesData.map((price, index) => (
+                    <Form.Check
+                      key={index}
+                      type="radio"
+                      label={
+                        (price.weight != "100"
+                          ? `Hasta ${price.weight} kg`
+                          : `Más de ${campaign.pricesData[index - 1].weight} kg`) +
+                        ` (₡${price.price})`
+                      }
+                      name="price"
+                      id="10kg"
+                      required
+                      value={JSON.stringify({
+                        price: price.price,
+                        weight: price.weight,
+                      })}
+                      defaultChecked={
+                        reservation.priceData.weight == price.weight
+                      }
+                    />
+                  ))}
+                </Form.Group>
+                <Form.Check
+                  type="checkbox"
+                  label="¿Caso especial? (preñez, celo, piometra, etc...) + ₡5000"
+                  name="priceSpecial"
+                  id="especial"
+                  defaultChecked={reservation.priceSpecial}
+                />
+                <Form.Text className="text-muted">
+                  Si desea cambiar la hora de la cita, debe cancelar esta cita y
+                  sacar una nueva.
+                </Form.Text>
+              </>
+            )}
+          </Modal.Body>
           <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={handleCloseEdit}
-              className="px-5"
-            >
-              No
+            <Button variant="secondary" onClick={handleCloseEdit}>
+              Cancelar
             </Button>
-            <Button variant="danger" onClick={editReservation} className="px-5">
-              Sí
+            <Button variant="primary" type="submit">
+              Guardar cambios
             </Button>
           </Modal.Footer>
         </Form>
