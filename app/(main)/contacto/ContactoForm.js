@@ -23,10 +23,7 @@ export default function Contacto() {
             router.push("/")
         }
     }
-
-    console.log(rawFormData);
-    router.push("/");
-  }
+  
 
   return (
     <Form onSubmit={contactoData}>
