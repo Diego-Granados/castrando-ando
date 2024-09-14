@@ -1,11 +1,12 @@
 "use client";
-import Image from "next/image";
 import { Button, Form, FormGroup } from "react-bootstrap";
 import { useRouter } from "next/navigation";
+import { sendEmail } from "@/lib/firebase/Brevo";
 
 export default function Contacto() {
     const router = useRouter()
     async function contactoData(event) {
+        const formData = new FormData(event.target);
         event.preventDefault();
         const rawFormData = {
             cedula: formData.get("cédula"),
@@ -14,9 +15,13 @@ export default function Contacto() {
             mensaje: formData.get("msg"),
             notificaciones: formData.get("notis")
           };
-      
-          console.log(rawFormData);
-        router.push("/")
+
+        //Mandar correos, se debe mandar el correo a la asociacion, pero por ahora me lo mando a mi
+        if(rawFormData.correo !== ""){
+            console.log(rawFormData)
+            await sendEmail(rawFormData.mensaje, rawFormData.correo, rawFormData.nombre, rawFormData.cedula)
+            router.push("/")
+        }
     }
 
   return (
@@ -39,7 +44,7 @@ export default function Contacto() {
         </Form.Group>
         <FormGroup className="mb-3 form-check">
             <input type="checkbox" className="form-check-input" id="exampleCheck1" name="notis"/>
-            <Form.Label className="form-check-label" for="exampleCheck1">Quiero recibir notificaciones de futuras campañas</Form.Label>
+            <Form.Label className="form-check-label" htmlFor="exampleCheck1">Quiero recibir notificaciones de futuras campañas</Form.Label>
         </FormGroup>
         <Button variant="danger" type="submit">
             Enviar
