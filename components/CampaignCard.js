@@ -10,7 +10,7 @@ export default function CampaignCard({ campaign }) {
       <Carousel className="col my-5">
         {campaign.photos.map((photo) => (
           <Carousel.Item key={photo}>
-            <img className="d-block w-100" src={photo} alt="" />
+            <img className="d-block w-100" style={{objectFit:'cover',height:'50vh', width:'auto'}} src={photo} alt="" />
           </Carousel.Item>
         ))}
       </Carousel>

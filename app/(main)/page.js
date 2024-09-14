@@ -53,7 +53,7 @@ export default function Home() {
   return (
     <main className="container">
       <h1>Asociación Animalitos Abandonados</h1>
-      <div className="d-flex justify-content-center align-items-center">
+      <div className="d-flex justify-content-center">
         {/* Mostrar las campañas de la página actual */}
         {currentCampaigns.map((campaign) => (
           <CampaignCard
