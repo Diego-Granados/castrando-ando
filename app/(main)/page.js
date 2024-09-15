@@ -18,7 +18,7 @@ export default function Home() {
   const [currentCampaigns, setCurrentCampaigns] = useState(null);
   const [items, setItems] = useState(null);
   const [totalPages, setTotalPages] = useState(null);
-  
+
   useEffect(() => {
     const unsubscribe = onValue(campaignsRef, (snapshot) => {
       if (!snapshot.exists()) {
@@ -32,36 +32,38 @@ export default function Home() {
       });
       setCampaigns(data);
     });
-      return () => unsubscribe();
-    },[]);
+    return () => unsubscribe();
+  }, []);
 
-    useEffect(() =>{
-      const LastperPage = activePage * campaignsPerPage;
-      const FirstperPage = LastperPage - campaignsPerPage;
-      const currentCampaigns = Object.keys(campaigns)
-        .reverse()
-        .slice(FirstperPage, LastperPage);
+  useEffect(() => {
+    const LastperPage = activePage * campaignsPerPage;
+    const FirstperPage = LastperPage - campaignsPerPage;
+    const currentCampaigns = Object.keys(campaigns)
+      .reverse()
+      .slice(FirstperPage, LastperPage);
 
-      setCurrentCampaigns(currentCampaigns);
+    setCurrentCampaigns(currentCampaigns);
 
-      /* Esto sirve para generar la cantidad de botones*/
-      const totalPages = Math.ceil(Object.keys(campaigns).length / campaignsPerPage);
-      setTotalPages(totalPages);
+    /* Esto sirve para generar la cantidad de botones*/
+    const totalPages = Math.ceil(
+      Object.keys(campaigns).length / campaignsPerPage
+    );
+    setTotalPages(totalPages);
 
-      const items = [];
-      for (let number = 1; number <= totalPages; number++) {
-        items.push(
-          <Pagination.Item
-            key={number}
-            active={number === activePage}
-            onClick={() => setActivePage(number)}
-          >
-            {number}
-          </Pagination.Item>
-        );
-      }
-      setItems(items);
-    },[activePage,campaigns]);
+    const items = [];
+    for (let number = 1; number <= totalPages; number++) {
+      items.push(
+        <Pagination.Item
+          key={number}
+          active={number === activePage}
+          onClick={() => setActivePage(number)}
+        >
+          {number}
+        </Pagination.Item>
+      );
+    }
+    setItems(items);
+  }, [activePage, campaigns]);
 
   return (
     <main className="container">
