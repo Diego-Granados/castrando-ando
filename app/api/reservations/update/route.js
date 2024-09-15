@@ -46,6 +46,8 @@ export async function POST(req) {
       formData.priceSpecial;
     updates[`/appointments/${formData.id}/${appointmentKey}/sex`] =
       formData.sex;
+    updates[`/appointments/${formData.id}/${appointmentKey}/phone`] =
+      formData.phone;
 
     console.log(updates);
     await update(ref(db), updates);

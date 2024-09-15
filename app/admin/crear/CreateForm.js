@@ -341,7 +341,7 @@ function CreateForm() {
           className="mt-3 mb-5"
           disabled={creating}
         >
-          Enviar
+          Crear campaña
         </Button>
       </Form>
     </Container>

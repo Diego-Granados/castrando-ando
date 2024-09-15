@@ -42,8 +42,6 @@ export default function NavBarAdmin() {
           <Nav className="me-auto">
             <Nav.Link href="/admin/crear">Crear campaña</Nav.Link>
             <Nav.Link href="/admin">Administrar campañas</Nav.Link>
-            <Nav.Link href="/admin/aboutus">Quiénes somos</Nav.Link>
-            <Nav.Link href="/admin/contacto">Contacto</Nav.Link>
           </Nav>
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>

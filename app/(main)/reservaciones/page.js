@@ -7,7 +7,7 @@ import ReservationCard from "@/components/ReservationCard";
 
 export default function Reservaciones() {
   const [appointments, setAppointments] = useState(null);
-  const [cedula, setCedula] = useState("118790544");
+  const [cedula, setCedula] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   async function getAppointments(event) {

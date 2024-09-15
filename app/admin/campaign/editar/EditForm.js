@@ -357,7 +357,7 @@ function EditForm({ campaign, campaignId }) {
           className="mt-3 mb-5 mx-5"
           disabled={updating}
         >
-          Enviar
+          Guardiar cambios
         </Button>
         <Link href={`/admin/campaign?id=${campaignId}`} className="px-5">
           <Button variant="link">Regresar</Button>

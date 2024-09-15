@@ -19,8 +19,6 @@ export default function ReservationCard({
   setAppointments,
   name,
   setName,
-  phone,
-  setPhone,
 }) {
   const datetime = new Date(
     reservation.date +
@@ -93,7 +91,7 @@ export default function ReservationCard({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        formData: { id, appointmentKey, ...reservation, name, phone },
+        formData: rawFormData, //{ id, appointmentKey, ...reservation, name },
       }),
     });
     if (response.ok) {
@@ -105,7 +103,6 @@ export default function ReservationCard({
       };
       setAppointments(updated);
       setName(rawFormData.name);
-      setPhone(rawFormData.phone);
     } else {
       toast.error("Error al actualizar la cita.");
     }
@@ -134,7 +131,7 @@ export default function ReservationCard({
             Precio: ₡{reservation.priceData.price}{" "}
             {reservation.priceSpecial && "+ cargo por situación especial"}{" "}
             <br />
-            Teléfono de contacto: {phone}
+            Teléfono de contacto: {reservation.phone}
           </Card.Text>
           <Link href={`/campaign?id=${reservation.campaignId}`}>
             <Button variant="light">Ver campaña</Button>
@@ -208,7 +205,7 @@ export default function ReservationCard({
                     placeholder="Teléfono"
                     name="phone"
                     required
-                    defaultValue={phone}
+                    defaultValue={reservation.phone}
                   />
                 </Form.Group>
 
