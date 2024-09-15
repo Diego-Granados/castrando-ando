@@ -19,7 +19,6 @@ export default function AboutUs() {
         <h2 className="mb-4 text-center">Indicaciones para las citas</h2>
         <img className="img-fluid col" style={{maxHeight:'50vh', width:'auto'}} src="https://i.pinimg.com/564x/3b/68/d0/3b68d096d40b378ed567b506312b17c6.jpg"></img>
         <article className="col">
-          <p>
             <font size='6'>Para animales en perfecto estado de salud:
               <ul>
                 <li>
@@ -27,7 +26,6 @@ export default function AboutUs() {
                 </li>
               </ul>
             </font>
-          </p>
         </article>
       </div>
     </main>

@@ -11,14 +11,14 @@ import { Row, Col } from "react-bootstrap";
 
 export default function Home() {
   const campaignsRef = ref(db, "campaigns");
-  const [campaigns, setCampaigns] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
   const [activePage, setActivePage] = useState(1);
   const campaignsPerPage = 1; // Número de campañas por página
 
   const [currentCampaigns, setCurrentCampaigns] = useState(null);
   const [items, setItems] = useState(null);
   const [totalPages, setTotalPages] = useState(null);
-
+  
   useEffect(() => {
     const unsubscribe = onValue(campaignsRef, (snapshot) => {
       if (!snapshot.exists()) {
@@ -31,18 +31,21 @@ export default function Home() {
         if (!data[campaign].enabled) delete data[campaign];
       });
       setCampaigns(data);
+    });
+      return () => unsubscribe();
+    },[]);
 
+    useEffect(() =>{
       const LastperPage = activePage * campaignsPerPage;
       const FirstperPage = LastperPage - campaignsPerPage;
-
-      const currentCampaigns = Object.keys(data)
+      const currentCampaigns = Object.keys(campaigns)
         .reverse()
         .slice(FirstperPage, LastperPage);
 
       setCurrentCampaigns(currentCampaigns);
 
       /* Esto sirve para generar la cantidad de botones*/
-      const totalPages = Math.ceil(Object.keys(data).length / campaignsPerPage);
+      const totalPages = Math.ceil(Object.keys(campaigns).length / campaignsPerPage);
       setTotalPages(totalPages);
 
       const items = [];
@@ -58,10 +61,7 @@ export default function Home() {
         );
       }
       setItems(items);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    },[activePage,campaigns]);
 
   return (
     <main className="container">
@@ -99,7 +99,7 @@ export default function Home() {
       <Row className="d-flex justify-content-center">
         <Col className="d-flex justify-content-center">
           <Link href="reservaciones">
-            Ingresá con tu número de teléfono para revisar tus citas
+            Ingresá con tu número de cédula para revisar tus citas
           </Link>
         </Col>
         <Col className="d-flex justify-content-center">
