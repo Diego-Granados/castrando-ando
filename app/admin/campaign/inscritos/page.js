@@ -35,6 +35,10 @@ export default function Citas() {
   ];
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("No data available");
+        return;
+      }
       setCampaign(snapshot.val());
     });
 

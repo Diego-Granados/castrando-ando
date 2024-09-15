@@ -42,7 +42,7 @@ export default function Campaign() {
   return (
     <main className="container">
       <h1>Asociación Animalitos Abandonados</h1>
-      {campaign && (
+      {campaign ? (
         <Row>
           <Col xs={12} sm={6}>
             <div className="card shadow-sm">
@@ -129,6 +129,8 @@ export default function Campaign() {
             </div>
           </Col>
         </Row>
+      ) : (
+        <h2>No hay una campaña. Regrese el menú principal.</h2>
       )}
     </main>
   );

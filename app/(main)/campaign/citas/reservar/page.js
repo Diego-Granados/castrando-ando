@@ -22,6 +22,10 @@ export default function Reservar() {
 
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("No data available");
+        return;
+      }
       setCampaign(snapshot.val());
       const datetime = new Date(snapshot.val().date + "T" + "15:00:00");
       const today = new Date();

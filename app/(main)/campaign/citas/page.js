@@ -30,6 +30,10 @@ export default function Citas() {
   ];
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("No data available");
+        return;
+      }
       setCampaign(snapshot.val());
       const datetime = new Date(snapshot.val().date + "T" + "15:00:00");
       const today = new Date();
@@ -57,7 +61,7 @@ export default function Citas() {
   return (
     <main className="container">
       <h1>Sacar cita</h1>
-      {campaign && (
+      {campaign ? (
         <Table striped bordered hover>
           <caption>
             Sacar cita para {campaign.title} en {campaign.place} el día{" "}
@@ -99,6 +103,8 @@ export default function Citas() {
               })}
           </tbody>
         </Table>
+      ) : (
+        <h2>No hay un campaña. Regrese al menú principal.</h2>
       )}
     </main>
   );
