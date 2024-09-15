@@ -32,36 +32,43 @@ export default function Home() {
       });
       setCampaigns(data);
     });
-      return () => unsubscribe();
-    },[]);
+    return () => unsubscribe();
+  }, []);
 
-    useEffect(() =>{
-      const LastperPage = activePage * campaignsPerPage;
-      const FirstperPage = LastperPage - campaignsPerPage;
-      const currentCampaigns = Object.keys(campaigns)
-        .reverse()
-        .slice(FirstperPage, LastperPage);
+  useEffect(() => {
+    const LastperPage = activePage * campaignsPerPage;
+    const FirstperPage = LastperPage - campaignsPerPage;
+    const sortedCampaignKeys = Object.keys(campaigns).sort((a, b) => {
+      return new Date(campaigns[b].date) - new Date(campaigns[a].date);
+    });
 
-      setCurrentCampaigns(currentCampaigns);
+    const currentCampaigns = sortedCampaignKeys.slice(
+      FirstperPage,
+      LastperPage
+    );
 
-      /* Esto sirve para generar la cantidad de botones*/
-      const totalPages = Math.ceil(Object.keys(campaigns).length / campaignsPerPage);
-      setTotalPages(totalPages);
+    setCurrentCampaigns(currentCampaigns);
 
-      const items = [];
-      for (let number = 1; number <= totalPages; number++) {
-        items.push(
-          <Pagination.Item
-            key={number}
-            active={number === activePage}
-            onClick={() => setActivePage(number)}
-          >
-            {number}
-          </Pagination.Item>
-        );
-      }
-      setItems(items);
-    },[activePage,campaigns]);
+    /* Esto sirve para generar la cantidad de botones*/
+    const totalPages = Math.ceil(
+      Object.keys(campaigns).length / campaignsPerPage
+    );
+    setTotalPages(totalPages);
+
+    const items = [];
+    for (let number = 1; number <= totalPages; number++) {
+      items.push(
+        <Pagination.Item
+          key={number}
+          active={number === activePage}
+          onClick={() => setActivePage(number)}
+        >
+          {number}
+        </Pagination.Item>
+      );
+    }
+    setItems(items);
+  }, [activePage, campaigns]);
 
   return (
     <main className="container">

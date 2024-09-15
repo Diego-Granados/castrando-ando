@@ -40,8 +40,6 @@ export default function Home() {
     const FirstperPage = LastperPage - campaignsPerPage;
 
     const sortedCampaignKeys = Object.keys(campaigns).sort((a, b) => {
-      // Assuming `campaign[a].date` and `campaign[b].date` are valid date strings
-      // Convert the dates to timestamps for comparison
       return new Date(campaigns[b].date) - new Date(campaigns[a].date);
     });
 
