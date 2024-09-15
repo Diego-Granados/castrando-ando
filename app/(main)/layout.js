@@ -10,6 +10,7 @@ export const metadata = {
 import Link from "next/link";
 import "./globals.css";
 import { Mail, Phone } from "lucide-react";
+import { Suspense } from "react";
 
 export default function RootLayout({ children }) {
   return (
@@ -19,7 +20,7 @@ export default function RootLayout({ children }) {
           <NavBar />
         </header>{" "}
         <ToastContainer />
-        {children}
+        <Suspense fallback={<h2>Cargando...</h2>}>{children}</Suspense>
         <footer className="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top px-5">
           <div className="col-md-4 d-flex align-items-center">
             <Link

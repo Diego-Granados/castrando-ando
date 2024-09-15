@@ -1,0 +1,55 @@
+[debug] [2024-09-15T23:15:20.917Z] ----------------------------------------------------------------------
+[debug] [2024-09-15T23:15:20.920Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\dandi\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting
+[debug] [2024-09-15T23:15:20.920Z] CLI Version:   13.16.0
+[debug] [2024-09-15T23:15:20.920Z] Platform:      win32
+[debug] [2024-09-15T23:15:20.920Z] Node Version:  v20.12.0
+[debug] [2024-09-15T23:15:20.920Z] Time:          Sun Sep 15 2024 17:15:20 GMT-0600 (Central Standard Time)
+[debug] [2024-09-15T23:15:20.920Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-09-15T23:15:20.929Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2024-09-15T23:15:21.012Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-09-15T23:15:21.012Z] > authorizing via signed-in user (dandiego235@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\dandi\compsoc\compsoc
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2024-09-15T23:15:21.027Z] Using project from CLI flag: animalitos-db3ff
+[debug] [2024-09-15T23:15:21.028Z] > refreshing access token with scopes: []
+[debug] [2024-09-15T23:15:21.028Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2024-09-15T23:15:21.028Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-09-15T23:15:21.300Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2024-09-15T23:15:21.300Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-09-15T23:15:21.327Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff [none]
+[debug] [2024-09-15T23:15:21.330Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2024-09-15T23:15:21.330Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2024-09-15T23:15:21.735Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff 200
+[debug] [2024-09-15T23:15:21.735Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff {"projectId":"animalitos-db3ff","projectNumber":"856299857172","displayName":"animalitos","name":"projects/animalitos-db3ff","resources":{"hostingSite":"animalitos-db3ff","realtimeDatabaseInstance":"animalitos-db3ff-default-rtdb","storageBucket":"animalitos-db3ff.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_2c70f5c6-9368-4026-adc7-1127ebd25af0"}
+[info] i  Using project animalitos-db3ff (animalitos) 
+[info] 
+=== Hosting Setup
+[debug] [2024-09-15T23:15:21.751Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff [none]
+[debug] [2024-09-15T23:15:22.054Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff 200
+[debug] [2024-09-15T23:15:22.054Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/animalitos-db3ff {"projectId":"animalitos-db3ff","projectNumber":"856299857172","displayName":"animalitos","name":"projects/animalitos-db3ff","resources":{"hostingSite":"animalitos-db3ff","realtimeDatabaseInstance":"animalitos-db3ff-default-rtdb","storageBucket":"animalitos-db3ff.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_2c70f5c6-9368-4026-adc7-1127ebd25af0"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
