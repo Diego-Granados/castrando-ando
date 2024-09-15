@@ -20,12 +20,19 @@ export default function Citas() {
 
   const router = useRouter();
   if (!campaignId) {
-    console.log("HERE");
     router.push("/admin");
   }
 
   const [timeslots, setTimeslots] = useState(null);
-  const sortedKeys = ["10:00", "11:00", "12:00", "13:00", "14:00"];
+  const sortedKeys = [
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+  ];
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       setCampaign(snapshot.val());
