@@ -31,18 +31,23 @@ export default function Home() {
         if (!data[campaign].enabled) delete data[campaign];
       });
       setCampaigns(data);
+    });
+      return () => unsubscribe();
+    },[]);
 
+    useEffect(() =>{
       const LastperPage = activePage * campaignsPerPage;
       const FirstperPage = LastperPage - campaignsPerPage;
-
-      const currentCampaigns = Object.keys(data)
+      const currentCampaigns = Object.keys(campaigns)
         .reverse()
         .slice(FirstperPage, LastperPage);
 
       setCurrentCampaigns(currentCampaigns);
+
       /* Esto sirve para generar la cantidad de botones*/
-      const totalPages = Math.ceil(Object.keys(data).length / campaignsPerPage);
+      const totalPages = Math.ceil(Object.keys(campaigns).length / campaignsPerPage);
       setTotalPages(totalPages);
+
       const items = [];
       for (let number = 1; number <= totalPages; number++) {
         items.push(
@@ -56,10 +61,7 @@ export default function Home() {
         );
       }
       setItems(items);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    },[activePage,campaigns]);
 
   return (
     <main className="container">
