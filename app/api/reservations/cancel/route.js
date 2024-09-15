@@ -9,14 +9,14 @@ export async function POST(req) {
 
     const updates = {};
 
-    updates[`campaigns/${formData.campaignId}/available`] = increment(1);
+    updates[`/campaigns/${formData.campaignId}/available`] = increment(1);
     updates[
-      `inscriptions/${formData.campaignId}/${formData.timeslot}/available`
+      `/inscriptions/${formData.campaignId}/${formData.timeslot}/available`
     ] = increment(1);
 
     const appointmentKey = formData.appointmentKey;
     updates[
-      `inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/enabled`
+      `/inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/enabled`
     ] = false;
 
     updates[`/appointments/${formData.id}/${appointmentKey}/enabled`] = false;

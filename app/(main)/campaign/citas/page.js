@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase/config";
 import { ref, get, child, onValue } from "firebase/database";
-import { Carousel } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Table from "react-bootstrap/Table";

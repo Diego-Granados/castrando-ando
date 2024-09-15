@@ -31,6 +31,7 @@ export async function POST(req) {
       priceData: formData.priceData,
       priceSpecial: formData.priceSpecial,
       enabled: true,
+      paid: false,
     };
 
     updates[`/users/${formData.id}`] = {
