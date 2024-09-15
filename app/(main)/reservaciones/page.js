@@ -43,7 +43,7 @@ export default function Reservaciones() {
           <Form.Label className="fw-semibold fs-5">Cédula:</Form.Label>
           <Form.Control
             type="number"
-            placeholder="112345678"
+            placeholder="Ejemplo: 112345678"
             name="cedula"
             required
             value={cedula}
