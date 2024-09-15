@@ -287,6 +287,7 @@ export default function ReservationCard({
                         weight: price.weight,
                       })}
                       defaultChecked={
+                        reservation.priceData.price == price.price &&
                         reservation.priceData.weight == price.weight
                       }
                     />

@@ -59,6 +59,7 @@ export default function Home() {
           <CampaignCard
             key={campaign}
             campaign={{ campaign, ...campaigns[campaign] }}
+            admin={true}
           />
         ))}
       </div>

@@ -16,7 +16,7 @@ export default function Campaign() {
   const [active, setActive] = useState(true);
   const router = useRouter();
   if (!campaignId) {
-    router.push("admin/");
+    router.push("/admin");
   }
 
   useEffect(() => {
@@ -44,31 +44,7 @@ export default function Campaign() {
       <h1>Asociación Animalitos Abandonados</h1>
       {campaign && (
         <Row>
-          <Col>
-            <div className="card shadow-sm">
-              <Carousel>
-                {campaign.photos.map((photo) => (
-                  <Carousel.Item key={photo}>
-                    <img className="d-block w-100" src={photo} alt="" />
-                  </Carousel.Item>
-                ))}
-              </Carousel>
-              <Row className="card-body">
-                <Col>
-                  <h5 className="card-title">Disponibilidad</h5>
-                  <p className="card-text">
-                    Citas disponibles: {campaign.available}
-                  </p>
-                </Col>
-                <Col>
-                  <h5 className="card-title">Contacto</h5>
-                  <p className="card-text">{campaign.phone}</p>
-                </Col>
-              </Row>
-              <p className="card-body">{campaign.description}</p>
-            </div>
-          </Col>
-          <Col>
+          <Col xs={12} sm={6}>
             <div className="card shadow-sm">
               <div className="card-body">
                 <h2 className="card-title text-center">{campaign.title}</h2>
@@ -104,19 +80,61 @@ export default function Campaign() {
                     otros)
                   </strong>
                 </p>
-                {active && (
-                  <div className="d-flex justify-content-center">
-                    <Link href={`campaign/citas?id=${campaignId}`}>
+
+                <div className="d-flex justify-content-center gap-3">
+                  <Link href={`/admin/campaign/inscritos?id=${campaignId}`}>
+                    <Button
+                      variant="info"
+                      aria-label={`Ver la lista de inscritos en la campaña ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
+                    >
+                      Ver inscritos
+                    </Button>
+                  </Link>
+                  {active && (
+                    <Link href={`/admin/campaign/editar?id=${campaignId}`}>
                       <Button
                         variant="primary"
                         aria-label={`Agendar cita para ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
                       >
-                        AGENDAR CITA
+                        Editar campaña
                       </Button>
                     </Link>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+            </div>
+          </Col>
+          <Col xs={12} sm={6}>
+            <div className="card shadow-sm">
+              <Carousel>
+                {campaign.photos.map((photo) => (
+                  <Carousel.Item key={photo}>
+                    <img
+                      className="img-fluid d-block w-100"
+                      style={{
+                        objectFit: "contain",
+                        height: "50vh",
+                        width: "auto",
+                      }}
+                      src={photo}
+                      alt=""
+                    />
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+              <Row className="card-body">
+                <Col>
+                  <h5 className="card-title">Disponibilidad</h5>
+                  <p className="card-text">
+                    Citas disponibles: {campaign.available}
+                  </p>
+                </Col>
+                <Col>
+                  <h5 className="card-title">Contacto</h5>
+                  <p className="card-text">{campaign.phone}</p>
+                </Col>
+              </Row>
+              <p className="card-body">{campaign.description}</p>
             </div>
           </Col>
         </Row>

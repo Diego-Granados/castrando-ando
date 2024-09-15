@@ -7,33 +7,29 @@ import Requirement from "@/components/Requirement";
 import { storage } from "@/lib/firebase/config";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
-function CreateForm() {
+function EditForm({ campaign, campaignId }) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
 
-  const [prices, setPrices] = useState([
-    <Price key={0} id={0} price={13000} weight={10} />,
-    <Price key={1} id={1} price={16000} weight={15} />,
-    <Price key={2} id={2} price={22000} weight={20} />,
-    <Price key={3} id={3} price={26000} weight={100} />,
-  ]);
+  const [prices, setPrices] = useState(
+    campaign.pricesData.map((price, index) => (
+      <Price key={index} id={index} price={price.price} weight={price.weight} />
+    ))
+  );
 
-  const [reqs, setReqs] = useState([
-    <Requirement
-      key={0}
-      defaultRequirement={"Animales en perfecto estado de salud."}
-    />,
-    <Requirement
-      key={1}
-      defaultRequirement={
-        "Solo animales con 12 horas de ayuno (comida y agua)."
-      }
-    />,
-    <Requirement key={2} defaultRequirement={"Llevar cobija."} />,
-  ]);
+  const [reqs, setReqs] = useState(
+    campaign.requirements.map((requirement, index) => (
+      <Requirement key={index} defaultRequirement={requirement} />
+    ))
+  );
 
   function addPrices() {
     setPrices(prices.concat(<Price key={prices.length} id={prices.length} />));
@@ -66,38 +62,57 @@ function CreateForm() {
     }
   };
 
-  const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  function decodePhotoURL(url) {
+    const decodedUrl = decodeURIComponent(url);
+    const pathStart = decodedUrl.indexOf("/o/") + 3;
+    const pathEnd = decodedUrl.indexOf("?alt="); // Find where the path ends before the query parameters
+    const storagePath = decodedUrl.substring(pathStart, pathEnd); // Extract the storage path
+    return storagePath;
+  }
 
   // Función para subir múltiples archivos a Firebase Storage
   async function uploadFiles(fileList, path) {
     // Array para almacenar las URLs de descarga de cada archivo
     const downloadURLs = [];
 
-    // Iterar a través del array de archivos (fileList)
-    for (const file of fileList) {
-      const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
+    if (fileList.length > 0) {
+      console.log("Here");
 
-      try {
-        // Subir el archivo a Firebase Storage
-        await uploadBytes(storageRef, file);
+      for (const file of fileList) {
+        const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
 
-        // Obtener la URL de descarga
-        const downloadURL = await getDownloadURL(storageRef);
+        try {
+          // Subir el archivo a Firebase Storage
+          await uploadBytes(storageRef, file);
 
-        // Agregar la URL de descarga al array
-        downloadURLs.push(downloadURL);
-      } catch (error) {
-        throw new Error(`Error al subir el archivo ${file.name}.`);
+          // Obtener la URL de descarga
+          const downloadURL = await getDownloadURL(storageRef);
+
+          // Agregar la URL de descarga al array
+          downloadURLs.push(downloadURL);
+        } catch (error) {
+          throw new Error(`Error al subir el archivo ${file.name}.`);
+        }
       }
+
+      campaign.photos.forEach((photo) => {
+        const storageRef = ref(storage, decodePhotoURL(photo));
+        deleteObject(storageRef)
+          .then()
+          .catch((error) => console.log(error));
+      });
     }
+    // Iterar a través del array de archivos (fileList)
 
     return downloadURLs;
   }
 
-  async function createCampaign(event) {
+  async function updateCampaign(event) {
     event.preventDefault();
 
-    setCreating(true);
+    setUpdating(true);
     const formData = new FormData(event.target);
     const rawFormData = {
       title: formData.get("title"),
@@ -107,6 +122,7 @@ function CreateForm() {
       phone: formData.get("phone"),
       priceSpecial: formData.get("priceSpecial"),
       requirements: formData.getAll("requirement"),
+      campaignId,
     };
 
     console.log(rawFormData);
@@ -123,51 +139,52 @@ function CreateForm() {
       const fileInput = document.getElementById("photos");
       const downloadURLs = await uploadFiles(fileInput.files, path);
       rawFormData.photos = downloadURLs;
-      toast.success("¡Fotos subidas con éxito!");
+      if (downloadURLs.length != 0) {
+        toast.success("¡Fotos subidas con éxito!");
+      }
     } catch (error) {
       toast.error(error.message);
-      setCreating(false);
+      setUpdating(false);
       return;
     }
 
     try {
       console.log("fetching");
-      const response = await fetch("/api/campaigns/create", {
-        method: "PUT",
+      const response = await fetch("/api/campaigns/update", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ formData: rawFormData }),
       });
 
       if (response.ok) {
-        toast.success("¡Campaña creada con éxito!", {
+        toast.success("¡Campaña actualizada con éxito!", {
           position: "top-center",
           autoClose: 5000,
-          toastId: "create-campaign",
+          toastId: "update-campaign",
           onClose: () => {
-            setCreating(false);
-            router.push("/admin");
+            setUpdating(false);
           },
         });
       } else {
-        toast.error("¡Error al crear la campaña!", {
+        toast.error("¡Error al actualizar la campaña!", {
           position: "top-center",
           autoClose: 8000,
-          toastId: "create-campaign",
+          toastId: "update-campaign",
         });
-        setCreating(false);
+        setUpdating(false);
       }
     } catch (error) {
       console.error(error);
-      toast.error("¡Error al crear la campaña!", {
+      toast.error("¡Error al actualizar la campaña!", {
         position: "top-center",
         autoClose: 8000,
-        toastId: "create-campaign",
+        toastId: "update-campaign",
       });
-      setCreating(false);
+      setUpdating(false);
     }
   }
   return (
-    <Container onSubmit={createCampaign}>
+    <Container onSubmit={updateCampaign}>
       <Form>
         <Form.Group controlId="title">
           <Form.Label className="fw-semibold">Título</Form.Label>
@@ -176,7 +193,7 @@ function CreateForm() {
             placeholder="Ingrese el título de la campaña"
             name="title"
             required
-            defaultValue={"Campaña de Castración para Perros y Gatos"}
+            defaultValue={campaign.title}
           />
         </Form.Group>
         <Row className="mt-3">
@@ -189,7 +206,7 @@ function CreateForm() {
                 <Form.Control
                   type="date"
                   placeholder="Seleccione la fecha de inicio"
-                  defaultValue={today}
+                  defaultValue={campaign.date}
                   name="date"
                   required
                 />
@@ -205,6 +222,7 @@ function CreateForm() {
             placeholder="Ingrese la ubicación del evento"
             name="place"
             required
+            defaultValue={campaign.place}
           />
         </Form.Group>
 
@@ -216,9 +234,7 @@ function CreateForm() {
             placeholder="Indique los requisitos para la campaña"
             name="description"
             required
-            defaultValue={
-              "Campaña de castración. Incluye medicación inyectada, medicación para la casa, desparasitación, corte de uñas, mini limpieza dental y limpieza de orejas."
-            }
+            defaultValue={campaign.description}
           />
         </Form.Group>
         <Form.Label className="fw-semibold">Precios:</Form.Label>
@@ -263,7 +279,7 @@ function CreateForm() {
               name="priceSpecial"
               type="number"
               placeholder="Precio para situaciones especiales"
-              defaultValue={5000}
+              defaultValue={campaign.priceSpecial}
               required
             />
           </Col>
@@ -300,6 +316,7 @@ function CreateForm() {
             placeholder="Ingrese el número de contacto"
             name="phone"
             required
+            defaultValue={campaign.phone}
           />
         </Form.Group>
 
@@ -315,7 +332,6 @@ function CreateForm() {
             onChange={handleFileChange}
             name="photos"
             ref={fileInputRef}
-            required
           />
           <Form.Text className="text-muted">
             Puede subir varias fotos.
@@ -338,14 +354,17 @@ function CreateForm() {
         <Button
           variant="primary"
           type="submit"
-          className="mt-3 mb-5"
-          disabled={creating}
+          className="mt-3 mb-5 mx-5"
+          disabled={updating}
         >
           Enviar
         </Button>
+        <Link href={`/admin/campaign?id=${campaignId}`} className="px-5">
+          <Button variant="link">Regresar</Button>
+        </Link>
       </Form>
     </Container>
   );
 }
 
-export default CreateForm;
+export default EditForm;
