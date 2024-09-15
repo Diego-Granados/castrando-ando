@@ -1,0 +1,20 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+/* Main content should take up all available space */
+main {
+  flex-grow: 1;
+}
+
+/* Style for the footer */
+footer {
+  text-align: center;
+  padding: 10px;
+}

@@ -98,7 +98,8 @@ export default function Citas() {
                     {"appointments" in timeslots[timeslot]
                       ? Object.keys(timeslots[timeslot]["appointments"]).filter(
                           (appId) => {
-                            timeslots[timeslot]["appointments"][appId].enabled;
+                            return timeslots[timeslot]["appointments"][appId]
+                              .enabled;
                           }
                         ).length
                       : "0"}{" "}

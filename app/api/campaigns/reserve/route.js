@@ -44,6 +44,7 @@ export async function POST(req) {
       campaign: formData.campaign,
       date: formData.date,
       place: formData.place,
+      phone: formData.phone,
       animal: formData.animal,
       sex: formData.sex,
       pet: formData.pet,
