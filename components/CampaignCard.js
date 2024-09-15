@@ -7,7 +7,7 @@ export default function CampaignCard({ campaign, admin }) {
   const datetime = new Date(campaign.date + "T" + "15:00:00");
   const today = new Date();
   const active = today <= datetime;
-
+  console.log(campaign);
   return (
     <article
       className="container row col-lg-6 px-3 my-1 w-75 mh-50"
@@ -16,7 +16,12 @@ export default function CampaignCard({ campaign, admin }) {
       <Carousel className="col py-5">
         {campaign.photos.map((photo) => (
           <Carousel.Item key={photo}>
-            <img className="d-block w-100" style={{objectFit:'contain',height:'55vh', width:'auto'}} src={photo} alt="" />
+            <img
+              className="d-block w-100"
+              style={{ objectFit: "contain", height: "55vh", width: "auto" }}
+              src={photo}
+              alt=""
+            />
           </Carousel.Item>
         ))}
       </Carousel>

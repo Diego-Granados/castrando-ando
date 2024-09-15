@@ -38,10 +38,17 @@ export default function Home() {
   useEffect(() => {
     const LastperPage = activePage * campaignsPerPage;
     const FirstperPage = LastperPage - campaignsPerPage;
-    const currentCampaigns = Object.keys(campaigns)
-      .reverse()
-      .slice(FirstperPage, LastperPage);
 
+    const sortedCampaignKeys = Object.keys(campaigns).sort((a, b) => {
+      // Assuming `campaign[a].date` and `campaign[b].date` are valid date strings
+      // Convert the dates to timestamps for comparison
+      return new Date(campaigns[b].date) - new Date(campaigns[a].date);
+    });
+
+    const currentCampaigns = sortedCampaignKeys.slice(
+      FirstperPage,
+      LastperPage
+    );
     setCurrentCampaigns(currentCampaigns);
 
     /* Esto sirve para generar la cantidad de botones*/
