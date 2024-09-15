@@ -44,31 +44,7 @@ export default function Campaign() {
       <h1>Asociación Animalitos Abandonados</h1>
       {campaign && (
         <Row>
-          <Col>
-            <div className="card shadow-sm">
-              <Carousel>
-                {campaign.photos.map((photo) => (
-                  <Carousel.Item key={photo}>
-                    <img className="img-fluid d-block w-100"style={{objectFit:'contain',height:'50vh', width:'auto'}} src={photo} alt="" />
-                  </Carousel.Item>
-                ))}
-              </Carousel>
-              <Row className="card-body">
-                <Col>
-                  <h5 className="card-title">Disponibilidad</h5>
-                  <p className="card-text">
-                    Citas disponibles: {campaign.available}
-                  </p>
-                </Col>
-                <Col>
-                  <h5 className="card-title">Contacto</h5>
-                  <p className="card-text">{campaign.phone}</p>
-                </Col>
-              </Row>
-              <p className="card-body">{campaign.description}</p>
-            </div>
-          </Col>
-          <Col>
+          <Col xs={12} sm={6}>
             <div className="card shadow-sm">
               <div className="card-body">
                 <h2 className="card-title text-center">{campaign.title}</h2>
@@ -117,6 +93,39 @@ export default function Campaign() {
                   </div>
                 )}
               </div>
+            </div>
+          </Col>
+          <Col xs={12} sm={6}>
+            <div className="card shadow-sm">
+              <Carousel>
+                {campaign.photos.map((photo) => (
+                  <Carousel.Item key={photo}>
+                    <img
+                      className="img-fluid d-block w-100"
+                      style={{
+                        objectFit: "contain",
+                        height: "50vh",
+                        width: "auto",
+                      }}
+                      src={photo}
+                      alt=""
+                    />
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+              <Row className="card-body">
+                <Col>
+                  <h5 className="card-title">Disponibilidad</h5>
+                  <p className="card-text">
+                    Citas disponibles: {campaign.available}
+                  </p>
+                </Col>
+                <Col>
+                  <h5 className="card-title">Contacto</h5>
+                  <p className="card-text">{campaign.phone}</p>
+                </Col>
+              </Row>
+              <p className="card-body">{campaign.description}</p>
             </div>
           </Col>
         </Row>
