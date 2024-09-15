@@ -7,10 +7,11 @@ export async function PUT(req) {
     const { formData } = await req.json();
     console.log(formData);
     formData["available"] = 70;
+    formData["enabled"] = true;
 
     const inscriptions = {
-      "8:00": { available: 10 },
-      "9:00": { available: 10 },
+      "08:00": { available: 10 },
+      "09:00": { available: 10 },
       "10:00": { available: 10 },
       "11:00": { available: 10 },
       "12:00": { available: 10 },

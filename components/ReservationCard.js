@@ -22,7 +22,12 @@ export default function ReservationCard({
   phone,
   setPhone,
 }) {
-  const datetime = new Date(reservation.date + "T" + reservation.timeslot);
+  const datetime = new Date(
+    reservation.date +
+      "T" +
+      (reservation.timeslot.length == 4 ? "0" : "") +
+      reservation.timeslot
+  );
   const today = new Date();
   const active = today <= datetime;
 
@@ -153,7 +158,7 @@ export default function ReservationCard({
       </Card>
       <Modal show={showCancel} onHide={handleCloseCancel} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Cancelar cita para {reservation.pet}?</Modal.Title>
+          <Modal.Title>Cancelar cita para {reservation.pet}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           ¿Está seguro que desea cancelar la cita de las {reservation.timeslot}{" "}
