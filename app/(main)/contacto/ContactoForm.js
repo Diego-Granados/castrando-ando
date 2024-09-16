@@ -17,6 +17,7 @@ export default function Contacto() {
       notificaciones: formData.get("notis"),
     };
 
+<<<<<<< HEAD
     //Mandar correos, se debe mandar el correo a la asociacion, pero por ahora me lo mando a mi
     if (rawFormData.correo !== "") {
       console.log(rawFormData);
@@ -35,6 +36,13 @@ export default function Contacto() {
       } else {
         toast.error("Error al enviar mensaje");
       }
+=======
+        //Mandar correos, se debe mandar el correo a la asociacion, pero por ahora me lo mando a mi
+        if(rawFormData.correo !== ""){
+            await sendEmail(rawFormData.mensaje, rawFormData.correo, rawFormData.nombre, rawFormData.cedula)
+            router.push("/")
+        }
+>>>>>>> origin/main
     }
   }
 
