@@ -26,6 +26,7 @@ export default function Contacto() {
         rawFormData.nombre,
         rawFormData.cedula
       );
+      console.log(response);
       if (response.ok) {
         toast.success("Mensaje enviado correctamente", {
           onClose: () => {
