@@ -43,7 +43,7 @@ export default function Contacto() {
     <Form onSubmit={contactoData}>
       <Form.Group className="mb-3" controlId="formBasicEmail">
         <Form.Label>Cédula</Form.Label>
-        <Form.Control type="text" placeholder="Cédula" name="cédula" />
+        <Form.Control type="number" placeholder="Cédula" name="cédula" />
       </Form.Group>
       <Form.Group className="mb-3" controlId="formBasicEmail">
         <Form.Label>Nombre completo</Form.Label>
