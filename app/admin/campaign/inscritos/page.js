@@ -25,6 +25,7 @@ export default function Citas() {
 
   const [timeslots, setTimeslots] = useState(null);
   const sortedKeys = [
+    "07:30",
     "08:00",
     "09:00",
     "10:00",
