@@ -24,7 +24,7 @@ function CreateForm() {
   const [reqs, setReqs] = useState([
     <Requirement
       key={0}
-      defaultRequirement={"Animales en perfecto estado de salud."}
+      defaultRequirement={"Perros y gatos en perfecto estado de salud."}
     />,
     <Requirement
       key={1}
@@ -33,6 +33,10 @@ function CreateForm() {
       }
     />,
     <Requirement key={2} defaultRequirement={"Llevar cobija."} />,
+    <Requirement
+      key={3}
+      defaultRequirement={"Perros y gatos mayores de 3 meses."}
+    />,
   ]);
 
   function addPrices() {

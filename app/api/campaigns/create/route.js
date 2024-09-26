@@ -8,12 +8,13 @@ export async function PUT(req) {
   try {
     const { formData } = await req.json();
     console.log(formData);
-    formData["available"] = 70;
+    formData["available"] = 75;
     formData["enabled"] = true;
 
     // Configuración de los horarios de inscripción.
     // Hay citas de 8 a 2pm con 10 cupos disponibles cada hora.
     const inscriptions = {
+      "07:30": { available: 5 },
       "08:00": { available: 10 },
       "09:00": { available: 10 },
       "10:00": { available: 10 },
