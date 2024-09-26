@@ -8,7 +8,7 @@ export async function PUT(req) {
   try {
     const { formData } = await req.json();
     console.log(formData);
-    formData["available"] = 75;
+    formData["available"] = 85;
     formData["enabled"] = true;
 
     // Configuración de los horarios de inscripción.
@@ -22,6 +22,7 @@ export async function PUT(req) {
       "12:00": { available: 10 },
       "13:00": { available: 10 },
       "14:00": { available: 10 },
+      "15:00": { available: 10 },
     };
     const campaignRef = ref(db, "campaigns");
     const newCampaignRef = push(campaignRef);

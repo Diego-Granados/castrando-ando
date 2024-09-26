@@ -33,6 +33,7 @@ export default function Citas() {
     "12:00",
     "13:00",
     "14:00",
+    "15:00",
   ];
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
