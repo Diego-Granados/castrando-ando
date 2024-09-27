@@ -25,6 +25,7 @@ export default function Citas() {
 
   const [timeslots, setTimeslots] = useState(null);
   const sortedKeys = [
+    "07:30",
     "08:00",
     "09:00",
     "10:00",
@@ -32,6 +33,7 @@ export default function Citas() {
     "12:00",
     "13:00",
     "14:00",
+    "15:00",
   ];
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {

@@ -54,7 +54,7 @@ export default function CampaignCard({ campaign, admin }) {
               type="submit"
               aria-label={`Ver información de ${campaign.title} en ${campaign.place} el día ${campaign.date}`}
             >
-              Ver más
+              {admin ? "Editar" : "Agendar cita"}
             </Button>
           </Link>
         </div>
