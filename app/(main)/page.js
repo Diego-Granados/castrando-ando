@@ -11,7 +11,7 @@ import { Row, Col } from "react-bootstrap";
 
 export default function Home() {
   const campaignsRef = ref(db, "campaigns");
-  const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState({});
   const [activePage, setActivePage] = useState(1);
   const campaignsPerPage = 1; // Número de campañas por página
 
