@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
         </header>{" "}
         <ToastContainer />
         <Suspense fallback={<h2>Cargando...</h2>}>{children}</Suspense>
-        <footer className="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top px-5">
+        <footer className="d-flex flex-wrap justify-content-between align-items-center py-3 mb-4 border-top px-5">
           <div className="col-md-4 d-flex align-items-center">
             <Link
               href="/"
