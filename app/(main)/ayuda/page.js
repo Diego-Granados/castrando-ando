@@ -7,7 +7,7 @@ export default function Ayuda() {
       <div className="container row mt-5">
         <h2 className="text-center">Cómo registrarse</h2>
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Para registrarse en una campaña, primero hay que estar en la página de "Campañas" , la cual se puede acceder presionando el "Campañas" o el logo de la asociación en el menú superior, y presionar el botón que dice "Agendar Cita" de la campaña en la que se desea participar.
             </font>
           </p>
@@ -16,7 +16,7 @@ export default function Ayuda() {
       </div>
       <div className="container row mt-5">
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Luego, se entra a una página donde se da más información de la campaña. Para registrar una cita, se presiona el botón que dice "AGENDAR CITA".
             </font>
           </p>
@@ -25,7 +25,7 @@ export default function Ayuda() {
       </div>
       <div className="container row mt-5">
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Esto nos lleva a las horas disponibles de la campaña. Se debe seleccionar la hora a conveniencia del dueño de la mascota y que tenga cupos disponibles. Se presiona el botón de "AGENDAR CITA".
             </font>
           </p>
@@ -34,7 +34,7 @@ export default function Ayuda() {
       </div>
       <div className="container row mt-5">
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Finalmente, se ingresa la información del animal y se presiona el botón de "Reservar".
             </font>
           </p>
@@ -44,7 +44,7 @@ export default function Ayuda() {
       <div className="container row mt-5">
         <h2 className="text-center">Cómo revisar las citas o modificarlas</h2>
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Para revisar o modificar las citas en las que se está inscrito, se debe entrar a la página de "Citas", la cual se puede acceder presionando "Citas" en el menú superior.
             </font>
           </p>
@@ -53,7 +53,7 @@ export default function Ayuda() {
       </div>
       <div className="container row mt-5">
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Luego, se debe ingresar el número de cédula y presionar el botón de "Consultar". Esto despliega la información de las citas en las que se está inscrito.
             </font>
           </p>
@@ -62,7 +62,7 @@ export default function Ayuda() {
       </div>
       <div className="container row mt-5">
         <article className="col">
-          <p align="justify">
+          <p>
             <font size='5'>Finalmente, para modificar o cancelar la cita, se presiona el botón de "Modificar" o "Cancelar", respectivamente. Si queremos modificarla, se abre un formulario con la información del animal, la cual podemos cambiar y guardar con el botón de "Guardar cambios".
             </font>
           </p>
