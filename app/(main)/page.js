@@ -75,7 +75,7 @@ export default function Home() {
       <h1>Asociación Animalitos Abandonados</h1>
       {items ? (
         <>
-          <div className="d-flex justify-content-center">
+          <div className="d-flex justify-content-center mt-5">
             {/* Mostrar las campañas de la página actual */}
             {currentCampaigns.map((campaign) => (
               <CampaignCard
@@ -84,7 +84,7 @@ export default function Home() {
               />
             ))}
           </div>
-          <div className="d-flex justify-content-center align-items-center">
+          <div className="d-flex justify-content-center align-items-center mt-3">
             <Pagination size="sm">
               <Pagination.First onClick={() => setActivePage(1)} />
               <Pagination.Prev
