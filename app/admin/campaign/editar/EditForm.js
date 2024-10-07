@@ -186,182 +186,209 @@ function EditForm({ campaign, campaignId }) {
   return (
     <Container onSubmit={updateCampaign}>
       <Form>
-        <Form.Group controlId="title">
-          <Form.Label className="fw-semibold">Título</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Ingrese el título de la campaña"
-            name="title"
-            required
-            defaultValue={campaign.title}
-          />
-        </Form.Group>
-        <Row className="mt-3">
-          <Col>
-            <Form.Group as={Row} controlId="startDate">
-              <Form.Label className="fw-semibold" column sm={1}>
-                Fecha:
-              </Form.Label>
-              <Col sm={3}>
-                <Form.Control
-                  type="date"
-                  placeholder="Seleccione la fecha de inicio"
-                  defaultValue={campaign.date}
-                  name="date"
-                  required
-                />
-              </Col>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Form.Group controlId="location">
-          <Form.Label className="fw-semibold">Ubicación</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Ingrese la ubicación del evento"
-            name="place"
-            required
-            defaultValue={campaign.place}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="description">
-          <Form.Label className="fw-semibold">Descripción</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            placeholder="Indique los requisitos para la campaña"
-            name="description"
-            required
-            defaultValue={campaign.description}
-          />
-        </Form.Group>
-        <Form.Label className="fw-semibold">Precios:</Form.Label>
-        <br />
-        <Form.Text>
-          Ingrese los rangos de precios. Para la última categoría, ingrese
-          100kg.
-        </Form.Text>
-        {prices}
-        <div className="container">
-          {prices.length < 5 && (
-            <button
-              className="active:opacity-55 btn"
-              onClick={() => addPrices()}
-              type="button"
-              aria-label="Agregar precio"
-            >
-              <CirclePlus size="40px" />
-            </button>
-          )}
-          {prices.length > 1 && (
-            <button
-              className="active:opacity-55 btn"
-              onClick={() => deletePrices()}
-              type="button"
-              aria-label="Eliminar precio"
-            >
-              <CircleMinus size="40px" />
-            </button>
-          )}
-        </div>
-        <Form.Group
-          controlId={`priceSpecial`}
-          as={Row}
-          className="align-items-center"
-        >
-          <Form.Label column sm={2}>
-            Precio para situaciones especiales:
-          </Form.Label>
-          <Col sm={4}>
+        <div className="card shadow-sm p-5 mt-3">
+        <h2 className="mb-3" style={{color:"#606060"}}>Información general</h2>
+          <Form.Group controlId="title">
+            <Form.Label className="fw-semibold">Título</Form.Label>
             <Form.Control
-              name="priceSpecial"
-              type="number"
-              placeholder="Precio para situaciones especiales"
-              defaultValue={campaign.priceSpecial}
+              type="text"
+              placeholder="Ingrese el título de la campaña"
+              name="title"
               required
+              defaultValue={campaign.title}
             />
-          </Col>
-        </Form.Group>
+          </Form.Group>
+          <Row className="mt-3">
+            <Col>
+              <Form.Group as={Row} controlId="startDate">
+                <Form.Label className="fw-semibold" column sm={1}>
+                  Fecha:
+                </Form.Label>
+                <Col sm={3}>
+                  <Form.Control
+                    type="date"
+                    placeholder="Seleccione la fecha de inicio"
+                    defaultValue={campaign.date}
+                    name="date"
+                    required
+                  />
+                </Col>
+              </Form.Group>
+            </Col>
+          </Row>
 
-        <Form.Label className="fw-semibold">Requisitos:</Form.Label>
-        {reqs}
-        <div className="container">
-          {reqs.length < 5 && (
-            <button
-              className="active:opacity-55 btn"
-              onClick={() => addReq()}
-              type="button"
-              aria-label="Agregar precio"
-            >
-              <CirclePlus size="40px" />
-            </button>
-          )}
-          {reqs.length > 1 && (
-            <button
-              className="active:opacity-55 btn"
-              onClick={() => deleteReq()}
-              type="button"
-              aria-label="Eliminar precio"
-            >
-              <CircleMinus size="40px" />
-            </button>
+          <Row className="mt-3">
+            <Form.Group controlId="location">
+              <Form.Label className="fw-semibold">Ubicación</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Ingrese la ubicación del evento"
+                name="place"
+                required
+                defaultValue={campaign.place}
+              />
+            </Form.Group>
+          </Row>
+
+          <Row className="mt-3">
+            <Form.Group controlId="description">
+              <Form.Label className="fw-semibold">Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Indique los requisitos para la campaña"
+                name="description"
+                required
+                defaultValue={campaign.description}
+              />
+            </Form.Group>
+          </Row>
+
+          <Row className="mt-3">
+            <Form.Group controlId="contactNumber">
+            <Form.Label className="fw-semibold">Número de Contacto</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Ingrese el número de contacto"
+              name="phone"
+              required
+              defaultValue={campaign.phone}
+            />
+            </Form.Group>
+          </Row>
+
+        </div>
+
+        <div className="card shadow-sm p-5 mt-3">
+        <h2 className="mb-3" style={{color:"#606060"}}>Precios</h2>
+         <Row className="mt-3">
+            <Form.Label className="fw-semibold">Precios:</Form.Label>
+            <br />
+            <Form.Text>
+              Ingrese los rangos de precios. Para la última categoría, ingrese
+              100kg.
+            </Form.Text>
+            {prices}
+            <div className="container">
+              {prices.length < 5 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => addPrices()}
+                  type="button"
+                  aria-label="Agregar precio"
+                >
+                  <CirclePlus size="40px" />
+                </button>
+              )}
+              {prices.length > 1 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => deletePrices()}
+                  type="button"
+                  aria-label="Eliminar precio"
+                >
+                  <CircleMinus size="40px" />
+                </button>
+              )}
+            </div>
+            </Row>
+            <Row className="mt-3">
+              <Form.Group
+                controlId={`priceSpecial`}
+                as={Row}
+                className="align-items-center"
+              >
+                <Form.Label column sm={2}>
+                  Precio para situaciones especiales:
+                </Form.Label>
+                <Col sm={4}>
+                  <Form.Control
+                    name="priceSpecial"
+                    type="number"
+                    placeholder="Precio para situaciones especiales"
+                    defaultValue={campaign.priceSpecial}
+                    required
+                  />
+                </Col>
+              </Form.Group>
+           </Row>
+        </div>
+        <div className="card shadow-sm p-5 mt-3">
+        <h2 className="mb-3" style={{color:"#606060"}}>Requisitos</h2>
+         <Row className="mt-3">
+            <Form.Label className="fw-semibold">Requisitos:</Form.Label>
+            {reqs}
+            <div className="container">
+              {reqs.length < 5 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => addReq()}
+                  type="button"
+                  aria-label="Agregar precio"
+                >
+                  <CirclePlus size="40px" />
+                </button>
+              )}
+              {reqs.length > 1 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => deleteReq()}
+                  type="button"
+                  aria-label="Eliminar precio"
+                >
+                  <CircleMinus size="40px" />
+                </button>
+              )}
+            </div>
+          </Row>
+        </div>
+        
+        <div className="card shadow-sm p-5 mt-3">
+        <h2 className="mb-3" style={{color:"#606060"}}>Imágenes</h2>
+          <Form.Group controlId="photos" className="mb-3">
+            <Form.Label className="fw-semibold">
+              Suba las fotos para promocionar la campaña (Afiche, campañas
+              pasadas, etc.)
+            </Form.Label>
+            <Form.Control
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              name="photos"
+              ref={fileInputRef}
+            />
+            <Form.Text className="text-muted">
+              Puede subir varias fotos.
+            </Form.Text>
+          </Form.Group>
+          {selectedFiles.length > 0 && (
+            <div className="mt-3">
+              <p>Imágenes seleccionadas:</p>
+              <ul>
+                {selectedFiles.map((file, index) => (
+                  <li key={index}>{file.name}</li>
+                ))}
+              </ul>
+              <Button variant="danger" onClick={handleClearFiles}>
+                Eliminar fotos
+              </Button>
+            </div>
           )}
         </div>
-        <Form.Group controlId="contactNumber">
-          <Form.Label className="fw-semibold">Número de Contacto</Form.Label>
-          <Form.Control
-            type="number"
-            placeholder="Ingrese el número de contacto"
-            name="phone"
-            required
-            defaultValue={campaign.phone}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="photos" className="mb-3">
-          <Form.Label className="fw-semibold">
-            Suba las fotos para promocionar la campaña (Afiche, campañas
-            pasadas, etc.)
-          </Form.Label>
-          <Form.Control
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileChange}
-            name="photos"
-            ref={fileInputRef}
-          />
-          <Form.Text className="text-muted">
-            Puede subir varias fotos.
-          </Form.Text>
-        </Form.Group>
-        {selectedFiles.length > 0 && (
-          <div className="mt-3">
-            <p>Imágenes seleccionadas:</p>
-            <ul>
-              {selectedFiles.map((file, index) => (
-                <li key={index}>{file.name}</li>
-              ))}
-            </ul>
-            <Button variant="danger" onClick={handleClearFiles}>
-              Eliminar fotos
-            </Button>
-          </div>
-        )}
-
-        <Button
-          variant="primary"
-          type="submit"
-          className="mt-3 mb-5 mx-5"
-          disabled={updating}
-        >
-          Guardiar cambios
-        </Button>
-        <Link href={`/admin/campaign?id=${campaignId}`} className="px-5">
-          <Button variant="link">Regresar</Button>
-        </Link>
+  
+          <Button
+            variant="primary"
+            type="submit"
+            className="mt-5 mb-5"
+            disabled={updating}
+          >
+            Guardiar cambios
+          </Button>
+          <Link href={`/admin/campaign?id=${campaignId}`} className="mb-5 mx-5">
+            <Button variant="dark">Regresar</Button>
+          </Link>
+   
       </Form>
     </Container>
   );
