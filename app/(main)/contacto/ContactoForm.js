@@ -1,17 +1,20 @@
 "use client";
 import { Button, Form, FormGroup } from "react-bootstrap";
 import { useRouter } from "next/navigation";
-import { sendEmail } from "@/lib/firebase/Brevo";
+import { sendEmail, sendMsg } from "@/lib/firebase/Brevo";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function Contacto() {
   const router = useRouter();
+  //const [whatsappLink, setWhatsappLink] = useState("")
   async function contactoData(event) {
     const formData = new FormData(event.target);
     event.preventDefault();
     const rawFormData = {
       cedula: formData.get("cédula"),
       nombre: formData.get("nombre"),
+      //telefono: "506" + formData.get("telefono"),
       correo: formData.get("email"),
       mensaje: formData.get("msg"),
       notificaciones: formData.get("notis"),
@@ -66,20 +69,10 @@ export default function Contacto() {
           rows="3"
         ></textarea>
       </Form.Group>
-      <FormGroup className="mb-3 form-check">
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="exampleCheck1"
-          name="notis"
-        />
-        <Form.Label className="form-check-label" htmlFor="exampleCheck1">
-          Quiero recibir notificaciones de futuras campañas
-        </Form.Label>
-      </FormGroup>
       <Button variant="danger" type="submit">
         Enviar
       </Button>
     </Form>
+    
   );
 }

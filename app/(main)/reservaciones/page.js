@@ -10,6 +10,7 @@ export default function Reservaciones() {
   const [cedula, setCedula] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  
   async function getAppointments(event) {
     event.preventDefault();
     const dbRef = ref(db);

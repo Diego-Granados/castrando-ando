@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase/config";
+import { sendConfirmationEmail } from "@/lib/firebase/Brevo";
 import { ref, get, child, onValue } from "firebase/database";
 import { toast } from "react-toastify";
 export default function Reservar() {
@@ -60,6 +61,7 @@ export default function Reservar() {
       name: formData.get("name"),
       pet: formData.get("pet"),
       phone: formData.get("phone"),
+      email: formData.get("email"),
       animal: formData.get("flexAnimal") == "perro" ? true : false,
       sex: formData.get("flexSex") == "macho" ? true : false,
       priceData: JSON.parse(formData.get("price")),
@@ -98,6 +100,19 @@ export default function Reservar() {
           toastId: "reserve-appointment",
         });
         setReserving(false);
+      }
+      const confirmationEmail = await sendConfirmationEmail(
+        rawFormData.email, 
+        rawFormData.name,
+        rawFormData.timeslot,
+        rawFormData.date,
+        rawFormData.campaign + " en " + rawFormData.place
+      )
+      if (confirmationEmail.ok) {
+        toast.success("Confirmación enviada correctamente", {
+        });
+      } else {
+        toast.error("Error al enviar confirmación");
       }
     } catch (error) {
       console.error(error);
@@ -150,6 +165,18 @@ export default function Reservar() {
                 type="number"
                 placeholder="Teléfono"
                 name="phone"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="inputEmail">
+              <Form.Label className="fw-semibold fs-5">
+                Correo electrónico
+              </Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Correo electrónico"
+                name="email"
                 required
               />
             </Form.Group>

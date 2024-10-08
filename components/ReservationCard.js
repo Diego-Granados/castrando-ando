@@ -11,6 +11,7 @@ import Badge from "react-bootstrap/Badge";
 import { get, ref, child } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 import Link from "next/link";
+import { sendCancelEmail } from "@/lib/firebase/Brevo";
 export default function ReservationCard({
   reservation,
   id,
@@ -45,6 +46,19 @@ export default function ReservationCard({
     });
     if (response.ok) {
       toast.success("Cita cancelada correctamente.");
+      const cancelEmail = await sendCancelEmail(
+        reservation.email,
+        reservation.name,
+        reservation.timeslot,
+        reservation.date,
+        reservation.campaign + " en " + reservation.place
+      );
+      if (cancelEmail.ok) {
+        toast.success("Cancelación enviada correctamente", {
+        });
+      } else {
+        toast.error("Error al enviar cancelación");
+      }
       const updated = { ...appointments };
       delete updated[appointmentKey];
       setAppointments(updated);
@@ -131,7 +145,8 @@ export default function ReservationCard({
             Precio: ₡{reservation.priceData.price}{" "}
             {reservation.priceSpecial && "+ cargo por situación especial"}{" "}
             <br />
-            Teléfono de contacto: {reservation.phone}
+            Teléfono de contacto: {reservation.phone}<br/>
+            Correo electrónico de contacto: {reservation.email}
           </Card.Text>
           <Link href={`/campaign?id=${reservation.campaignId}`}>
             <Button variant="light">Ver campaña</Button>
@@ -206,6 +221,19 @@ export default function ReservationCard({
                     name="phone"
                     required
                     defaultValue={reservation.phone}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="inputEmail">
+                  <Form.Label className="fw-semibold fs-5">
+                    Correo electrónico
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    placeholder="Correo electrónico"
+                    name="email"
+                    required
+                    defaultValue={reservation.email}
                   />
                 </Form.Group>
 
