@@ -88,6 +88,7 @@ export default function ReservationCard({
       name: formData.get("name"),
       pet: formData.get("pet"),
       phone: formData.get("phone"),
+      email: formData.get("email"),
       animal: formData.get("flexAnimal") == "perro" ? true : false,
       sex: formData.get("flexSex") == "macho" ? true : false,
       priceData: JSON.parse(formData.get("price")),

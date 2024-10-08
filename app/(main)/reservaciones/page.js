@@ -10,6 +10,7 @@ export default function Reservaciones() {
   const [cedula, setCedula] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   
   async function getAppointments(event) {
     event.preventDefault();
@@ -30,6 +31,7 @@ export default function Reservaciones() {
       if (snapshot.exists()) {
         setName(snapshot.val().name);
         setPhone(snapshot.val().phone);
+        setEmail(snapshot.val().email);
       } else {
         setName(cedula);
       }
@@ -51,7 +53,7 @@ export default function Reservaciones() {
             onChange={(e) => setCedula(e.target.value)}
           />
         </Form.Group>
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" className="mb-3">
           Consultar
         </Button>
       </Form>
@@ -72,6 +74,8 @@ export default function Reservaciones() {
                   setName={setName}
                   phone={phone}
                   setPhone={setPhone}
+                  email={email}
+                  setEmail={setEmail}
                 />
               );
             }
