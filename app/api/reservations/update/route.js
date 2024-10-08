@@ -31,6 +31,9 @@ export async function POST(req) {
     updates[
       `/inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/sex`
     ] = formData.sex;
+    updates[
+      `/inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/email`
+    ] = formData.email;
 
     updates[`/users/${formData.id}`] = {
       phone: formData.phone,
@@ -48,6 +51,8 @@ export async function POST(req) {
       formData.sex;
     updates[`/appointments/${formData.id}/${appointmentKey}/phone`] =
       formData.phone;
+    updates[`/appointments/${formData.id}/${appointmentKey}/email`] =
+      formData.email;
 
     console.log(updates);
     await update(ref(db), updates);

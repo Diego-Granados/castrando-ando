@@ -24,6 +24,7 @@ export async function POST(req) {
     ] = {
       id: formData.id,
       name: formData.name,
+      email: formData.email,
       phone: formData.phone,
       pet: formData.pet,
       animal: formData.animal,
@@ -36,6 +37,7 @@ export async function POST(req) {
 
     updates[`/users/${formData.id}`] = {
       phone: formData.phone,
+      email: formData.email,
       name: formData.name,
     };
     updates[`/appointments/${formData.id}/${newInscriptionRef.key}`] = {
@@ -44,6 +46,7 @@ export async function POST(req) {
       campaign: formData.campaign,
       date: formData.date,
       place: formData.place,
+      email: formData.email,
       phone: formData.phone,
       animal: formData.animal,
       sex: formData.sex,
