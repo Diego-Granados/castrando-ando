@@ -48,7 +48,7 @@ export default function ReservationCard({
       toast.success("Cita cancelada correctamente.");
       const cancelEmail = await sendCancelEmail(
         reservation.email,
-        reservation.name,
+        name,
         reservation.timeslot,
         reservation.date,
         reservation.campaign + " en " + reservation.place
