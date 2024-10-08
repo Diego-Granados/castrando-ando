@@ -95,6 +95,20 @@ export default function Ayuda() {
         </div>
       </div>
 
+      <div className="container row mt-5">
+        <h2 className="text-center">¿No recibiste tu correo de confirmación?</h2>
+        <hr style={{ borderTop: '2px solid #ccc', margin: '20px 0' }} />
+        <article className="row">
+          <p>
+            <font size='5'>En caso de no recibir tu correo de confirmación o cancelación de cita, revisa la carpeta "Spam" de tu correo electrónico. </font>
+          </p>
+        </article>
+        <div className="d-flex justify-content-center w-100">
+          <img className="img-fluid row" style={{maxHeight:'50vh', width:'auto'}} src="https://firebasestorage.googleapis.com/v0/b/animalitos-db3ff.appspot.com/o/Ayuda%2FSpam.png?alt=media&token=03efae6e-f970-457f-b6b4-727309f1527d"></img>
+        </div>
+      </div>
+
+
     </main>
   );
 }
