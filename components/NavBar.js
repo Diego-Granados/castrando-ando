@@ -25,6 +25,7 @@ function NavBar() {
             <Nav.Link href="/aboutus">Quiénes somos</Nav.Link>
             <Nav.Link href="/contacto">Contacto</Nav.Link>
             <Nav.Link href="/reservaciones">Citas</Nav.Link>
+            <Nav.Link href="/ayuda">Ayuda</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

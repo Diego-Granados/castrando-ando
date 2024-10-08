@@ -11,7 +11,7 @@ import { Row, Col } from "react-bootstrap";
 
 export default function Home() {
   const campaignsRef = ref(db, "campaigns");
-  const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState({});
   const [activePage, setActivePage] = useState(1);
   const campaignsPerPage = 1; // Número de campañas por página
 
@@ -75,7 +75,7 @@ export default function Home() {
       <h1>Asociación Animalitos Abandonados</h1>
       {items ? (
         <>
-          <div className="d-flex justify-content-center">
+          <div className="d-flex justify-content-center mt-5">
             {/* Mostrar las campañas de la página actual */}
             {currentCampaigns.map((campaign) => (
               <CampaignCard
@@ -84,7 +84,7 @@ export default function Home() {
               />
             ))}
           </div>
-          <div className="d-flex justify-content-center align-items-center">
+          <div className="d-flex justify-content-center align-items-center mt-3">
             <Pagination size="sm">
               <Pagination.First onClick={() => setActivePage(1)} />
               <Pagination.Prev
