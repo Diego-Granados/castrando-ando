@@ -109,25 +109,27 @@ export default function Citas() {
                   </Accordion.Header>
                   <Accordion.Body>
                     {"appointments" in timeslots[timeslot] ? (
-                      <Table striped bordered hover>
-                        <thead>
-                          <tr>
-                            <th>Cédula</th>
-                            <th>Nombre</th>
-                            <th>Teléfono</th>
-                            <th>Mascota</th>
-                            <th>Especie</th>
-                            <th>Sexo</th>
-                            <th>Precio</th>
-                            <th>Peso</th>
-                            <th>¿Caso especial?</th>
-                            <th>Pagado</th>
-                            <th>Eliminar</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Object.keys(timeslots[timeslot]["appointments"]).map(
-                            (inscriptionId, index) => {
+                      <div className="table-responsive">
+                        <Table striped bordered hover>
+                          <thead>
+                            <tr>
+                              <th>Cédula</th>
+                              <th>Nombre</th>
+                              <th>Teléfono</th>
+                              <th>Mascota</th>
+                              <th>Especie</th>
+                              <th>Sexo</th>
+                              <th>Precio</th>
+                              <th>Peso</th>
+                              <th>¿Caso especial?</th>
+                              <th>¿Ya llegó?</th>
+                              <th>Eliminar</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.keys(
+                              timeslots[timeslot]["appointments"]
+                            ).map((inscriptionId, index) => {
                               const inscription =
                                 timeslots[timeslot]["appointments"][
                                   inscriptionId
@@ -202,10 +204,10 @@ export default function Citas() {
                                   </tr>
                                 );
                               }
-                            }
-                          )}
-                        </tbody>
-                      </Table>
+                            })}
+                          </tbody>
+                        </Table>
+                      </div>
                     ) : (
                       <p>No hay inscritos para esta hora.</p>
                     )}
