@@ -151,11 +151,6 @@ function EditForm({ campaign, campaignId }) {
 
     try {
       const response = await updateCampaign(rawFormData);
-      // const response = await fetch("/api/campaigns/update", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ formData: rawFormData }),
-      // });
 
       if (response.ok) {
         toast.success("¡Campaña actualizada con éxito!", {
