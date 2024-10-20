@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
 import { toast } from "react-toastify";
+import { deleteCampaign } from "@/app/api/campaigns/delete/route";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -45,16 +46,17 @@ export default function Campaign() {
   const handleCloseCancel = () => setShowCancel(false);
   const handleShowCancel = () => setShowCancel(true);
 
-  async function deleteCampaign() {
-    const response = await fetch("/api/campaigns/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        formData: { campaignId },
-      }),
-    });
+  async function handleDeleteCampaign() {
+    const response = await deleteCampaign({ campaignId });
+    // const response = await fetch("/api/campaigns/delete", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     formData: { campaignId },
+    //   }),
+    // });
     if (response.ok) {
       toast.success("Campaña eliminada correctamente.");
       router.push("/admin");
@@ -173,7 +175,7 @@ export default function Campaign() {
           </Row>
           <Modal show={showCancel} onHide={handleCloseCancel} centered>
             <Modal.Header closeButton>
-              <Modal.Title>Cancelar campaña</Modal.Title>
+              <Modal.Title>Eliminar campaña</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               ¿Está seguro que desea eliminar la campaña {campaign.title} en{" "}
@@ -190,7 +192,7 @@ export default function Campaign() {
               </Button>
               <Button
                 variant="danger"
-                onClick={deleteCampaign}
+                onClick={handleDeleteCampaign}
                 className="px-5"
               >
                 Sí

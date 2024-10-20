@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase/config";
 import { ref, update, get, child } from "firebase/database";
+import { auth } from "@/lib/firebase/config";
+import { onAuthStateChanged } from "firebase/auth";
 
-export async function POST(req) {
+export async function deleteCampaign(formData) {
   try {
-    const { formData } = await req.json();
+    let user = null;
+    // Use onAuthStateChanged to get the current user
+    await new Promise((resolve) => {
+      onAuthStateChanged(auth, (currentUser) => {
+        user = currentUser;
+        resolve(); // Resolve the promise when the user is available
+      });
+    });
+
+    if (!user) {
+      console.log("User not authenticated");
+      return NextResponse.error("User not authenticated", { status: 401 });
+    }
+
     console.log(formData);
 
     const campaignId = formData.campaignId;

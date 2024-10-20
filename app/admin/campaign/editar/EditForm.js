@@ -14,6 +14,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import { updateCampaign } from "@/app/api/campaigns/update/route";
 
 function EditForm({ campaign, campaignId }) {
   const router = useRouter();
@@ -109,7 +110,7 @@ function EditForm({ campaign, campaignId }) {
     return downloadURLs;
   }
 
-  async function updateCampaign(event) {
+  async function handleUpdateCampaign(event) {
     event.preventDefault();
 
     setUpdating(true);
@@ -149,12 +150,12 @@ function EditForm({ campaign, campaignId }) {
     }
 
     try {
-      console.log("fetching");
-      const response = await fetch("/api/campaigns/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData: rawFormData }),
-      });
+      const response = await updateCampaign(rawFormData);
+      // const response = await fetch("/api/campaigns/update", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ formData: rawFormData }),
+      // });
 
       if (response.ok) {
         toast.success("¡Campaña actualizada con éxito!", {
@@ -184,10 +185,12 @@ function EditForm({ campaign, campaignId }) {
     }
   }
   return (
-    <Container onSubmit={updateCampaign}>
+    <Container onSubmit={handleUpdateCampaign}>
       <Form>
         <div className="card shadow-sm p-5 mt-3">
-        <h2 className="mb-3" style={{color:"#606060"}}>Información general</h2>
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Información general
+          </h2>
           <Form.Group controlId="title">
             <Form.Label className="fw-semibold">Título</Form.Label>
             <Form.Control
@@ -246,22 +249,25 @@ function EditForm({ campaign, campaignId }) {
 
           <Row className="mt-3">
             <Form.Group controlId="contactNumber">
-            <Form.Label className="fw-semibold">Número de Contacto</Form.Label>
-            <Form.Control
-              type="number"
-              placeholder="Ingrese el número de contacto"
-              name="phone"
-              required
-              defaultValue={campaign.phone}
-            />
+              <Form.Label className="fw-semibold">
+                Número de Contacto
+              </Form.Label>
+              <Form.Control
+                type="number"
+                placeholder="Ingrese el número de contacto"
+                name="phone"
+                required
+                defaultValue={campaign.phone}
+              />
             </Form.Group>
           </Row>
-
         </div>
 
         <div className="card shadow-sm p-5 mt-3">
-        <h2 className="mb-3" style={{color:"#606060"}}>Precios</h2>
-         <Row className="mt-3">
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Precios
+          </h2>
+          <Row className="mt-3">
             <Form.Label className="fw-semibold">Precios:</Form.Label>
             <br />
             <Form.Text>
@@ -291,31 +297,33 @@ function EditForm({ campaign, campaignId }) {
                 </button>
               )}
             </div>
-            </Row>
-            <Row className="mt-3">
-              <Form.Group
-                controlId={`priceSpecial`}
-                as={Row}
-                className="align-items-center"
-              >
-                <Form.Label column sm={2}>
-                  Precio para situaciones especiales:
-                </Form.Label>
-                <Col sm={4}>
-                  <Form.Control
-                    name="priceSpecial"
-                    type="number"
-                    placeholder="Precio para situaciones especiales"
-                    defaultValue={campaign.priceSpecial}
-                    required
-                  />
-                </Col>
-              </Form.Group>
-           </Row>
+          </Row>
+          <Row className="mt-3">
+            <Form.Group
+              controlId={`priceSpecial`}
+              as={Row}
+              className="align-items-center"
+            >
+              <Form.Label column sm={2}>
+                Precio para situaciones especiales:
+              </Form.Label>
+              <Col sm={4}>
+                <Form.Control
+                  name="priceSpecial"
+                  type="number"
+                  placeholder="Precio para situaciones especiales"
+                  defaultValue={campaign.priceSpecial}
+                  required
+                />
+              </Col>
+            </Form.Group>
+          </Row>
         </div>
         <div className="card shadow-sm p-5 mt-3">
-        <h2 className="mb-3" style={{color:"#606060"}}>Requisitos</h2>
-         <Row className="mt-3">
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Requisitos
+          </h2>
+          <Row className="mt-3">
             <Form.Label className="fw-semibold">Requisitos:</Form.Label>
             {reqs}
             <div className="container">
@@ -342,9 +350,11 @@ function EditForm({ campaign, campaignId }) {
             </div>
           </Row>
         </div>
-        
+
         <div className="card shadow-sm p-5 mt-3">
-        <h2 className="mb-3" style={{color:"#606060"}}>Imágenes</h2>
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Imágenes
+          </h2>
           <Form.Group controlId="photos" className="mb-3">
             <Form.Label className="fw-semibold">
               Suba las fotos para promocionar la campaña (Afiche, campañas
@@ -376,19 +386,18 @@ function EditForm({ campaign, campaignId }) {
             </div>
           )}
         </div>
-  
-          <Button
-            variant="primary"
-            type="submit"
-            className="mt-5 mb-5"
-            disabled={updating}
-          >
-            Guardiar cambios
-          </Button>
-          <Link href={`/admin/campaign?id=${campaignId}`} className="mb-5 mx-5">
-            <Button variant="dark">Regresar</Button>
-          </Link>
-   
+
+        <Button
+          variant="primary"
+          type="submit"
+          className="mt-5 mb-5"
+          disabled={updating}
+        >
+          Guardiar cambios
+        </Button>
+        <Link href={`/admin/campaign?id=${campaignId}`} className="mb-5 mx-5">
+          <Button variant="dark">Regresar</Button>
+        </Link>
       </Form>
     </Container>
   );
