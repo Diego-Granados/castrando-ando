@@ -45,7 +45,7 @@ export async function uploadCampaign(formData) {
     const newCampaignRef = push(campaignRef);
     const updates = {};
     updates[`/campaigns/${newCampaignRef.key}`] = formData;
-    //updates[`/inscriptions/${newCampaignRef.key}`] = inscriptions;
+    updates[`/inscriptions/${newCampaignRef.key}`] = inscriptions;
     // Insertar en DB
     await update(ref(db), updates);
     return NextResponse.json({ message: "Form data saved successfully!" });
