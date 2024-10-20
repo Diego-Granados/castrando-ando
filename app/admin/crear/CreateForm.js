@@ -163,7 +163,6 @@ function CreateForm() {
         setCreating(false);
       }
     } catch (error) {
-      console.error(error);
       toast.error("¡Error al crear la campaña!", {
         position: "top-center",
         autoClose: 8000,

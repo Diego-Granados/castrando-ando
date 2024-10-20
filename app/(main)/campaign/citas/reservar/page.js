@@ -71,7 +71,6 @@ export default function Reservar() {
       place: campaign.place,
     };
 
-
     try {
       const response = await fetch("/api/campaigns/reserve", {
         method: "POST",
@@ -98,20 +97,18 @@ export default function Reservar() {
         setReserving(false);
       }
       const confirmationEmail = await sendConfirmationEmail(
-        rawFormData.email, 
+        rawFormData.email,
         rawFormData.name,
         rawFormData.timeslot,
         rawFormData.date,
         rawFormData.campaign + " en " + rawFormData.place
-      )
+      );
       if (confirmationEmail.ok) {
-        toast.success("Confirmación enviada correctamente", {
-        });
+        toast.success("Confirmación enviada correctamente", {});
       } else {
         toast.error("Error al enviar confirmación");
       }
     } catch (error) {
-      console.error(error);
       toast.error("¡Error al reservar la cita!", {
         position: "top-center",
         autoClose: 8000,

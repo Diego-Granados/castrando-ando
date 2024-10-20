@@ -55,7 +55,6 @@ export async function updateCampaign(formData) {
     await update(ref(db), updates);
     return NextResponse.json({ message: "Form data saved successfully!" });
   } catch (error) {
-    console.error(error);
     return NextResponse.error(error);
   }
 }

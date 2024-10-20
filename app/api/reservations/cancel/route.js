@@ -23,7 +23,6 @@ export async function POST(req) {
     await update(ref(db), updates);
     return NextResponse.json({ message: "Appointment canceled correctly!" });
   } catch (error) {
-    console.error(error);
     return NextResponse.error(error);
   }
 }

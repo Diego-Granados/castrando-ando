@@ -45,15 +45,6 @@ export default function Campaign() {
 
   async function handleDeleteCampaign() {
     const response = await deleteCampaign({ campaignId });
-    // const response = await fetch("/api/campaigns/delete", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     formData: { campaignId },
-    //   }),
-    // });
     if (response.ok) {
       toast.success("Campaña eliminada correctamente.");
       router.push("/admin");

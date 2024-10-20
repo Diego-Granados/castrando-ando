@@ -71,6 +71,5 @@ export default function Contacto() {
         Enviar
       </Button>
     </Form>
-    
   );
 }
