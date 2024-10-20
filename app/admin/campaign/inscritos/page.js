@@ -12,6 +12,7 @@ import Form from "react-bootstrap/Form";
 import { CircleX } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
+import { sendRecordatorio } from "@/lib/firebase/Brevo";
 
 export default function Citas() {
   const searchParams = useSearchParams();
@@ -80,6 +81,47 @@ export default function Citas() {
       toast.error("Error al cancelar la cita.");
     }
     handleCloseCancel();
+  }
+
+  async function enviarRecordatorio(){
+    let error = false
+    sortedKeys.map((timeslot) => {
+      if(timeslots[timeslot]["appointments"]){
+        Object.keys(
+          timeslots[timeslot]["appointments"]
+        ).map(async (inscriptionId, index) => {
+            const inscription =
+                timeslots[timeslot]["appointments"][
+              inscriptionId
+            ];
+            if(inscription.enabled) {
+              if(inscription.email){
+                const correo = inscription.email
+                const nombre = inscription.name
+                const hora = timeslot
+                const fecha = campaign.date
+                const titulo = campaign.title
+                const recordatorioEmail = await sendRecordatorio(
+                  correo, 
+                  nombre,
+                  hora,
+                  fecha,
+                  titulo
+                )
+                if(!recordatorioEmail.ok) {
+                  error = true
+                  toast.error("Error al enviar recordatorio");
+                }
+              }
+            }
+        }
+      )
+      } 
+    }
+  )
+  if(!error){
+    toast.success("Recordatorios enviados correctamente")
+  }
   }
 
   return (
@@ -215,6 +257,7 @@ export default function Citas() {
                 </Accordion.Item>
               ))}
           </Accordion>
+          <Button className="mt-3" onClick={enviarRecordatorio}>Enviar recordatorio</Button>
         </>
       )}
       {reservation && (
