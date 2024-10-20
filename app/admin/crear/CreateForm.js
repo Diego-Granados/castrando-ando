@@ -7,6 +7,7 @@ import Requirement from "@/components/Requirement";
 import { storage } from "@/lib/firebase/config";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { uploadCampaign } from "@/app/api/campaigns/create/route";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -135,12 +136,7 @@ function CreateForm() {
     }
 
     try {
-      console.log("fetching");
-      const response = await fetch("/api/campaigns/create", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData: rawFormData }),
-      });
+      const response = await uploadCampaign(rawFormData);
 
       if (response.ok) {
         toast.success("¡Campaña creada con éxito!", {
@@ -174,7 +170,9 @@ function CreateForm() {
     <Container onSubmit={createCampaign}>
       <Form>
         <div className="card shadow-sm p-5 mt-3">
-          <h2 className="mb-3" style={{color:"#606060"}}>Información general</h2>
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Información general
+          </h2>
           <Form.Group controlId="title">
             <Form.Label className="fw-semibold">Título</Form.Label>
             <Form.Control
@@ -230,19 +228,23 @@ function CreateForm() {
             </Form.Group>
           </Row>
           <Row className="mt-3">
-              <Form.Group controlId="contactNumber">
-                <Form.Label className="fw-semibold">Número de Contacto</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Ingrese el número de contacto"
-                  name="phone"
-                  required
-                />
-              </Form.Group>
+            <Form.Group controlId="contactNumber">
+              <Form.Label className="fw-semibold">
+                Número de Contacto
+              </Form.Label>
+              <Form.Control
+                type="number"
+                placeholder="Ingrese el número de contacto"
+                name="phone"
+                required
+              />
+            </Form.Group>
           </Row>
         </div>
         <div className="card shadow-sm p-5 mt-3">
-          <h2 className="mb-3" style={{color:"#606060"}}>Precios</h2>
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Precios
+          </h2>
           <Row className="mt-3">
             <Form.Label className="fw-semibold">Precios:</Form.Label>
             <br />
@@ -273,59 +275,63 @@ function CreateForm() {
                 </button>
               )}
             </div>
-            </Row>
-            <Row className="mt-3">
-              <Form.Group
-                controlId={`priceSpecial`}
-                as={Row}
-                className="align-items-center"
-              >
-                <Form.Label column sm={2}>
-                  Precio para situaciones especiales:
-                </Form.Label>
-                <Col sm={4}>
-                  <Form.Control
-                    name="priceSpecial"
-                    type="number"
-                    placeholder="Precio para situaciones especiales"
-                    defaultValue={5000}
-                    required
-                  />
-                </Col>
-              </Form.Group>
-            </Row>
-          </div>
-          <div className="card shadow-sm p-5 mt-3">
-            <h2 className="mb-3" style={{color:"#606060"}}>Requisitos</h2>
-            <Row className="mt-3">
-              <Form.Label className="fw-semibold">Requisitos:</Form.Label>
-              {reqs}
-              <div className="container">
-                {reqs.length < 5 && (
-                  <button
-                    className="active:opacity-55 btn"
-                    onClick={() => addReq()}
-                    type="button"
-                    aria-label="Agregar precio"
-                  >
-                    <CirclePlus size="40px" />
-                  </button>
-                )}
-                {reqs.length > 1 && (
-                  <button
-                    className="active:opacity-55 btn"
-                    onClick={() => deleteReq()}
-                    type="button"
-                    aria-label="Eliminar precio"
-                  >
-                    <CircleMinus size="40px" />
-                  </button>
-                )}
-              </div>
+          </Row>
+          <Row className="mt-3">
+            <Form.Group
+              controlId={`priceSpecial`}
+              as={Row}
+              className="align-items-center"
+            >
+              <Form.Label column sm={2}>
+                Precio para situaciones especiales:
+              </Form.Label>
+              <Col sm={4}>
+                <Form.Control
+                  name="priceSpecial"
+                  type="number"
+                  placeholder="Precio para situaciones especiales"
+                  defaultValue={5000}
+                  required
+                />
+              </Col>
+            </Form.Group>
           </Row>
         </div>
         <div className="card shadow-sm p-5 mt-3">
-          <h2 className="mb-3" style={{color:"#606060"}}>Imágenes</h2>
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Requisitos
+          </h2>
+          <Row className="mt-3">
+            <Form.Label className="fw-semibold">Requisitos:</Form.Label>
+            {reqs}
+            <div className="container">
+              {reqs.length < 5 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => addReq()}
+                  type="button"
+                  aria-label="Agregar precio"
+                >
+                  <CirclePlus size="40px" />
+                </button>
+              )}
+              {reqs.length > 1 && (
+                <button
+                  className="active:opacity-55 btn"
+                  onClick={() => deleteReq()}
+                  type="button"
+                  aria-label="Eliminar precio"
+                >
+                  <CircleMinus size="40px" />
+                </button>
+              )}
+            </div>
+          </Row>
+        </div>
+        <div className="card shadow-sm p-5 mt-3">
+          <h2 className="mb-3" style={{ color: "#606060" }}>
+            Imágenes
+          </h2>
           <Row className="mt-3">
             <Form.Group controlId="photos" className="mb-3">
               <Form.Label className="fw-semibold">
