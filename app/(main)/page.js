@@ -22,12 +22,10 @@ export default function Home() {
   useEffect(() => {
     const unsubscribe = onValue(campaignsRef, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       const data = snapshot.val();
       Object.keys(data).forEach((campaign) => {
-        console.log(data[campaign].enabled);
         if (!data[campaign].enabled) delete data[campaign];
       });
       setCampaigns(data);

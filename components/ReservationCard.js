@@ -98,7 +98,6 @@ export default function ReservationCard({
       campaignId: reservation.campaignId,
       timeslot: reservation.timeslot,
     };
-    console.log(rawFormData);
 
     const response = await fetch("/api/reservations/update", {
       method: "POST",

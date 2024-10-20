@@ -16,12 +16,10 @@ export default function Edit() {
   }
 
   useEffect(() => {
-    console.log("campaignId", campaignId);
     const campaignRef = ref(db, `campaigns/${campaignId}`);
 
     const unsubscribe = onValue(campaignRef, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       const value = snapshot.val();

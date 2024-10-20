@@ -79,7 +79,6 @@ function EditForm({ campaign, campaignId }) {
     const downloadURLs = [];
 
     if (fileList.length > 0) {
-      console.log("Here");
 
       for (const file of fileList) {
         const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
@@ -126,14 +125,11 @@ function EditForm({ campaign, campaignId }) {
       campaignId,
     };
 
-    console.log(rawFormData);
-
     const prices = formData.getAll("price");
     const weights = formData.getAll("weight");
     rawFormData.pricesData = prices.map((price, index) => {
       return { price: price, weight: weights[index] };
     });
-    console.log(rawFormData.pricesData);
 
     try {
       const path = `campaign-${Date.now()}`; // Add a timestamp

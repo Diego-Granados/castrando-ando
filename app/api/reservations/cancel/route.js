@@ -5,7 +5,6 @@ import { ref, increment, update } from "firebase/database";
 export async function POST(req) {
   try {
     const { formData } = await req.json();
-    console.log("CANCEL", formData);
 
     const updates = {};
 

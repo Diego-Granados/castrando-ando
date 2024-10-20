@@ -8,7 +8,6 @@ export default function CampaignCard({ campaign, admin }) {
   const datetime = new Date(campaign.date + "T" + "15:00:00");
   const today = new Date();
   const active = today <= datetime;
-  console.log(campaign);
   return (
     <article
       className="container row px-3 my-1 w-75 mh-50"

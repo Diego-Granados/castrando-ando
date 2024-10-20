@@ -9,7 +9,6 @@ export default function ValidateUser() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log(user);
       if (!user) {
         router.push("/");
       }
