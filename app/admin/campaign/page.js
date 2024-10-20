@@ -23,16 +23,13 @@ export default function Campaign() {
   }
 
   useEffect(() => {
-    console.log("campaignId", campaignId);
     const campaignRef = ref(db, `campaigns/${campaignId}`);
 
     const unsubscribe = onValue(campaignRef, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       const value = snapshot.val();
-      console.log(value);
       const datetime = new Date(value.date + "T" + "15:00:00");
       const today = new Date();
       setActive(today <= datetime);
@@ -48,15 +45,6 @@ export default function Campaign() {
 
   async function handleDeleteCampaign() {
     const response = await deleteCampaign({ campaignId });
-    // const response = await fetch("/api/campaigns/delete", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     formData: { campaignId },
-    //   }),
-    // });
     if (response.ok) {
       toast.success("Campaña eliminada correctamente.");
       router.push("/admin");

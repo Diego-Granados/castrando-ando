@@ -22,14 +22,12 @@ export default function Contacto() {
 
     //Mandar correos, se debe mandar el correo a la asociacion, pero por ahora me lo mando a mi
     if (rawFormData.correo !== "") {
-      console.log(rawFormData);
       const response = await sendEmail(
         rawFormData.mensaje,
         rawFormData.correo,
         rawFormData.nombre,
         rawFormData.cedula
       );
-      console.log(response);
       if (response.ok) {
         toast.success("Mensaje enviado correctamente", {
           onClose: () => {
@@ -73,6 +71,5 @@ export default function Contacto() {
         Enviar
       </Button>
     </Form>
-    
   );
 }

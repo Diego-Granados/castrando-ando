@@ -24,7 +24,6 @@ export default function Reservar() {
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       setCampaign(snapshot.val());
@@ -39,7 +38,6 @@ export default function Reservar() {
     const inscriptionsRef = ref(db, `inscriptions/${campaignId}/${timeslot}`);
     const unsubscribe = onValue(inscriptionsRef, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       const data = snapshot.val();
@@ -73,10 +71,7 @@ export default function Reservar() {
       place: campaign.place,
     };
 
-    console.log(rawFormData);
-
     try {
-      console.log("fetching");
       const response = await fetch("/api/campaigns/reserve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,20 +97,18 @@ export default function Reservar() {
         setReserving(false);
       }
       const confirmationEmail = await sendConfirmationEmail(
-        rawFormData.email, 
+        rawFormData.email,
         rawFormData.name,
         rawFormData.timeslot,
         rawFormData.date,
         rawFormData.campaign + " en " + rawFormData.place
-      )
+      );
       if (confirmationEmail.ok) {
-        toast.success("Confirmación enviada correctamente", {
-        });
+        toast.success("Confirmación enviada correctamente", {});
       } else {
         toast.error("Error al enviar confirmación");
       }
     } catch (error) {
-      console.error(error);
       toast.error("¡Error al reservar la cita!", {
         position: "top-center",
         autoClose: 8000,

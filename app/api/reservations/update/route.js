@@ -5,7 +5,6 @@ import { ref, update } from "firebase/database";
 export async function POST(req) {
   try {
     const { formData } = await req.json();
-    console.log(formData);
 
     const updates = {};
 
@@ -54,12 +53,9 @@ export async function POST(req) {
     updates[`/appointments/${formData.id}/${appointmentKey}/email`] =
       formData.email;
 
-    console.log(updates);
     await update(ref(db), updates);
-    console.log("Appointment updated correctly!");
     return NextResponse.json({ message: "Appointment saved correctly!" });
   } catch (error) {
-    console.error(error);
     return NextResponse.error(error);
   }
 }

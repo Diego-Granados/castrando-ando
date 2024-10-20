@@ -62,7 +62,6 @@ export async function createCampaign(formData) {
     });
 
     if (!user) {
-      console.log("User not authenticated");
       return NextResponse.error("User not authenticated", { status: 401 });
     }
 

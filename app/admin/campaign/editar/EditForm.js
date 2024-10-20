@@ -79,8 +79,6 @@ function EditForm({ campaign, campaignId }) {
     const downloadURLs = [];
 
     if (fileList.length > 0) {
-      console.log("Here");
-
       for (const file of fileList) {
         const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
 
@@ -100,9 +98,7 @@ function EditForm({ campaign, campaignId }) {
 
       campaign.photos.forEach((photo) => {
         const storageRef = ref(storage, decodePhotoURL(photo));
-        deleteObject(storageRef)
-          .then()
-          .catch((error) => console.log(error));
+        deleteObject(storageRef).then().catch();
       });
     }
     // Iterar a través del array de archivos (fileList)
@@ -126,15 +122,11 @@ function EditForm({ campaign, campaignId }) {
       campaignId,
     };
 
-    console.log(rawFormData);
-
     const prices = formData.getAll("price");
     const weights = formData.getAll("weight");
     rawFormData.pricesData = prices.map((price, index) => {
       return { price: price, weight: weights[index] };
     });
-    console.log(rawFormData.pricesData);
-
     try {
       const path = `campaign-${Date.now()}`; // Add a timestamp
       const fileInput = document.getElementById("photos");
@@ -170,7 +162,6 @@ function EditForm({ campaign, campaignId }) {
         setUpdating(false);
       }
     } catch (error) {
-      console.error(error);
       toast.error("¡Error al actualizar la campaña!", {
         position: "top-center",
         autoClose: 8000,

@@ -54,8 +54,7 @@ export default function ReservationCard({
         reservation.campaign + " en " + reservation.place
       );
       if (cancelEmail.ok) {
-        toast.success("Cancelación enviada correctamente", {
-        });
+        toast.success("Cancelación enviada correctamente", {});
       } else {
         toast.error("Error al enviar cancelación");
       }
@@ -98,7 +97,6 @@ export default function ReservationCard({
       campaignId: reservation.campaignId,
       timeslot: reservation.timeslot,
     };
-    console.log(rawFormData);
 
     const response = await fetch("/api/reservations/update", {
       method: "POST",
@@ -146,7 +144,8 @@ export default function ReservationCard({
             Precio: ₡{reservation.priceData.price}{" "}
             {reservation.priceSpecial && "+ cargo por situación especial"}{" "}
             <br />
-            Teléfono de contacto: {reservation.phone}<br/>
+            Teléfono de contacto: {reservation.phone}
+            <br />
             Correo electrónico de contacto: {reservation.email}
           </Card.Text>
           <Link href={`/campaign?id=${reservation.campaignId}`}>

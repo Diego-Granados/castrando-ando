@@ -122,14 +122,12 @@ function CreateForm() {
       setCreating(false);
       return;
     }
-    console.log(rawFormData);
 
     const prices = formData.getAll("price");
     const weights = formData.getAll("weight");
     rawFormData.pricesData = prices.map((price, index) => {
       return { price: price, weight: weights[index] };
     });
-    console.log(rawFormData.pricesData);
 
     try {
       const path = `campaign-${Date.now()}`; // Add a timestamp
@@ -165,7 +163,6 @@ function CreateForm() {
         setCreating(false);
       }
     } catch (error) {
-      console.error(error);
       toast.error("¡Error al crear la campaña!", {
         position: "top-center",
         autoClose: 8000,

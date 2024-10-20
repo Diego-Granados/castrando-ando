@@ -30,7 +30,6 @@ export default function Citas() {
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       setCampaign(snapshot.val());
@@ -39,11 +38,9 @@ export default function Citas() {
     const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
     const unsubscribe = onValue(inscriptionsRef, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log("No data available");
         return;
       }
       const data = snapshot.val();
-      console.log(data);
       const keys = Object.keys(data);
 
       const sortedKeys = keys.sort((a, b) => {

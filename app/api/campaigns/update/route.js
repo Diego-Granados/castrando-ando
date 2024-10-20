@@ -16,10 +16,8 @@ export async function updateCampaign(formData) {
     });
 
     if (!user) {
-      console.log("User not authenticated");
       return NextResponse.error("User not authenticated", { status: 401 });
     }
-    console.log(formData);
 
     const campaignId = formData.campaignId;
     const updates = {};
@@ -38,7 +36,6 @@ export async function updateCampaign(formData) {
 
     const snapshot = await get(child(ref(db), `inscriptions/${campaignId}`));
     if (!snapshot.exists()) {
-      console.log("No data available");
       return NextResponse.error("No data available");
     }
     const inscriptions = snapshot.val();
@@ -58,7 +55,6 @@ export async function updateCampaign(formData) {
     await update(ref(db), updates);
     return NextResponse.json({ message: "Form data saved successfully!" });
   } catch (error) {
-    console.error(error);
     return NextResponse.error(error);
   }
 }
