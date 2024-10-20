@@ -1,5 +1,5 @@
 "use client";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { Form, Button, Container, Row, Col, Text } from "react-bootstrap";
 import { useState, useRef } from "react";
 import { CirclePlus, CircleMinus } from "lucide-react";
 import Price from "@/components/Price";
@@ -7,7 +7,7 @@ import Requirement from "@/components/Requirement";
 import { storage } from "@/lib/firebase/config";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { uploadCampaign } from "@/app/api/campaigns/create/route";
+import { createCampaign } from "@/app/api/campaigns/create/route";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -99,7 +99,7 @@ function CreateForm() {
     return downloadURLs;
   }
 
-  async function createCampaign(event) {
+  async function handleCreateCampaign(event) {
     event.preventDefault();
 
     setCreating(true);
@@ -107,6 +107,9 @@ function CreateForm() {
     const rawFormData = {
       title: formData.get("title"),
       date: formData.get("date"),
+      slotsNumber: formData.get("slotsNumber"),
+      startTime: formData.get("startTime"),
+      endTime: formData.get("endTime"),
       place: formData.get("place"),
       description: formData.get("description"),
       phone: formData.get("phone"),
@@ -114,6 +117,11 @@ function CreateForm() {
       requirements: formData.getAll("requirement"),
     };
 
+    if (rawFormData.startTime >= rawFormData.endTime) {
+      toast.error("¡La hora de inicio debe ser antes que la última cita!");
+      setCreating(false);
+      return;
+    }
     console.log(rawFormData);
 
     const prices = formData.getAll("price");
@@ -136,7 +144,7 @@ function CreateForm() {
     }
 
     try {
-      const response = await uploadCampaign(rawFormData);
+      const response = await createCampaign(rawFormData);
 
       if (response.ok) {
         toast.success("¡Campaña creada con éxito!", {
@@ -167,7 +175,7 @@ function CreateForm() {
     }
   }
   return (
-    <Container onSubmit={createCampaign}>
+    <Container onSubmit={handleCreateCampaign}>
       <Form>
         <div className="card shadow-sm p-5 mt-3">
           <h2 className="mb-3" style={{ color: "#606060" }}>
@@ -185,22 +193,95 @@ function CreateForm() {
           </Form.Group>
           <Row className="mt-3">
             <Col>
-              <Form.Group as={Row} controlId="startDate">
-                <Form.Label className="fw-semibold" column sm={1}>
+              <Form.Group
+                controlId="date"
+                className="d-flex align-items-center"
+              >
+                <Form.Label className="fw-semibold me-2 mb-0">
                   Fecha:
                 </Form.Label>
-                <Col sm={3}>
-                  <Form.Control
-                    type="date"
-                    placeholder="Seleccione la fecha de inicio"
-                    defaultValue={today}
-                    name="date"
-                    required
-                  />
-                </Col>
+                <Form.Control
+                  type="date"
+                  placeholder="Seleccione la fecha de inicio"
+                  defaultValue={today}
+                  name="date"
+                  required
+                  style={{ flex: 1 }}
+                />
+              </Form.Group>
+            </Col>
+            <Col>
+              <Form.Group
+                controlId="slotsNumber"
+                className="d-flex align-items-center"
+              >
+                <Form.Label className="fw-semibold me-2 mb-0">
+                  Citas por hora:
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Indique la cantidad de citas por hora"
+                  defaultValue="10"
+                  name="slotsNumber"
+                  required
+                  min="2"
+                  max="50"
+                  step="2"
+                  style={{ flex: 1 }}
+                />
               </Form.Group>
             </Col>
           </Row>
+          <Row className="mt-2">
+            <Col>
+              <Form.Group
+                controlId="startTime"
+                className="d-flex align-items-center"
+              >
+                <Form.Label className="fw-semibold me-2 mb-0">
+                  Hora de inicio:
+                </Form.Label>
+                <Form.Control
+                  type="time"
+                  placeholder="Seleccione la hora de inicio de la campaña"
+                  defaultValue="07:30" // Correct 24-hour format
+                  name="startTime"
+                  required
+                  style={{ flex: 1 }}
+                  step="1800" // 30 minutes
+                />
+              </Form.Group>
+            </Col>
+
+            <Col>
+              <Form.Group
+                controlId="endTime"
+                className="d-flex align-items-center"
+              >
+                <Form.Label className="fw-semibold me-2 mb-0">
+                  Hora de la última cita:
+                </Form.Label>
+                <Form.Control
+                  type="time"
+                  placeholder="Seleccione la hora de inicio de la campaña"
+                  defaultValue="15:00" // Correct 24-hour format
+                  name="endTime"
+                  required
+                  style={{ flex: 1 }}
+                  step="3600"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Form.Text>
+            La hora de inicio debe ser a intervalos de 30 minutos. Solo puede
+            seleccionar una hora en punto o a la mitad de la hora. Por ejemplo,
+            puedes elegir 08:00 o 08:30, pero no valores como 08:15 o 08:45. La
+            hora de la última cita solo puede estar en horas exactas, es decir,
+            solo puedes seleccionar horas como 14:00, 15:00, etc. El número de
+            citas por hora solo pueden ser números pares.
+          </Form.Text>
           <Row className="mt-3">
             <Form.Group controlId="location">
               <Form.Label className="fw-semibold">Ubicación</Form.Label>

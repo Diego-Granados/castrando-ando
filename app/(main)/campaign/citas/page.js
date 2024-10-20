@@ -19,17 +19,8 @@ export default function Citas() {
   }
 
   const [timeslots, setTimeslots] = useState(null);
-  const sortedKeys = [
-    "07:30",
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-  ];
+  const [sortedKeys, setSortedKeys] = useState(null);
+
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       if (!snapshot.exists()) {
@@ -53,7 +44,20 @@ export default function Citas() {
       }
       const data = snapshot.val();
       console.log(data);
+      const keys = Object.keys(data);
 
+      const sortedKeys = keys.sort((a, b) => {
+        const [hourA, minuteA] = a.split(":").map(Number);
+        const [hourB, minuteB] = b.split(":").map(Number);
+
+        // Comparar horas
+        if (hourA === hourB) {
+          return minuteA - minuteB;
+        } else {
+          return hourA - hourB;
+        }
+      });
+      setSortedKeys(sortedKeys);
       setTimeslots(data);
     });
 
@@ -84,7 +88,7 @@ export default function Citas() {
                 return (
                   <tr key={timeslot}>
                     <td>
-                      {timeslot} - {`${hours}:${minutes}`}
+                      {timeslot} - {`${hours}:00`}
                     </td>
                     <td>{timeslots[timeslot].available}</td>
                     <td>

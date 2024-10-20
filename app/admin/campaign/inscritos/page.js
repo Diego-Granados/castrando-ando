@@ -25,17 +25,8 @@ export default function Citas() {
   }
 
   const [timeslots, setTimeslots] = useState(null);
-  const sortedKeys = [
-    "07:30",
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-  ];
+  const [sortedKeys, setSortedKeys] = useState(null);
+
   useEffect(() => {
     get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
       if (!snapshot.exists()) {
@@ -53,6 +44,20 @@ export default function Citas() {
       }
       const data = snapshot.val();
       console.log(data);
+      const keys = Object.keys(data);
+
+      const sortedKeys = keys.sort((a, b) => {
+        const [hourA, minuteA] = a.split(":").map(Number);
+        const [hourB, minuteB] = b.split(":").map(Number);
+
+        // Comparar horas
+        if (hourA === hourB) {
+          return minuteA - minuteB;
+        } else {
+          return hourA - hourB;
+        }
+      });
+      setSortedKeys(sortedKeys);
 
       setTimeslots(data);
     });
@@ -83,45 +88,41 @@ export default function Citas() {
     handleCloseCancel();
   }
 
-  async function enviarRecordatorio(){
-    let error = false
+  async function enviarRecordatorio() {
+    let error = false;
     sortedKeys.map((timeslot) => {
-      if(timeslots[timeslot]["appointments"]){
-        Object.keys(
-          timeslots[timeslot]["appointments"]
-        ).map(async (inscriptionId, index) => {
+      if (timeslots[timeslot]["appointments"]) {
+        Object.keys(timeslots[timeslot]["appointments"]).map(
+          async (inscriptionId, index) => {
             const inscription =
-                timeslots[timeslot]["appointments"][
-              inscriptionId
-            ];
-            if(inscription.enabled) {
-              if(inscription.email){
-                const correo = inscription.email
-                const nombre = inscription.name
-                const hora = timeslot
-                const fecha = campaign.date
-                const titulo = campaign.title
+              timeslots[timeslot]["appointments"][inscriptionId];
+            if (inscription.enabled) {
+              if (inscription.email) {
+                const correo = inscription.email;
+                const nombre = inscription.name;
+                const hora = timeslot;
+                const fecha = campaign.date;
+                const titulo = campaign.title;
                 const recordatorioEmail = await sendRecordatorio(
-                  correo, 
+                  correo,
                   nombre,
                   hora,
                   fecha,
                   titulo
-                )
-                if(!recordatorioEmail.ok) {
-                  error = true
+                );
+                if (!recordatorioEmail.ok) {
+                  error = true;
                   toast.error("Error al enviar recordatorio");
                 }
               }
             }
-        }
-      )
-      } 
+          }
+        );
+      }
+    });
+    if (!error) {
+      toast.success("Recordatorios enviados correctamente");
     }
-  )
-  if(!error){
-    toast.success("Recordatorios enviados correctamente")
-  }
   }
 
   return (
@@ -257,7 +258,9 @@ export default function Citas() {
                 </Accordion.Item>
               ))}
           </Accordion>
-          <Button className="mt-3" onClick={enviarRecordatorio}>Enviar recordatorio</Button>
+          <Button className="mt-3" onClick={enviarRecordatorio}>
+            Enviar recordatorio
+          </Button>
         </>
       )}
       {reservation && (
