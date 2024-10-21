@@ -296,7 +296,7 @@ function CreateForm() {
               <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder="Indique los requisitos para la campaña"
+                placeholder="Indique la descripción para la campaña"
                 name="description"
                 required
                 defaultValue={
