@@ -11,7 +11,7 @@ export default function Ayuda() {
         <div className="row" style={{width:'auto'}} >
           <article>
             <p>
-              <font size='5'>Para registrarse en una campaña, primero hay que estar en la página de "Campañas" , la cual se puede acceder presionando el "Campañas" o el logo de la asociación en el menú superior, y presionar el botón que dice "Agendar Cita" de la campaña en la que se desea participar.
+              <font size='5'>Para registrarse en una campaña, primero hay que estar en la página de "Campañas" , la cual se puede acceder presionando en la pestaña de "Campañas" o el logo de la asociación en el menú superior, y presionar el botón que dice "Agendar Cita" de la campaña en la que se desea participar.
               </font>
             </p>
           </article>
