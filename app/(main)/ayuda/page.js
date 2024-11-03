@@ -86,7 +86,7 @@ export default function Ayuda() {
       <div className="container row mt-5">
         <article className="row">
           <p>
-            <font size='5'>Finalmente, para modificar o cancelar la cita, se presiona el botón de "Modificar" o "Cancelar", respectivamente. Si queremos modificarla, se abre un formulario con la información del animal, la cual podemos cambiar y guardar con el botón de "Guardar cambios".
+            <font size='5'>Finalmente, para modificar o cancelar la cita, se presiona el botón de "Editar" o "Cancelar", respectivamente. Si queremos modificarla, se abre un formulario con la información del animal, la cual podemos cambiar y guardar con el botón de "Guardar cambios".
             </font>
           </p>
         </article>
