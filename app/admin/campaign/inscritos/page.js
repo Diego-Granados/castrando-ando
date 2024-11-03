@@ -209,8 +209,8 @@ export default function Citas() {
                                                 toast.success(
                                                   `Inscripción ${
                                                     e.target.checked
-                                                      ? "marcada como pagada"
-                                                      : "desmarcada como pagada"
+                                                      ? "marcada como presente."
+                                                      : "desmarcada como presente."
                                                   }`
                                                 );
                                                 inscription.paid =
