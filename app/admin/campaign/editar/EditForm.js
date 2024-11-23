@@ -298,7 +298,6 @@ function EditForm({ campaign, campaignId }) {
               <Col sm={4}>
                 <Form.Control
                   name="priceSpecial"
-                  type="number"
                   placeholder="Precio para situaciones especiales"
                   defaultValue={campaign.priceSpecial}
                   required

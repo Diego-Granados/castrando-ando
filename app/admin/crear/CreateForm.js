@@ -366,7 +366,6 @@ function CreateForm() {
               <Col sm={4}>
                 <Form.Control
                   name="priceSpecial"
-                  type="number"
                   placeholder="Precio para situaciones especiales"
                   defaultValue={5000}
                   required
