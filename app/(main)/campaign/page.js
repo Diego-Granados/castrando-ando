@@ -73,8 +73,8 @@ export default function Campaign() {
                 <p>
                   <strong>
                     Cargo adicional en casos especiales de ₡
-                    {campaign.priceSpecial} (preñez, celo, piometra, entre
-                    otros)
+                    {campaign.priceSpecial} (preñez, celo, piometra, perros XL,
+                    entre otros)
                   </strong>
                 </p>
                 {active && (
