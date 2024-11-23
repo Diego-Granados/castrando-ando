@@ -118,6 +118,12 @@ export default function Reservar() {
     }
   }
 
+  const dateFormat = new Intl.DateTimeFormat("es-CR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <main className="container row">
       <div className="col-lg-6 px-5">
@@ -126,7 +132,8 @@ export default function Reservar() {
           <Form onSubmit={reserveAppointment}>
             <legend className="fs-5">
               Sacar cita a las {timeslot} para {campaign.title} en{" "}
-              {campaign.place} el día {campaign.date}
+              {campaign.place} el día{" "}
+              {dateFormat.format(new Date(`${campaign.date}T12:00:00Z`))}
             </legend>
             <Form.Group className="mb-3" controlId="inputCedula">
               <Form.Label className="fw-semibold fs-5">Cédula</Form.Label>
@@ -255,7 +262,7 @@ export default function Reservar() {
             </Form.Group>
             <Form.Check
               type="checkbox"
-              label="¿Caso especial? (preñez, celo, piometra, etc...) + ₡5000"
+              label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...) + ₡${campaign.priceSpecial}`}
               name="priceSpecial"
               id="especial"
             />

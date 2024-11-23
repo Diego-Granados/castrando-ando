@@ -123,6 +123,12 @@ export default function ReservationCard({
     handleCloseEdit();
   }
 
+  const dateFormat = new Intl.DateTimeFormat("es-CR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <>
       <Card className="mb-3">
@@ -137,7 +143,9 @@ export default function ReservationCard({
           <Card.Text>
             Campaña: {reservation.campaign} <br />
             Lugar: {reservation.place} <br />
-            Fecha: {reservation.date} <br />
+            Fecha:{" "}
+            {dateFormat.format(new Date(`${reservation.date}T12:00:00Z`))}{" "}
+            <br />
             Hora: {reservation.timeslot} <br />
             Animal: {reservation.animal ? "Perro" : "Gato"} <br />
             Sexo: {reservation.sex ? "Macho" : "Hembra"} <br />
@@ -174,7 +182,8 @@ export default function ReservationCard({
         </Modal.Header>
         <Modal.Body>
           ¿Está seguro que desea cancelar la cita de las {reservation.timeslot}{" "}
-          del día {reservation.date} para {reservation.pet}?
+          del día {dateFormat.format(new Date(`${reservation.date}T12:00:00Z`))}{" "}
+          para {reservation.pet}?
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -325,7 +334,7 @@ export default function ReservationCard({
                 </Form.Group>
                 <Form.Check
                   type="checkbox"
-                  label="¿Caso especial? (preñez, celo, piometra, etc...) + ₡5000"
+                  label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...)`}
                   name="priceSpecial"
                   id="especial"
                   defaultChecked={reservation.priceSpecial}

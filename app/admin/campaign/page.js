@@ -54,6 +54,12 @@ export default function Campaign() {
     handleCloseCancel();
   }
 
+  const dateFormat = new Intl.DateTimeFormat("es-CR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <main className="container">
       <h1>Asociación Animalitos Abandonados</h1>
@@ -68,7 +74,9 @@ export default function Campaign() {
                     {active ? "Activa" : "Terminada"}
                   </Badge>
                   <h3 className="card-title">Fecha</h3>
-                  <p className="card-text">{campaign.date}</p>
+                  <p className="card-text">
+                    {dateFormat.format(new Date(`${campaign.date}T12:00:00Z`))}
+                  </p>
                   <h3 className="card-title">Lugar</h3>
                   <p className="card-text">{campaign.place}</p>
                   <h3 className="card-text">Requisitos</h3>

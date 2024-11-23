@@ -8,6 +8,13 @@ export default function CampaignCard({ campaign, admin }) {
   const datetime = new Date(campaign.date + "T" + "15:00:00");
   const today = new Date();
   const active = today <= datetime;
+
+  const dateFormat = new Intl.DateTimeFormat("es-CR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <article
       className="container row px-3 my-1 w-75 mh-50"
@@ -36,7 +43,10 @@ export default function CampaignCard({ campaign, admin }) {
           </Badge>
           <div className="">
             <p>
-              <strong>Fecha: {campaign.date}</strong>{" "}
+              <strong>
+                Fecha:{" "}
+                {dateFormat.format(new Date(`${campaign.date}T12:00:00Z`))}
+              </strong>{" "}
             </p>
             <p>
               <strong>Lugar: {campaign.place}</strong>{" "}
