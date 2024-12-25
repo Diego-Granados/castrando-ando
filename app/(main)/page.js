@@ -4,13 +4,10 @@ import Button from "react-bootstrap/Button";
 import Link from "next/link";
 import Pagination from "react-bootstrap/Pagination";
 import CampaignCard from "@/components/CampaignCard";
-import { db } from "@/lib/firebase/config";
-import { ref, onValue } from "firebase/database";
 import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
-
+import CampaignController from "@/controllers/CampaignController";
 export default function Home() {
-  const campaignsRef = ref(db, "campaigns");
   const [campaigns, setCampaigns] = useState({});
   const [activePage, setActivePage] = useState(1);
   const campaignsPerPage = 1; // Número de campañas por página
@@ -20,16 +17,7 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onValue(campaignsRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const data = snapshot.val();
-      Object.keys(data).forEach((campaign) => {
-        if (!data[campaign].enabled) delete data[campaign];
-      });
-      setCampaigns(data);
-    });
+    const unsubscribe = CampaignController.getAllCampaigns(setCampaigns);
     return () => unsubscribe();
   }, []);
 
@@ -76,10 +64,7 @@ export default function Home() {
           <div className="d-flex justify-content-center mt-5">
             {/* Mostrar las campañas de la página actual */}
             {currentCampaigns.map((campaign) => (
-              <CampaignCard
-                key={campaign}
-                campaign={{ campaign, ...campaigns[campaign] }}
-              />
+              <CampaignCard key={campaign} campaign={campaigns[campaign]} />
             ))}
           </div>
           <div className="d-flex justify-content-center align-items-center mt-3">

@@ -4,12 +4,10 @@ import { useState, useRef } from "react";
 import { CirclePlus, CircleMinus } from "lucide-react";
 import Price from "@/components/Price";
 import Requirement from "@/components/Requirement";
-import { storage } from "@/lib/firebase/config";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { createCampaign } from "@/app/api/campaigns/create/route";
-
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import CampaignController from "@/controllers/CampaignController";
+import StorageController from "@/controllers/StorageController";
 
 function CreateForm() {
   const router = useRouter();
@@ -73,32 +71,6 @@ function CreateForm() {
 
   const [creating, setCreating] = useState(false);
 
-  // Función para subir múltiples archivos a Firebase Storage
-  async function uploadFiles(fileList, path) {
-    // Array para almacenar las URLs de descarga de cada archivo
-    const downloadURLs = [];
-
-    // Iterar a través del array de archivos (fileList)
-    for (const file of fileList) {
-      const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
-
-      try {
-        // Subir el archivo a Firebase Storage
-        await uploadBytes(storageRef, file);
-
-        // Obtener la URL de descarga
-        const downloadURL = await getDownloadURL(storageRef);
-
-        // Agregar la URL de descarga al array
-        downloadURLs.push(downloadURL);
-      } catch (error) {
-        throw new Error(`Error al subir el archivo ${file.name}.`);
-      }
-    }
-
-    return downloadURLs;
-  }
-
   async function handleCreateCampaign(event) {
     event.preventDefault();
 
@@ -132,7 +104,10 @@ function CreateForm() {
     try {
       const path = `campaign-${Date.now()}`; // Add a timestamp
       const fileInput = document.getElementById("photos");
-      const downloadURLs = await uploadFiles(fileInput.files, path);
+      const downloadURLs = await StorageController.uploadFiles(
+        fileInput.files,
+        path
+      );
       rawFormData.photos = downloadURLs;
       toast.success("¡Fotos subidas con éxito!");
     } catch (error) {
@@ -142,7 +117,7 @@ function CreateForm() {
     }
 
     try {
-      const response = await createCampaign(rawFormData);
+      const response = await CampaignController.createCampaign(rawFormData);
 
       if (response.ok) {
         toast.success("¡Campaña creada con éxito!", {

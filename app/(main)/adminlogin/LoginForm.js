@@ -1,11 +1,9 @@
 "use client";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import Image from "next/image";
-import { auth } from "@/lib/firebase/config";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import AuthController from "@/controllers/AuthController";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,27 +12,26 @@ export default function LoginForm() {
     event.preventDefault();
     const formData = new FormData(event.target);
 
-    const rawFormData = {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-    signInWithEmailAndPassword(auth, rawFormData.email, rawFormData.password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        // ...
+    AuthController.adminLogin(
+      email,
+      password,
+      (user) => {
+        // On success
         router.push("/admin");
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
+      },
+      (error) => {
+        // On error
+        console.log(error);
         toast.error("Usuario no existe o contraseña incorrecta.", {
           position: "top-center",
           autoClose: 8000,
           toastId: "login-admin",
         });
-      });
+      }
+    );
   }
 
   return (
