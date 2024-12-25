@@ -10,9 +10,10 @@ import CampaignController from "@/controllers/CampaignController";
 import { fileToBase64 } from "@/utils/fileUtils";
 function CreateForm() {
   const router = useRouter();
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date();
   today.setDate(today.getDate() + 1); // Add 1 day to the current date
   const tomorrow = today.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
   const [prices, setPrices] = useState([
     <Price key={0} id={0} price={13000} weight={10} />,
     <Price key={1} id={1} price={16000} weight={15} />,
@@ -102,13 +103,16 @@ function CreateForm() {
     });
 
     try {
-      const path = `campaign-${Date.now()}`; // Add a timestamp
+      const path = `campaigns/campaign-${Date.now()}`; // Add a timestamp
       const fileInput = document.getElementById("photos");
-      const files = Array.from(fileInput.files);
-      const base64Files = await Promise.all(files.map(fileToBase64));
       const fileData = new FormData();
       fileData.append("path", path);
-      fileData.append("files", base64Files);
+
+      // Append each file individually
+      for (let i = 0; i < fileInput.files.length; i++) {
+        fileData.append("files", fileInput.files[i]);
+      }
+
       const response = await fetch("/api/campaigns/upload", {
         method: "POST",
         body: fileData,

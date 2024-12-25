@@ -17,18 +17,31 @@ class Storage {
   //     return downloadURL;
   //   }
 
-  // File musts be base64
   static async uploadFile(file, path) {
     try {
-      // Upload to Cloudinary
-      const result = await cloudinary.uploader.upload(file, {
-        folder: `campaigns/${path}`,
-        resource_type: "auto",
-      });
-
-      return result.secure_url;
+      // Create a form data object
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", `${path}`);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+      );
+      // Use fetch to upload directly to Cloudinary
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Error uploading file: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log(data);
+      return data.secure_url;
     } catch (error) {
-      console.error(error);
       throw new Error(`Error uploading file: ${error.message}`);
     }
   }
