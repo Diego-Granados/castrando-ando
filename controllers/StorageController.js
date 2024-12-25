@@ -1,3 +1,4 @@
+"use server";
 import Storage from "@/models/Storage";
 
 class StorageController {
@@ -12,6 +13,12 @@ class StorageController {
       }
     }
     return downloadURLs;
+  }
+
+  static async deleteFiles(urls) {
+    for (const url of urls) {
+      await Storage.deleteFile(url);
+    }
   }
 }
 

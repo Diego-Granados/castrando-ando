@@ -7,12 +7,12 @@ import Requirement from "@/components/Requirement";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import CampaignController from "@/controllers/CampaignController";
-import StorageController from "@/controllers/StorageController";
-
+import { fileToBase64 } from "@/utils/fileUtils";
 function CreateForm() {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
-
+  today.setDate(today.getDate() + 1); // Add 1 day to the current date
+  const tomorrow = today.toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const [prices, setPrices] = useState([
     <Price key={0} id={0} price={13000} weight={10} />,
     <Price key={1} id={1} price={16000} weight={15} />,
@@ -104,10 +104,17 @@ function CreateForm() {
     try {
       const path = `campaign-${Date.now()}`; // Add a timestamp
       const fileInput = document.getElementById("photos");
-      const downloadURLs = await StorageController.uploadFiles(
-        fileInput.files,
-        path
-      );
+      const files = Array.from(fileInput.files);
+      const base64Files = await Promise.all(files.map(fileToBase64));
+      const fileData = new FormData();
+      fileData.append("path", path);
+      fileData.append("files", base64Files);
+      const response = await fetch("/api/campaigns/upload", {
+        method: "POST",
+        body: fileData,
+      });
+      const downloadURLs = await response.json();
+      console.log(downloadURLs);
       rawFormData.photos = downloadURLs;
       toast.success("¡Fotos subidas con éxito!");
     } catch (error) {
@@ -118,7 +125,7 @@ function CreateForm() {
 
     try {
       const response = await CampaignController.createCampaign(rawFormData);
-
+      console.log(response);
       if (response.ok) {
         toast.success("¡Campaña creada con éxito!", {
           position: "top-center",
@@ -130,6 +137,7 @@ function CreateForm() {
           },
         });
       } else {
+        console.log("ERROR 1");
         toast.error("¡Error al crear la campaña!", {
           position: "top-center",
           autoClose: 8000,
@@ -175,7 +183,7 @@ function CreateForm() {
                 <Form.Control
                   type="date"
                   placeholder="Seleccione la fecha de inicio"
-                  defaultValue={today}
+                  defaultValue={tomorrow}
                   name="date"
                   required
                   style={{ flex: 1 }}

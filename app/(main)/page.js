@@ -7,6 +7,8 @@ import CampaignCard from "@/components/CampaignCard";
 import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
 import CampaignController from "@/controllers/CampaignController";
+import useSubscription from "@/hooks/useSubscription";
+
 export default function Home() {
   const [campaigns, setCampaigns] = useState({});
   const [activePage, setActivePage] = useState(1);
@@ -16,10 +18,14 @@ export default function Home() {
   const [items, setItems] = useState(null);
   const [totalPages, setTotalPages] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = CampaignController.getAllCampaigns(setCampaigns);
-    return () => unsubscribe();
-  }, []);
+  const { loading, error } = useSubscription(
+    CampaignController.getAllCampaigns,
+    setCampaigns
+  );
+  // useEffect(() => {
+  //   const unsubscribe = CampaignController.getAllCampaigns(setCampaigns);
+  //   return () => unsubscribe();
+  // }, []);
 
   useEffect(() => {
     const LastperPage = activePage * campaignsPerPage;
@@ -59,7 +65,11 @@ export default function Home() {
   return (
     <main className="container">
       <h1>Asociación Animalitos Abandonados</h1>
-      {items ? (
+      {loading ? (
+        <div>Cargando...</div>
+      ) : error ? (
+        <div>Error: {error.message}</div>
+      ) : items ? (
         <>
           <div className="d-flex justify-content-center mt-5">
             {/* Mostrar las campañas de la página actual */}

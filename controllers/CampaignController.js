@@ -9,6 +9,7 @@ class CampaignController {
   }
 
   static async createCampaign(formData) {
+    console.log(formData);
     try {
       const { user, role } = await AuthController.getCurrentUser();
       if (role !== "Admin") {
@@ -21,18 +22,21 @@ class CampaignController {
       const slotsNumber = parseInt(formData["slotsNumber"], 10);
 
       // Configuración de los horarios de inscripción.
-      const { inscriptions, totalAvailableSlots } = generateInscriptions(
-        formData["startTime"],
-        formData["endTime"],
-        slotsNumber
-      );
+      const { inscriptions, totalAvailableSlots } =
+        CampaignController.generateInscriptions(
+          formData["startTime"],
+          formData["endTime"],
+          slotsNumber
+        );
 
       formData["available"] = totalAvailableSlots;
       formData["enabled"] = true;
 
       Campaign.create(formData, inscriptions);
+      console.log("CREATED");
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
+      console.log(error);
       return NextResponse.error(error);
     }
   }
