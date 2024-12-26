@@ -4,8 +4,8 @@ import "react-toastify/dist/ReactToastify.css";
 import NavBarAdmin from "@/components/NavBarAdmin";
 import { ToastContainer } from "react-toastify";
 export const metadata = {
-  title: "Asociación Animalitos Abandonados",
-  description: "Sitio de la Asociación Animalitos Abandonados",
+  title: "Asociación Castrando Ando",
+  description: "Sitio de la Asociación Castrando Ando",
 };
 import ValidateUser from "./ValidateUser";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
               />
             </Link>
             <span className="mb-3 mb-md-0 text-body-secondary">
-              © 2024 Asociación Animalitos Abandonados
+              © 2024 Asociación Castrando Ando
             </span>
           </div>
           <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">

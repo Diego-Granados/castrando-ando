@@ -63,7 +63,7 @@ export default function Home() {
 
   return (
     <main className="container">
-      <h1>Asociación Animalitos Abandonados</h1>
+      <h1>Asociación Castrando Ando</h1>
       {loading ? (
         <div>Cargando...</div>
       ) : error ? (

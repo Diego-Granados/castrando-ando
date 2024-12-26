@@ -16,7 +16,7 @@ function NavBar() {
             height="30"
             className="d-inline-block align-top"
           />{" "}
-          Asociación Animalitos Abandonados
+          Castrando Ando
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
