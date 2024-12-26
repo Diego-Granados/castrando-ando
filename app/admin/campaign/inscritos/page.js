@@ -2,8 +2,6 @@
 import { Row, Col, Button } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { db } from "@/lib/firebase/config";
-import { ref, get, child, onValue, update } from "firebase/database";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Table from "react-bootstrap/Table";
@@ -13,8 +11,13 @@ import { CircleX } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import { sendRecordatorio } from "@/lib/firebase/Brevo";
+import InscriptionController from "@/controllers/InscriptionController";
+import CampaignController from "@/controllers/CampaignController";
+import useSubscription from "@/hooks/useSubscription";
 
-export default function Citas() {
+import styles from "./Checkbox.module.css";
+
+export default function Inscritos() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
   const [campaign, setCampaign] = useState(null);
@@ -28,55 +31,24 @@ export default function Citas() {
   const [sortedKeys, setSortedKeys] = useState(null);
 
   useEffect(() => {
-    get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      setCampaign(snapshot.val());
-    });
+    CampaignController.getCampaignByIdOnce(campaignId, setCampaign);
+  }, []);
 
-    const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
-    const unsubscribe = onValue(inscriptionsRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const data = snapshot.val();
-      const keys = Object.keys(data);
-
-      const sortedKeys = keys.sort((a, b) => {
-        const [hourA, minuteA] = a.split(":").map(Number);
-        const [hourB, minuteB] = b.split(":").map(Number);
-
-        // Comparar horas
-        if (hourA === hourB) {
-          return minuteA - minuteB;
-        } else {
-          return hourA - hourB;
-        }
-      });
-      setSortedKeys(sortedKeys);
-
-      setTimeslots(data);
-    });
-
-    return () => unsubscribe();
-  }, [db]);
+  const { loading, error } = useSubscription(() =>
+    InscriptionController.getCampaignInscriptions(
+      campaignId,
+      setSortedKeys,
+      setTimeslots
+    )
+  );
 
   const [showCancel, setShowCancel] = useState(false);
   const handleCloseCancel = () => setShowCancel(false);
   const handleShowCancel = () => setShowCancel(true);
-  const [reservation, setReservation] = useState(null);
+  const [appointment, setAppointment] = useState(null);
 
-  async function cancelReservation() {
-    const response = await fetch("/api/reservations/cancel", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        formData: reservation,
-      }),
-    });
+  async function cancelAppointment() {
+    const response = await InscriptionController.deleteAppointment(appointment);
     if (response.ok) {
       toast.success("Cita cancelada correctamente.");
     } else {
@@ -198,25 +170,31 @@ export default function Citas() {
                                           type="checkbox"
                                           name="priceSpecial"
                                           id="especial"
-                                          checked={inscription.paid}
-                                          onChange={(e) => {
-                                            const updates = {};
-                                            updates[
-                                              `inscriptions/${campaignId}/${timeslot}/appointments/${inscriptionId}/paid`
-                                            ] = e.target.checked;
-                                            update(ref(db), updates).then(
-                                              () => {
-                                                toast.success(
-                                                  `Inscripción ${
-                                                    e.target.checked
-                                                      ? "marcada como presente."
-                                                      : "desmarcada como presente."
-                                                  }`
-                                                );
-                                                inscription.paid =
-                                                  e.target.checked;
-                                              }
-                                            );
+                                          className={`${styles.customCheckbox}`}
+                                          checked={inscription.present}
+                                          onChange={async (event) => {
+                                            const response =
+                                              await InscriptionController.updateAttendance(
+                                                campaignId,
+                                                timeslot,
+                                                inscriptionId,
+                                                event.target.checked
+                                              );
+                                            if (response.ok) {
+                                              toast.success(
+                                                `Inscripción ${
+                                                  event.target.checked
+                                                    ? "marcada como presente."
+                                                    : "desmarcada como presente."
+                                                }`
+                                              );
+                                              inscription.present =
+                                                event.target.checked;
+                                            } else {
+                                              toast.error(
+                                                "Error al marcar la asistencia."
+                                              );
+                                            }
                                           }}
                                         />
                                       </Form>
@@ -225,7 +203,7 @@ export default function Citas() {
                                       <button
                                         style={{ border: "none" }}
                                         onClick={(e) => {
-                                          setReservation({
+                                          setAppointment({
                                             name: inscription.name,
                                             pet: inscription.pet,
                                             timeslot: timeslot,
@@ -236,7 +214,7 @@ export default function Citas() {
                                           });
                                           handleShowCancel();
                                         }}
-                                        disabled={inscription.paid}
+                                        disabled={inscription.present}
                                       >
                                         <CircleX color="red" />
                                       </button>
@@ -260,15 +238,15 @@ export default function Citas() {
           </Button>
         </>
       )}
-      {reservation && (
+      {appointment && (
         <Modal show={showCancel} onHide={handleCloseCancel} centered>
           <Modal.Header closeButton>
-            <Modal.Title>Cancelar cita para {reservation.pet}</Modal.Title>
+            <Modal.Title>Cancelar cita para {appointment.pet}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            ¿Está seguro que desea cancelar la cita de {reservation.name} para
-            su mascota {reservation.pet} para las {reservation.timeslot} del día{" "}
-            {reservation.date}?
+            ¿Está seguro que desea cancelar la cita de {appointment.name} para
+            su mascota {appointment.pet} para las {appointment.timeslot} del día{" "}
+            {appointment.date}?
           </Modal.Body>
           <Modal.Footer>
             <Button
@@ -280,7 +258,7 @@ export default function Citas() {
             </Button>
             <Button
               variant="danger"
-              onClick={cancelReservation}
+              onClick={cancelAppointment}
               className="px-5"
             >
               Sí

@@ -15,7 +15,7 @@ import { sendCancelEmail } from "@/lib/firebase/Brevo";
 import InscriptionController from "@/controllers/InscriptionController";
 
 export default function AppointmentCard({
-  reservation,
+  appointment,
   id,
   appointmentKey,
   appointments,
@@ -24,10 +24,10 @@ export default function AppointmentCard({
   setName,
 }) {
   const datetime = new Date(
-    reservation.date +
+    appointment.date +
       "T" +
-      (reservation.timeslot.length == 4 ? "0" : "") +
-      reservation.timeslot
+      (appointment.timeslot.length == 4 ? "0" : "") +
+      appointment.timeslot
   );
   const today = new Date();
   const active = today <= datetime;
@@ -40,16 +40,16 @@ export default function AppointmentCard({
     const response = await InscriptionController.deleteAppointment({
       id,
       appointmentKey,
-      ...reservation,
+      ...appointment,
     });
     if (response.ok) {
       toast.success("Cita cancelada correctamente.");
       const cancelEmail = await sendCancelEmail(
-        reservation.email,
+        appointment.email,
         name,
-        reservation.timeslot,
-        reservation.date,
-        reservation.campaign + " en " + reservation.place
+        appointment.timeslot,
+        appointment.date,
+        appointment.campaign + " en " + appointment.place
       );
       if (cancelEmail.ok) {
         toast.success("Cancelación enviada correctamente", {});
@@ -70,7 +70,7 @@ export default function AppointmentCard({
 
   const handleCloseEdit = () => setShowEdit(false);
   const handleShowEdit = () => {
-    get(child(ref(db), `campaigns/${reservation.campaignId}`)).then(
+    get(child(ref(db), `campaigns/${appointment.campaignId}`)).then(
       (snapshot) => {
         setCampaign(snapshot.val());
       }
@@ -92,8 +92,8 @@ export default function AppointmentCard({
       priceSpecial: formData.get("priceSpecial") ? true : false,
       appointmentKey,
       id,
-      campaignId: reservation.campaignId,
-      timeslot: reservation.timeslot,
+      campaignId: appointment.campaignId,
+      timeslot: appointment.timeslot,
     };
 
     const response = await InscriptionController.updateAppointment(rawFormData);
@@ -124,29 +124,29 @@ export default function AppointmentCard({
       <Card className="mb-3">
         <Card.Body>
           <Stack direction="horizontal" gap={3}>
-            <Card.Title>Cita para {reservation.pet}</Card.Title>
+            <Card.Title>Cita para {appointment.pet}</Card.Title>
             <Badge bg={active ? "success" : "danger"}>
               {active ? "Pendiente" : "Pasada"}
             </Badge>
           </Stack>
 
           <Card.Text>
-            Campaña: {reservation.campaign} <br />
-            Lugar: {reservation.place} <br />
+            Campaña: {appointment.campaign} <br />
+            Lugar: {appointment.place} <br />
             Fecha:{" "}
-            {dateFormat.format(new Date(`${reservation.date}T12:00:00Z`))}{" "}
+            {dateFormat.format(new Date(`${appointment.date}T12:00:00Z`))}{" "}
             <br />
-            Hora: {reservation.timeslot} <br />
-            Animal: {reservation.animal ? "Perro" : "Gato"} <br />
-            Sexo: {reservation.sex ? "Macho" : "Hembra"} <br />
-            Precio: ₡{reservation.priceData.price}{" "}
-            {reservation.priceSpecial && "+ cargo por situación especial"}{" "}
+            Hora: {appointment.timeslot} <br />
+            Animal: {appointment.animal ? "Perro" : "Gato"} <br />
+            Sexo: {appointment.sex ? "Macho" : "Hembra"} <br />
+            Precio: ₡{appointment.priceData.price}{" "}
+            {appointment.priceSpecial && "+ cargo por situación especial"}{" "}
             <br />
-            Teléfono de contacto: {reservation.phone}
+            Teléfono de contacto: {appointment.phone}
             <br />
-            Correo electrónico de contacto: {reservation.email}
+            Correo electrónico de contacto: {appointment.email}
           </Card.Text>
-          <Link href={`/campaign?id=${reservation.campaignId}`}>
+          <Link href={`/campaign?id=${appointment.campaignId}`}>
             <Button variant="light">Ver campaña</Button>
           </Link>
           <Button
@@ -168,12 +168,12 @@ export default function AppointmentCard({
       </Card>
       <Modal show={showCancel} onHide={handleCloseCancel} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Cancelar cita para {reservation.pet}</Modal.Title>
+          <Modal.Title>Cancelar cita para {appointment.pet}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          ¿Está seguro que desea cancelar la cita de las {reservation.timeslot}{" "}
-          del día {dateFormat.format(new Date(`${reservation.date}T12:00:00Z`))}{" "}
-          para {reservation.pet}?
+          ¿Está seguro que desea cancelar la cita de las {appointment.timeslot}{" "}
+          del día {dateFormat.format(new Date(`${appointment.date}T12:00:00Z`))}{" "}
+          para {appointment.pet}?
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -191,7 +191,7 @@ export default function AppointmentCard({
 
       <Modal show={showEdit} onHide={handleCloseEdit} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Editar cita para {reservation.pet}?</Modal.Title>
+          <Modal.Title>Editar cita para {appointment.pet}?</Modal.Title>
         </Modal.Header>
         <Form id="editForm" onSubmit={editAppointment}>
           <Modal.Body>
@@ -219,7 +219,7 @@ export default function AppointmentCard({
                     placeholder="Teléfono"
                     name="phone"
                     required
-                    defaultValue={reservation.phone}
+                    defaultValue={appointment.phone}
                   />
                 </Form.Group>
 
@@ -232,7 +232,7 @@ export default function AppointmentCard({
                     placeholder="Correo electrónico"
                     name="email"
                     required
-                    defaultValue={reservation.email}
+                    defaultValue={appointment.email}
                   />
                 </Form.Group>
 
@@ -245,7 +245,7 @@ export default function AppointmentCard({
                     placeholder="Mascota"
                     name="pet"
                     required
-                    defaultValue={reservation.pet}
+                    defaultValue={appointment.pet}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="animal">
@@ -257,7 +257,7 @@ export default function AppointmentCard({
                     label="Perro"
                     name="flexAnimal"
                     id="perro"
-                    defaultChecked={reservation.animal}
+                    defaultChecked={appointment.animal}
                     required
                     value={"perro"}
                   />
@@ -268,7 +268,7 @@ export default function AppointmentCard({
                     id="gato"
                     required
                     value={"gato"}
-                    defaultChecked={!reservation.animal}
+                    defaultChecked={!appointment.animal}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="genero">
@@ -280,7 +280,7 @@ export default function AppointmentCard({
                     label="Macho"
                     name="flexSex"
                     id="macho"
-                    defaultChecked={reservation.sex}
+                    defaultChecked={appointment.sex}
                     required
                     value={"macho"}
                   />
@@ -291,7 +291,7 @@ export default function AppointmentCard({
                     id="hembra"
                     required
                     value={"hembra"}
-                    defaultChecked={!reservation.sex}
+                    defaultChecked={!appointment.sex}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -316,8 +316,8 @@ export default function AppointmentCard({
                         weight: price.weight,
                       })}
                       defaultChecked={
-                        reservation.priceData.price == price.price &&
-                        reservation.priceData.weight == price.weight
+                        appointment.priceData.price == price.price &&
+                        appointment.priceData.weight == price.weight
                       }
                     />
                   ))}
@@ -327,7 +327,7 @@ export default function AppointmentCard({
                   label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...)`}
                   name="priceSpecial"
                   id="especial"
-                  defaultChecked={reservation.priceSpecial}
+                  defaultChecked={appointment.priceSpecial}
                 />
                 <Form.Text className="text-muted">
                   Si desea cambiar la hora de la cita, debe cancelar esta cita y

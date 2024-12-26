@@ -55,7 +55,7 @@ export default function Appointments() {
               return (
                 <AppointmentCard
                   key={index}
-                  reservation={appointments[appointment]}
+                  appointment={appointments[appointment]}
                   id={cedula}
                   appointmentKey={appointment}
                   appointments={appointments}

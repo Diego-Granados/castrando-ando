@@ -79,7 +79,7 @@ class Inscription {
       priceData: formData.priceData,
       priceSpecial: formData.priceSpecial,
       enabled: true,
-      paid: false,
+      present: false,
     };
 
     updates[`/users/${formData.id}`] = {
@@ -187,6 +187,14 @@ class Inscription {
 
     updates[`/appointments/${formData.id}/${appointmentKey}/enabled`] = false;
 
+    await update(ref(db), updates);
+  }
+
+  static async updateAttendance(campaignId, timeslot, inscriptionId, present) {
+    const updates = {};
+    updates[
+      `inscriptions/${campaignId}/${timeslot}/appointments/${inscriptionId}/present`
+    ] = present;
     await update(ref(db), updates);
   }
 }

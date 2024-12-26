@@ -58,6 +58,21 @@ class InscriptionController {
       return NextResponse.error(error);
     }
   }
+
+  static async updateAttendance(campaignId, timeslot, inscriptionId, present) {
+    try {
+      await Inscription.updateAttendance(
+        campaignId,
+        timeslot,
+        inscriptionId,
+        present
+      );
+      return NextResponse.json({ message: "Attendance updated correctly!" });
+    } catch (error) {
+      console.error(error);
+      return NextResponse.error(error);
+    }
+  }
 }
 
 export default InscriptionController;
