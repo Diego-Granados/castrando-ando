@@ -120,6 +120,29 @@ class Campaign {
     });
     await update(ref(db), updates);
   }
+
+  static async delete(campaignId) {
+    const updates = {};
+    updates[`/campaigns/${campaignId}/enabled`] = false;
+
+    const snapshot = await get(child(ref(db), `inscriptions/${campaignId}`));
+    if (!snapshot.exists()) {
+      return NextResponse.error("No data available");
+    }
+    const inscriptions = snapshot.val();
+    Object.keys(inscriptions).forEach((timeslot) => {
+      if ("appointments" in inscriptions[timeslot]) {
+        Object.keys(inscriptions[timeslot]["appointments"]).forEach(
+          (appointment) => {
+            const path = `/appointments/${inscriptions[timeslot]["appointments"][appointment]["id"]}/${appointment}`;
+            updates[`${path}/enabled`] = false;
+          }
+        );
+      }
+    });
+
+    await update(ref(db), updates);
+  }
 }
 
 export default Campaign;

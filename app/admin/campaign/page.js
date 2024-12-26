@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
 import { toast } from "react-toastify";
-import { deleteCampaign } from "@/app/api/campaigns/delete/route";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 
@@ -38,7 +37,10 @@ export default function Campaign() {
   const handleShowCancel = () => setShowCancel(true);
 
   async function handleDeleteCampaign() {
-    const response = await deleteCampaign({ campaignId });
+    const response = await CampaignController.deleteCampaign({
+      campaignId,
+      photos: campaign.photos,
+    });
     if (response.ok) {
       toast.success("Campaña eliminada correctamente.");
       router.push("/admin");

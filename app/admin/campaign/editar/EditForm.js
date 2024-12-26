@@ -65,14 +65,6 @@ function EditForm({ campaign, campaignId }) {
 
   const [updating, setUpdating] = useState(false);
 
-  function decodePhotoURL(url) {
-    const decodedUrl = decodeURIComponent(url);
-    const pathStart = decodedUrl.indexOf("/o/") + 3;
-    const pathEnd = decodedUrl.indexOf("?alt="); // Find where the path ends before the query parameters
-    const storagePath = decodedUrl.substring(pathStart, pathEnd); // Extract the storage path
-    return storagePath;
-  }
-
   // Función para subir múltiples archivos a Firebase Storage
   async function uploadFiles(fileList, path) {
     // Array para almacenar las URLs de descarga de cada archivo

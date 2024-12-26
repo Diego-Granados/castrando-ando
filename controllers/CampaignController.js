@@ -13,12 +13,19 @@ class CampaignController {
     return unsubscribe;
   }
 
-  static async createCampaign(formData) {
+  static async verifyRole() {
     try {
       const { user, role } = await AuthController.getCurrentUser();
       if (role !== "Admin") {
         throw new Error("User is not an admin");
       }
+    } catch (error) {
+      return NextResponse.error("User not authenticated", { status: 401 });
+    }
+  }
+  static async createCampaign(formData) {
+    try {
+      await CampaignController.verifyRole();
     } catch (error) {
       return NextResponse.error("User not authenticated", { status: 401 });
     }
@@ -91,10 +98,7 @@ class CampaignController {
 
   static async updateCampaign(formData) {
     try {
-      const { user, role } = await AuthController.getCurrentUser();
-      if (role !== "Admin") {
-        throw new Error("User is not an admin");
-      }
+      await CampaignController.verifyRole();
     } catch (error) {
       return NextResponse.error("User not authenticated", { status: 401 });
     }
@@ -116,6 +120,32 @@ class CampaignController {
 
       await Campaign.update(campaignId, updates);
       return NextResponse.json({ message: "Form data saved successfully!" });
+    } catch (error) {
+      return NextResponse.error(error);
+    }
+  }
+
+  static async deleteCampaign(formData) {
+    try {
+      await CampaignController.verifyRole();
+    } catch (error) {
+      return NextResponse.error("User not authenticated", { status: 401 });
+    }
+    try {
+      const campaignId = formData.campaignId;
+      await Campaign.delete(campaignId);
+      const photos = formData.photos;
+      const deleteResponse = await fetch("/api/storage/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ urls: photos }),
+      });
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete old files");
+      }
+      return NextResponse.json({ message: "Campaign deleted successfully!" });
     } catch (error) {
       return NextResponse.error(error);
     }
