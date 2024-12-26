@@ -85,6 +85,16 @@ class Campaign {
     return unsubscribe;
   }
 
+  static async getByIdOnce(campaignId, setCampaign) {
+    const campaignRef = ref(db, `campaigns/${campaignId}`);
+    const snapshot = await get(campaignRef);
+    if (!snapshot.exists()) {
+      return;
+    }
+    const value = snapshot.val();
+    setCampaign(value);
+  }
+
   async delete() {
     // Handle campaign deletion
     await remove(ref(db, `campaigns/${this.id}`));

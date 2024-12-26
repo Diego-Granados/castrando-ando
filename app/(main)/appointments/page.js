@@ -1,48 +1,38 @@
 "use client";
 import { Form, Button } from "react-bootstrap";
-import { db } from "@/lib/firebase/config";
-import { ref, child, get } from "firebase/database";
 import { useState } from "react";
-import ReservationCard from "@/components/ReservationCard";
+import AppointmentCard from "@/components/AppointmentCard";
+import AuthController from "@/controllers/AuthController";
+import InscriptionController from "@/controllers/InscriptionController";
 
-export default function Reservaciones() {
+export default function Appointments() {
   const [appointments, setAppointments] = useState(null);
   const [cedula, setCedula] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  
+
+  function setUser(user) {
+    if (user) {
+      setName(user.name);
+      setPhone(user.phone);
+      setEmail(user.email);
+    } else {
+      setName(cedula);
+    }
+  }
   async function getAppointments(event) {
     event.preventDefault();
-    const dbRef = ref(db);
-
-    get(child(dbRef, `/appointments/${cedula}`)).then((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        Object.keys(data).forEach((appointment) => {
-          if (!data[appointment].enabled) delete data[appointment];
-        });
-        setAppointments(data);
-      } else {
-        setAppointments({});
-      }
-    });
-    get(child(dbRef, `/users/${cedula}`)).then((snapshot) => {
-      if (snapshot.exists()) {
-        setName(snapshot.val().name);
-        setPhone(snapshot.val().phone);
-        setEmail(snapshot.val().email);
-      } else {
-        setName(cedula);
-      }
-    });
+    await InscriptionController.getAppointments(cedula, setAppointments);
+    await AuthController.getUser(cedula, setUser);
   }
+
   return (
     <main className="container">
       <h1>Reservaciones</h1>
       <p>Ingrese su número cédula.</p>
       <Form onSubmit={getAppointments}>
-        <Form.Group className="mb-3" controlId="inputCedual">
+        <Form.Group className="mb-3" controlId="inputCedula">
           <Form.Label className="fw-semibold fs-5">Cédula:</Form.Label>
           <Form.Control
             type="number"
@@ -63,7 +53,7 @@ export default function Reservaciones() {
           Object.keys(appointments).map((appointment, index) => {
             if (appointments[appointment].enabled) {
               return (
-                <ReservationCard
+                <AppointmentCard
                   key={index}
                   reservation={appointments[appointment]}
                   id={cedula}

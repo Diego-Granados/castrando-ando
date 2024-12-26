@@ -5,23 +5,17 @@ import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/config";
-import { signOut } from "firebase/auth";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import AuthController from "@/controllers/AuthController";
 
 export default function NavBarAdmin() {
   const router = useRouter();
 
   async function handleSignout(event) {
     event.preventDefault();
-    signOut(auth)
-      .then(() => {
-        // Sign-out successful.
-        router.push("/");
-      })
-      .catch((error) => {
-        // An error happened.
-      });
+    await AuthController.signout();
+    router.push("/");
   }
 
   return (

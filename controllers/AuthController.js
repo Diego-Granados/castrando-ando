@@ -38,6 +38,14 @@ class AuthController {
     }
     return { user, role };
   }
+
+  static async signout() {
+    await Auth.signout();
+  }
+
+  static async getUser(cedula, setUser) {
+    await Auth.getUser(cedula, setUser);
+  }
 }
 
 export default AuthController;

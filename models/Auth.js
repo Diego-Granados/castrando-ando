@@ -1,6 +1,10 @@
 "use client";
 import { auth } from "@/lib/firebase/config";
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
 import { db } from "@/lib/firebase/config";
 import { ref, get, child } from "firebase/database";
 class Auth {
@@ -41,6 +45,20 @@ class Auth {
       return snapshot.val();
     } else {
       return "User";
+    }
+  }
+
+  static async signout() {
+    await signOut(auth);
+  }
+
+  static async getUser(cedula, setUser) {
+    const userRef = ref(db, `users/${cedula}`);
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+      setUser(snapshot.val());
+    } else {
+      setUser(null);
     }
   }
 }

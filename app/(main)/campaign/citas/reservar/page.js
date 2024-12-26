@@ -8,6 +8,10 @@ import { db } from "@/lib/firebase/config";
 import { sendConfirmationEmail } from "@/lib/firebase/Brevo";
 import { ref, get, child, onValue } from "firebase/database";
 import { toast } from "react-toastify";
+import CampaignController from "@/controllers/CampaignController";
+import InscriptionController from "@/controllers/InscriptionController";
+import useSubscription from "@/hooks/useSubscription";
+
 export default function Reservar() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
@@ -21,34 +25,33 @@ export default function Reservar() {
 
   const [available, setAvailable] = useState(null);
 
+  function setCampaignState(campaign) {
+    const datetime = new Date(campaign.date + "T" + "15:00:00");
+    const today = new Date();
+    const active = today <= datetime;
+    if (!active) {
+      router.push("/");
+    }
+    setCampaign(campaign);
+  }
+
   useEffect(() => {
-    get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      setCampaign(snapshot.val());
-      const datetime = new Date(snapshot.val().date + "T" + "15:00:00");
-      const today = new Date();
-      const active = today <= datetime;
-      if (!active) {
-        router.push("/");
-      }
-    });
+    CampaignController.getCampaignByIdOnce(campaignId, setCampaignState);
+  }, []);
 
-    const inscriptionsRef = ref(db, `inscriptions/${campaignId}/${timeslot}`);
-    const unsubscribe = onValue(inscriptionsRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const data = snapshot.val();
-
-      setAvailable(data);
-    });
-
-    return () => unsubscribe();
-  }, [db]);
+  const { loading, error } = useSubscription(() => {
+    if (!campaignId || !timeslot) {
+      return () => {};
+    }
+    return InscriptionController.getAvailableTimeslots(
+      campaignId,
+      timeslot,
+      setAvailable
+    );
+  }, [campaignId, timeslot]);
 
   const [reserving, setReserving] = useState(false);
+
   async function reserveAppointment(event) {
     event.preventDefault();
 
@@ -72,12 +75,9 @@ export default function Reservar() {
     };
 
     try {
-      const response = await fetch("/api/campaigns/reserve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData: rawFormData }),
-      });
-
+      const response =
+        await InscriptionController.reserveAppointment(rawFormData);
+      console.log(response);
       if (response.ok) {
         toast.success("¡Cita reservada con éxito!", {
           position: "top-center",

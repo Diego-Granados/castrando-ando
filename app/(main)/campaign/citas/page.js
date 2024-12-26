@@ -2,11 +2,12 @@
 import { Row, Col, Button } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { db } from "@/lib/firebase/config";
-import { ref, get, child, onValue } from "firebase/database";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Table from "react-bootstrap/Table";
+import useSubscription from "@/hooks/useSubscription";
+import CampaignController from "@/controllers/CampaignController";
+import InscriptionController from "@/controllers/InscriptionController";
 
 export default function Citas() {
   const searchParams = useSearchParams();
@@ -21,45 +22,27 @@ export default function Citas() {
   const [timeslots, setTimeslots] = useState(null);
   const [sortedKeys, setSortedKeys] = useState(null);
 
+  function setCampaignState(campaign) {
+    const datetime = new Date(campaign.date + "T" + "15:00:00");
+    const today = new Date();
+    const active = today <= datetime;
+    if (!active) {
+      router.push("/");
+    }
+    setCampaign(campaign);
+  }
+
+  const { loading, error } = useSubscription(() =>
+    InscriptionController.getCampaignInscriptions(
+      campaignId,
+      setSortedKeys,
+      setTimeslots
+    )
+  );
+
   useEffect(() => {
-    get(child(ref(db), `campaigns/${campaignId}`)).then((snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      setCampaign(snapshot.val());
-      const datetime = new Date(snapshot.val().date + "T" + "15:00:00");
-      const today = new Date();
-      const active = today <= datetime;
-      if (!active) {
-        router.push("/");
-      }
-    });
-
-    const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
-    const unsubscribe = onValue(inscriptionsRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const data = snapshot.val();
-      const keys = Object.keys(data);
-
-      const sortedKeys = keys.sort((a, b) => {
-        const [hourA, minuteA] = a.split(":").map(Number);
-        const [hourB, minuteB] = b.split(":").map(Number);
-
-        // Comparar horas
-        if (hourA === hourB) {
-          return minuteA - minuteB;
-        } else {
-          return hourA - hourB;
-        }
-      });
-      setSortedKeys(sortedKeys);
-      setTimeslots(data);
-    });
-
-    return () => unsubscribe();
-  }, [db]);
+    CampaignController.getCampaignByIdOnce(campaignId, setCampaignState);
+  }, []);
 
   return (
     <main className="container">

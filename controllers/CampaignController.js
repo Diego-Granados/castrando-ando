@@ -13,6 +13,10 @@ class CampaignController {
     return unsubscribe;
   }
 
+  static async getCampaignByIdOnce(campaignId, setCampaign) {
+    await Campaign.getByIdOnce(campaignId, setCampaign);
+  }
+
   static async verifyRole() {
     try {
       const { user, role } = await AuthController.getCurrentUser();
@@ -23,6 +27,7 @@ class CampaignController {
       return NextResponse.error("User not authenticated", { status: 401 });
     }
   }
+
   static async createCampaign(formData) {
     try {
       await CampaignController.verifyRole();

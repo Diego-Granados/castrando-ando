@@ -12,7 +12,9 @@ import { get, ref, child } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 import Link from "next/link";
 import { sendCancelEmail } from "@/lib/firebase/Brevo";
-export default function ReservationCard({
+import InscriptionController from "@/controllers/InscriptionController";
+
+export default function AppointmentCard({
   reservation,
   id,
   appointmentKey,
@@ -34,15 +36,11 @@ export default function ReservationCard({
   const handleCloseCancel = () => setShowCancel(false);
   const handleShowCancel = () => setShowCancel(true);
 
-  async function cancelReservation() {
-    const response = await fetch("/api/reservations/cancel", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        formData: { id, appointmentKey, ...reservation },
-      }),
+  async function cancelAppointment() {
+    const response = await InscriptionController.deleteAppointment({
+      id,
+      appointmentKey,
+      ...reservation,
     });
     if (response.ok) {
       toast.success("Cita cancelada correctamente.");
@@ -98,15 +96,7 @@ export default function ReservationCard({
       timeslot: reservation.timeslot,
     };
 
-    const response = await fetch("/api/reservations/update", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        formData: rawFormData, //{ id, appointmentKey, ...reservation, name },
-      }),
-    });
+    const response = await InscriptionController.updateAppointment(rawFormData);
     if (response.ok) {
       toast.success("Cita actualizada correctamente.");
       const updated = { ...appointments };
@@ -193,7 +183,7 @@ export default function ReservationCard({
           >
             No
           </Button>
-          <Button variant="danger" onClick={cancelReservation} className="px-5">
+          <Button variant="danger" onClick={cancelAppointment} className="px-5">
             Sí
           </Button>
         </Modal.Footer>
