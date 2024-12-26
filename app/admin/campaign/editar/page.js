@@ -5,6 +5,8 @@ import { db } from "@/lib/firebase/config";
 import { ref, onValue } from "firebase/database";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import useSubscription from "@/hooks/useSubscription";
+import CampaignController from "@/controllers/CampaignController";
 
 export default function Edit() {
   const searchParams = useSearchParams();
@@ -15,19 +17,9 @@ export default function Edit() {
     router.push("/admin");
   }
 
-  useEffect(() => {
-    const campaignRef = ref(db, `campaigns/${campaignId}`);
-
-    const unsubscribe = onValue(campaignRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const value = snapshot.val();
-      setCampaign(value);
-    });
-
-    return () => unsubscribe();
-  }, [db]);
+  const { loading, error } = useSubscription(() =>
+    CampaignController.getCampaignById(campaignId, setCampaign)
+  );
 
   return (
     <main className="container">

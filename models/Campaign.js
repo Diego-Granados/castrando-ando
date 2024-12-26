@@ -99,6 +99,27 @@ class Campaign {
     // Insertar en DB
     await update(ref(db), updates);
   }
+
+  static async update(campaignId, updates) {
+    const snapshot = await get(child(ref(db), `inscriptions/${campaignId}`));
+    if (!snapshot.exists()) {
+      return NextResponse.error("No data available");
+    }
+    const inscriptions = snapshot.val();
+    Object.keys(inscriptions).forEach((timeslot) => {
+      if ("appointments" in inscriptions[timeslot]) {
+        Object.keys(inscriptions[timeslot]["appointments"]).forEach(
+          (appointment) => {
+            const path = `/appointments/${inscriptions[timeslot]["appointments"][appointment]["id"]}/${appointment}`;
+            updates[`${path}/campaign`] = formData.title;
+            updates[`${path}/date`] = formData.date;
+            updates[`${path}/place`] = formData.place;
+          }
+        );
+      }
+    });
+    await update(ref(db), updates);
+  }
 }
 
 export default Campaign;

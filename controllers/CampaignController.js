@@ -14,7 +14,6 @@ class CampaignController {
   }
 
   static async createCampaign(formData) {
-    console.log(formData);
     try {
       const { user, role } = await AuthController.getCurrentUser();
       if (role !== "Admin") {
@@ -88,6 +87,38 @@ class CampaignController {
       inscriptions,
       totalAvailableSlots,
     };
+  }
+
+  static async updateCampaign(formData) {
+    try {
+      const { user, role } = await AuthController.getCurrentUser();
+      if (role !== "Admin") {
+        throw new Error("User is not an admin");
+      }
+    } catch (error) {
+      return NextResponse.error("User not authenticated", { status: 401 });
+    }
+    try {
+      const campaignId = formData.campaignId;
+      const updates = {};
+      updates[`/campaigns/${campaignId}/title`] = formData.title;
+      updates[`/campaigns/${campaignId}/date`] = formData.date;
+      updates[`/campaigns/${campaignId}/description`] = formData.description;
+      updates[`/campaigns/${campaignId}/phone`] = formData.phone;
+      updates[`/campaigns/${campaignId}/place`] = formData.place;
+      updates[`/campaigns/${campaignId}/pricesData`] = formData.pricesData;
+      updates[`/campaigns/${campaignId}/priceSpecial`] = formData.priceSpecial;
+      updates[`/campaigns/${campaignId}/requirements`] = formData.requirements;
+
+      if (formData.photos.length > 0) {
+        updates[`/campaigns/${campaignId}/photos`] = formData.photos;
+      }
+
+      await Campaign.update(campaignId, updates);
+      return NextResponse.json({ message: "Form data saved successfully!" });
+    } catch (error) {
+      return NextResponse.error(error);
+    }
   }
 }
 

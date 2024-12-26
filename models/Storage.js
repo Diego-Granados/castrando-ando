@@ -46,10 +46,21 @@ class Storage {
     }
   }
 
+  static extractPublicId(url) {
+    // Remove the Cloudinary domain and path prefix
+    const parts = url.split("/image/upload/")[1]; // Keep only the part after "/image/upload/"
+
+    // Remove the version string (v123456...) and file extension (.png, .jpg, etc.)
+    const withoutVersion = parts.replace(/v\d+\//, ""); // Remove version if present
+    const publicId = withoutVersion.replace(/\.[^/.]+$/, ""); // Remove file extension
+
+    return publicId;
+  }
+
   static async deleteFile(url) {
     try {
       // Extract public_id from URL
-      const publicId = url.split("/").slice(-1)[0].split(".")[0];
+      const publicId = Storage.extractPublicId(url);
       await cloudinary.uploader.destroy(publicId);
     } catch (error) {
       console.error("Error deleting file:", error);

@@ -16,9 +16,7 @@ class StorageController {
   }
 
   static async deleteFiles(urls) {
-    for (const url of urls) {
-      await Storage.deleteFile(url);
-    }
+    await Promise.all(urls.map((url) => Storage.deleteFile(url)));
   }
 }
 

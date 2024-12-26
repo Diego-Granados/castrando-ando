@@ -14,7 +14,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { updateCampaign } from "@/app/api/campaigns/update/route";
+import CampaignController from "@/controllers/CampaignController";
 
 function EditForm({ campaign, campaignId }) {
   const router = useRouter();
@@ -76,33 +76,34 @@ function EditForm({ campaign, campaignId }) {
   // Función para subir múltiples archivos a Firebase Storage
   async function uploadFiles(fileList, path) {
     // Array para almacenar las URLs de descarga de cada archivo
-    const downloadURLs = [];
+    let downloadURLs = [];
 
     if (fileList.length > 0) {
-      for (const file of fileList) {
-        const storageRef = ref(storage, `campaigns/${path}/${file.name}`); // Crear una referencia para cada archivo
-
-        try {
-          // Subir el archivo a Firebase Storage
-          await uploadBytes(storageRef, file);
-
-          // Obtener la URL de descarga
-          const downloadURL = await getDownloadURL(storageRef);
-
-          // Agregar la URL de descarga al array
-          downloadURLs.push(downloadURL);
-        } catch (error) {
-          throw new Error(`Error al subir el archivo ${file.name}.`);
-        }
+      const fileData = new FormData();
+      fileData.append("path", path);
+      for (let i = 0; i < fileList.length; i++) {
+        fileData.append("files", fileList[i]);
       }
 
-      campaign.photos.forEach((photo) => {
-        const storageRef = ref(storage, decodePhotoURL(photo));
-        deleteObject(storageRef).then().catch();
+      const uploadResponse = await fetch("/api/storage/upload", {
+        method: "POST",
+        body: fileData,
       });
-    }
-    // Iterar a través del array de archivos (fileList)
+      downloadURLs = await uploadResponse.json();
 
+      const deleteResponse = await fetch("/api/storage/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ urls: campaign.photos }),
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete old files");
+      }
+      console.log("images deleted");
+    }
     return downloadURLs;
   }
 
@@ -130,7 +131,7 @@ function EditForm({ campaign, campaignId }) {
     console.log(rawFormData.pricesData);
 
     try {
-      const path = `campaign-${Date.now()}`; // Add a timestamp
+      const path = `campaigns/campaign-${Date.now()}`; // Add a timestamp
       const fileInput = document.getElementById("photos");
       const downloadURLs = await uploadFiles(fileInput.files, path);
       rawFormData.photos = downloadURLs;
@@ -144,7 +145,7 @@ function EditForm({ campaign, campaignId }) {
     }
 
     try {
-      const response = await updateCampaign(rawFormData);
+      const response = await CampaignController.updateCampaign(rawFormData);
 
       if (response.ok) {
         toast.success("¡Campaña actualizada con éxito!", {
@@ -156,6 +157,7 @@ function EditForm({ campaign, campaignId }) {
           },
         });
       } else {
+        console.log(response);
         toast.error("¡Error al actualizar la campaña!", {
           position: "top-center",
           autoClose: 8000,
@@ -164,6 +166,7 @@ function EditForm({ campaign, campaignId }) {
         setUpdating(false);
       }
     } catch (error) {
+      console.log(error);
       toast.error("¡Error al actualizar la campaña!", {
         position: "top-center",
         autoClose: 8000,

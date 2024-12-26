@@ -7,7 +7,6 @@ import Requirement from "@/components/Requirement";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import CampaignController from "@/controllers/CampaignController";
-import { fileToBase64 } from "@/utils/fileUtils";
 function CreateForm() {
   const router = useRouter();
   const today = new Date();
@@ -113,12 +112,11 @@ function CreateForm() {
         fileData.append("files", fileInput.files[i]);
       }
 
-      const response = await fetch("/api/campaigns/upload", {
+      const response = await fetch("/api/storage/upload", {
         method: "POST",
         body: fileData,
       });
       const downloadURLs = await response.json();
-      console.log(downloadURLs);
       rawFormData.photos = downloadURLs;
       toast.success("¡Fotos subidas con éxito!");
     } catch (error) {
