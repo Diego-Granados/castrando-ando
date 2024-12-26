@@ -78,7 +78,7 @@ export default function AppointmentCard({
     setShowEdit(true);
   };
 
-  async function editReservation(event) {
+  async function editAppointment(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
     const rawFormData = {
@@ -193,7 +193,7 @@ export default function AppointmentCard({
         <Modal.Header closeButton>
           <Modal.Title>Editar cita para {reservation.pet}?</Modal.Title>
         </Modal.Header>
-        <Form id="editForm" onSubmit={editReservation}>
+        <Form id="editForm" onSubmit={editAppointment}>
           <Modal.Body>
             {campaign && (
               <>
