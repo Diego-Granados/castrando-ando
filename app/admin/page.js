@@ -18,9 +18,8 @@ export default function Home() {
   const [items, setItems] = useState(null);
   const [totalPages, setTotalPages] = useState(null);
 
-  const { loading, error } = useSubscription(
-    CampaignController.getAllCampaigns,
-    setCampaigns
+  const { loading, error } = useSubscription(() =>
+    CampaignController.getAllCampaigns(setCampaigns)
   );
   // useEffect(() => {
   //   const unsubscribe = CampaignController.getAllCampaigns(setCampaigns);

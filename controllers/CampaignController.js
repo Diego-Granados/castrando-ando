@@ -8,6 +8,11 @@ class CampaignController {
     return unsubscribe;
   }
 
+  static async getCampaignById(campaignId, setCampaign) {
+    const unsubscribe = await Campaign.getById(campaignId, setCampaign);
+    return unsubscribe;
+  }
+
   static async createCampaign(formData) {
     console.log(formData);
     try {

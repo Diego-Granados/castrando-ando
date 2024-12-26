@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function useSubscription(subscriptionFn, setData) {
+export default function useSubscription(subscriptionFn) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -11,7 +11,7 @@ export default function useSubscription(subscriptionFn, setData) {
       try {
         setLoading(true);
         // Await the subscription setup
-        unsubscribe = await subscriptionFn(setData);
+        unsubscribe = await subscriptionFn();
         setLoading(false);
       } catch (err) {
         setError(err);
@@ -23,10 +23,9 @@ export default function useSubscription(subscriptionFn, setData) {
 
     // Cleanup function
     return () => {
-      console.log(`Unsubscribed from ${subscriptionFn}`);
       unsubscribe();
     };
-  }, [subscriptionFn]); // Add subscriptionFn to dependencies
+  }, []);
 
   return { loading, error };
 }

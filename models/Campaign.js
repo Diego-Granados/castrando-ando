@@ -12,6 +12,7 @@ import {
 
 class Campaign {
   constructor(data) {
+    this.id = data.id;
     this.title = data.title;
     this.date = data.date;
     this.place = data.place;
@@ -51,6 +52,7 @@ class Campaign {
       if (!campaigns[campaign].enabled) {
         delete campaigns[campaign];
       } else {
+        campaigns[campaign].id = campaign;
         campaigns[campaign] = new Campaign(campaigns[campaign]);
       }
     });
@@ -71,10 +73,16 @@ class Campaign {
     return unsubscribe;
   }
 
-  static async getById(id) {
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, `campaigns/${id}`));
-    return snapshot.val();
+  static async getById(campaignId, setCampaign) {
+    const campaignRef = ref(db, `campaigns/${campaignId}`);
+    const unsubscribe = onValue(campaignRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        return;
+      }
+      const value = snapshot.val();
+      setCampaign(value);
+    });
+    return unsubscribe;
   }
 
   async delete() {

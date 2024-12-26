@@ -55,9 +55,7 @@ export default function CampaignCard({ campaign, admin }) {
               <strong>Cupos: {campaign.available}</strong>
             </p>
           </div>
-          <Link
-            href={(admin ? "/admin" : "") + `/campaign?id=${campaign.campaign}`}
-          >
+          <Link href={(admin ? "/admin" : "") + `/campaign?id=${campaign.id}`}>
             <Button
               variant="primary"
               type="submit"

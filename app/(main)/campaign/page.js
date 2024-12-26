@@ -2,12 +2,12 @@
 import { Row, Col, Button } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { db } from "@/lib/firebase/config";
-import { ref, onValue } from "firebase/database";
 import { Carousel } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "react-bootstrap/Badge";
+import useSubscription from "@/hooks/useSubscription";
+import CampaignController from "@/controllers/CampaignController";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -19,22 +19,16 @@ export default function Campaign() {
     router.push("/");
   }
 
-  useEffect(() => {
-    const campaignRef = ref(db, `campaigns/${campaignId}`);
+  function setCampaignState(campaign) {
+    const datetime = new Date(campaign.date + "T" + "15:00:00");
+    const today = new Date();
+    setActive(today <= datetime);
+    setCampaign(campaign);
+  }
 
-    const unsubscribe = onValue(campaignRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const value = snapshot.val();
-      const datetime = new Date(value.date + "T" + "15:00:00");
-      const today = new Date();
-      setActive(today <= datetime);
-      setCampaign(value);
-    });
-
-    return () => unsubscribe();
-  }, [db]);
+  const { loading, error } = useSubscription(() =>
+    CampaignController.getCampaignById(campaignId, setCampaignState)
+  );
 
   const dateFormat = new Intl.DateTimeFormat("es-CR", {
     day: "2-digit",
@@ -45,7 +39,11 @@ export default function Campaign() {
   return (
     <main className="container">
       <h1>Asociación Animalitos Abandonados</h1>
-      {campaign ? (
+      {loading ? (
+        <div>Cargando...</div>
+      ) : error ? (
+        <div>Error: No hay una campaña con este identificador.</div>
+      ) : campaign ? (
         <Row>
           <Col xs={12} sm={6}>
             <div className="card shadow-sm">
