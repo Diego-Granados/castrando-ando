@@ -91,13 +91,13 @@ export default function Home() {
       ) : (
         <h2>No hay campañas activas.</h2>
       )}
-      <Row className="d-flex justify-content-center">
-        <Col className="d-flex justify-content-center">
-          <Link href="reservaciones">
+      <Row className="d-flex justify-content-center mt-3">
+        <Col xs={12} md={6} className="d-flex justify-content-center mb-2">
+          <Link href="appointments">
             Ingresá con tu número de cédula para revisar tus citas
           </Link>
         </Col>
-        <Col className="d-flex justify-content-center">
+        <Col xs={12} md={6} className="d-flex justify-content-center mb-2">
           <Link href="adminlogin">Ingresar como administrador</Link>
         </Col>
       </Row>

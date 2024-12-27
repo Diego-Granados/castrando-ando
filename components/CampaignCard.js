@@ -3,7 +3,7 @@ import Carousel from "react-bootstrap/Carousel";
 import Link from "next/link";
 import Badge from "react-bootstrap/Badge";
 import { Col } from "react-bootstrap";
-
+import { CldImage } from "next-cloudinary";
 export default function CampaignCard({ campaign, admin }) {
   const datetime = new Date(campaign.date + "T" + "15:00:00");
   const today = new Date();
@@ -24,8 +24,10 @@ export default function CampaignCard({ campaign, admin }) {
         <Carousel>
           {campaign.photos.map((photo) => (
             <Carousel.Item key={photo}>
-              <img
+              <CldImage
                 className="d-block w-100"
+                width="800"
+                height="600"
                 style={{ objectFit: "contain", height: "55vh", width: "auto" }}
                 src={photo}
                 alt=""

@@ -3,29 +3,93 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import AuthController from "@/controllers/AuthController";
+import Link from "next/link";
+import useSubscription from "@/hooks/useSubscription";
 
 function NavBar() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isUser, setIsUser] = useState(false);
+
+  async function handleAuthStateChange(user) {
+    if (user) {
+      const role = await AuthController.getCurrentRole();
+      setIsAuthenticated(true);
+      setIsUser(role === "User");
+    } else {
+      setIsAuthenticated(false);
+      setIsUser(false);
+    }
+  }
+
+  const { loading, error } = useSubscription(() =>
+    AuthController.subscribeToAuthState(handleAuthStateChange)
+  );
+
+  async function handleSignout(event) {
+    event.preventDefault();
+    await AuthController.signout();
+    setIsAuthenticated(false);
+    setIsUser(false);
+    router.push("/");
+  }
+
   return (
     <Navbar expand="lg" className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">
-          <img
-            alt=""
-            src="/logo.jpg"
-            width="30"
-            height="30"
-            className="d-inline-block align-top"
-          />{" "}
-          Castrando Ando
-        </Navbar.Brand>
+        <Link href="/" passHref legacyBehavior>
+          <Navbar.Brand>
+            <img
+              alt=""
+              src="/logo.jpg"
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />{" "}
+            Castrando Ando
+          </Navbar.Brand>
+        </Link>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/">Campañas</Nav.Link>
-            <Nav.Link href="/aboutus">Quiénes somos</Nav.Link>
-            <Nav.Link href="/contacto">Contacto</Nav.Link>
-            <Nav.Link href="/reservaciones">Citas</Nav.Link>
-            <Nav.Link href="/ayuda">Ayuda</Nav.Link>
+            <Link href="/" passHref legacyBehavior>
+              <Nav.Link>Campañas</Nav.Link>
+            </Link>
+            <Link href="/aboutus" passHref legacyBehavior>
+              <Nav.Link>Quiénes somos</Nav.Link>
+            </Link>
+            <Link href="/contacto" passHref legacyBehavior>
+              <Nav.Link>Contacto</Nav.Link>
+            </Link>
+            <Link href="/reservaciones" passHref legacyBehavior>
+              <Nav.Link>Citas</Nav.Link>
+            </Link>
+            <Link href="/ayuda" passHref legacyBehavior>
+              <Nav.Link>Ayuda</Nav.Link>
+            </Link>
+          </Nav>
+          <Nav>
+            {isAuthenticated && isUser ? (
+              <>
+                <Link href="/cuenta" passHref legacyBehavior>
+                  <Nav.Link>Mi Cuenta</Nav.Link>
+                </Link>
+                <Form className="d-flex" onSubmit={handleSignout}>
+                  <Button type="submit" variant="outline-primary">
+                    Cerrar sesión
+                  </Button>
+                </Form>
+              </>
+            ) : (
+              <Link href="/userLogin" passHref legacyBehavior>
+                <Nav.Link>Iniciar sesión</Nav.Link>
+              </Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>

@@ -15,19 +15,19 @@ export default function LoginForm() {
   const [resetEmail, setResetEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  async function loginAdmin(event) {
+  async function loginUser(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
 
     const email = formData.get("email");
     const password = formData.get("password");
 
-    AuthController.adminLogin(
+    AuthController.userLogin(
       email,
       password,
       (user) => {
         // On success
-        router.push("/admin");
+        router.push("/");
       },
       (error) => {
         // On error
@@ -60,7 +60,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <Form onSubmit={loginAdmin}>
+      <Form onSubmit={loginUser}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>Correo electrónico</Form.Label>
           <Form.Control
