@@ -40,8 +40,11 @@ class Storage {
       }
       const data = await response.json();
       console.log(data);
-      return data.secure_url;
+      // Insert optimization parameters into the URL
+      const optimizedUrl = data.secure_url.replace('/upload/', '/upload/f_auto,q_auto/');
+      return optimizedUrl;
     } catch (error) {
+        console.error(error);
       throw new Error(`Error uploading file: ${error.message}`);
     }
   }
