@@ -196,9 +196,9 @@ export default function ProfileForm({ initialData }) {
                     },
                   },
                 }}
-                className="border-0 bg-transparent"
+                className="btn btn-primary"
               >
-                <Button type="button">Cambiar foto de perfil</Button>
+                Cambiar foto de perfil
               </CldUploadButton>
             </Col>
             {profileUrl && (

@@ -4,6 +4,7 @@ import AuthController from "@/controllers/AuthController";
 import ProfileForm from "./ProfileForm";
 import { Container, Card } from "react-bootstrap";
 import RouteGuard from "@/components/RouteGuard";
+import PetPanel from "./PetPanel";
 
 export default function AccountPage() {
   const [userData, setUserData] = useState(null);
@@ -25,12 +26,14 @@ export default function AccountPage() {
   return (
     <RouteGuard requiredRole="User">
       <Container className="my-5">
-        <Card className="shadow">
+        <Card className="shadow mb-5">
           <Card.Body>
             <h2 className="text-center mb-4">Mi Cuenta</h2>
             {userData && <ProfileForm initialData={userData} />}
           </Card.Body>
         </Card>
+
+        <PetPanel />
       </Container>
     </RouteGuard>
   );
