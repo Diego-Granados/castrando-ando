@@ -53,7 +53,7 @@ class Inscription {
     return unsubscribe;
   }
 
-  static async reserveAppointment(formData) {
+  static async reserveAppointment(formData, authenticated) {
     const updates = {};
 
     updates[`campaigns/${formData.campaignId}/available`] = increment(-1);
@@ -81,12 +81,11 @@ class Inscription {
       enabled: true,
       present: false,
     };
-
-    updates[`/users/${formData.id}`] = {
-      phone: formData.phone,
-      email: formData.email,
-      name: formData.name,
-    };
+    if (!authenticated) {
+      updates[`/users/${formData.id}`] = {
+        name: formData.name,
+      };
+    }
     updates[`/appointments/${formData.id}/${newInscriptionRef.key}`] = {
       campaignId: formData.campaignId,
       timeslot: formData.timeslot,
@@ -150,10 +149,11 @@ class Inscription {
       `/inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/email`
     ] = formData.email;
 
-    updates[`/users/${formData.id}`] = {
-      phone: formData.phone,
-      name: formData.name,
-    };
+    if (!authenticated) {
+      updates[`/users/${formData.id}`] = {
+        name: formData.name,
+      };
+    }
     updates[`/appointments/${formData.id}/${appointmentKey}/animal`] =
       formData.animal;
     updates[`/appointments/${formData.id}/${appointmentKey}/pet`] =

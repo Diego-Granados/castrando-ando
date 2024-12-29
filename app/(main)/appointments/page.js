@@ -62,10 +62,6 @@ export default function Appointments() {
                   setAppointments={setAppointments}
                   name={name}
                   setName={setName}
-                  phone={phone}
-                  setPhone={setPhone}
-                  email={email}
-                  setEmail={setEmail}
                 />
               );
             }

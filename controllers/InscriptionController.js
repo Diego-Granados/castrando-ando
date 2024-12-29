@@ -25,9 +25,9 @@ class InscriptionController {
     return unsubscribe;
   }
 
-  static async reserveAppointment(formData) {
+  static async reserveAppointment(formData, authenticated) {
     try {
-      await Inscription.reserveAppointment(formData);
+      await Inscription.reserveAppointment(formData, authenticated);
       return NextResponse.json({ message: "Appointment saved correctly!" });
     } catch (error) {
       console.error(error);

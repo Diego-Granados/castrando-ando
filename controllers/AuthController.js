@@ -44,7 +44,7 @@ class AuthController {
     return user.uid;
   }
 
-  static async getCurrentRole() {
+  static async getCurrentRole(user) {
     let role = localStorage.getItem("userRole");
     if (!role) {
       role = await Auth.getUserRole(user.uid);

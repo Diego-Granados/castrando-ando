@@ -18,7 +18,7 @@ function NavBar() {
 
   async function handleAuthStateChange(user) {
     if (user) {
-      const role = await AuthController.getCurrentRole();
+      const role = await AuthController.getCurrentRole(user);
       setIsAuthenticated(true);
       setIsUser(role === "User");
     } else {
@@ -60,14 +60,14 @@ function NavBar() {
             <Link href="/" passHref legacyBehavior>
               <Nav.Link>Campañas</Nav.Link>
             </Link>
+            <Link href="/appointments" passHref legacyBehavior>
+              <Nav.Link>Citas</Nav.Link>
+            </Link>
             <Link href="/aboutus" passHref legacyBehavior>
               <Nav.Link>Quiénes somos</Nav.Link>
             </Link>
             <Link href="/contacto" passHref legacyBehavior>
               <Nav.Link>Contacto</Nav.Link>
-            </Link>
-            <Link href="/reservaciones" passHref legacyBehavior>
-              <Nav.Link>Citas</Nav.Link>
             </Link>
             <Link href="/ayuda" passHref legacyBehavior>
               <Nav.Link>Ayuda</Nav.Link>
