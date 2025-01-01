@@ -1,6 +1,7 @@
 "use client";
 import { Row, Col, Button } from "react-bootstrap";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Blog() {
   const [blogPosts] = useState([
@@ -39,13 +40,15 @@ export default function Blog() {
       <h1 className="text-center mb-4">Blog</h1>
       
       <div className="d-flex justify-content-end mb-4">
-        <Button 
-          variant="primary"
-          className="rounded-pill"
-          style={{ padding: "10px 20px" }}
-        >
-          CREAR BLOG
-        </Button>
+        <Link href="/blog/crear" passHref>
+          <Button 
+            variant="primary"
+            className="rounded-pill"
+            style={{ padding: "10px 20px" }}
+          >
+            CREAR BLOG
+          </Button>
+        </Link>
       </div>
 
       <Row className="g-4">
