@@ -75,6 +75,9 @@ function NavBar() {
             <Link href="/blog" passHref legacyBehavior>
               <Nav.Link>Blog</Nav.Link>
             </Link>
+            <Link href="/mensajes" passHref legacyBehavior>
+              <Nav.Link>Foro mensajes</Nav.Link>
+            </Link>
           </Nav>
           <Nav>
             {isAuthenticated && isUser ? (

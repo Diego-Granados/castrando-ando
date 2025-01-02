@@ -34,7 +34,7 @@ class Message {
         const messagesArray = Object.entries(messagesData).map(([id, message]) => ({
           id,
           ...message
-        })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        })).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         setMessages(messagesArray);
       } else {
         setMessages([]);

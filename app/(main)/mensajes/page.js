@@ -2,13 +2,14 @@
 import { useEffect, useState, useRef } from "react";
 import { Form, Button } from "react-bootstrap";
 import MessageController from "@/controllers/MessageController";
-import { FaTrash } from 'react-icons/fa';
+import { auth } from "@/lib/firebase/config";
 
 export default function MessageWall() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -20,6 +21,7 @@ export default function MessageWall() {
       try {
         await MessageController.getMessages(setMessages);
         setIsAuthenticated(MessageController.isUserAuthenticated());
+        setCurrentUserId(auth.currentUser?.uid || null);
       } catch (error) {
         console.error("Error cargando mensajes:", error);
       } finally {
@@ -84,8 +86,7 @@ export default function MessageWall() {
               <div
                 key={message.id}
                 className={`mb-3 p-3 border rounded ${
-                  MessageController.isUserAuthenticated() &&
-                  message.authorId === auth.currentUser?.uid
+                  isAuthenticated && message.authorId === currentUserId
                     ? "ms-auto"
                     : "me-auto"
                 }`}
@@ -96,16 +97,15 @@ export default function MessageWall() {
                   <small className="text-muted">{message.createdAt}</small>
                 </div>
                 <p className="mb-1">{message.content}</p>
-                {MessageController.isUserAuthenticated() &&
-                  message.authorId === auth.currentUser?.uid && (
-                    <Button
-                      variant="link"
-                      className="p-0 text-danger"
-                      onClick={() => handleDelete(message.id)}
-                    >
-                      <FaTrash />
-                    </Button>
-                  )}
+                {isAuthenticated && message.authorId === currentUserId && (
+                  <Button
+                    variant="link"
+                    className="p-0 text-danger"
+                    onClick={() => handleDelete(message.id)}
+                  >
+                    🗑️
+                  </Button>
+                )}
               </div>
             ))
           )}
