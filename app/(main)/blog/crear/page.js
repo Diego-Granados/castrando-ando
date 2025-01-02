@@ -2,19 +2,48 @@
 import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useRouter } from "next/navigation";
+import BlogController from "@/controllers/BlogController";
 
 export default function CrearBlog() {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    image: null,
+    image: null
   });
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && !file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+    setFormData({ ...formData, image: file });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí iría la lógica para guardar el blog post
-    // Similar a como manejas otros formularios en tu aplicación
+    setLoading(true);
+
+    try {
+      const result = await BlogController.createBlog(
+        formData.title,
+        formData.content,
+        formData.image
+      );
+
+      if (result.ok) {
+        router.push("/blog");
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error("Error al crear blog:", error);
+      alert("Error al crear el blog: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,10 +80,10 @@ export default function CrearBlog() {
 
         <Form.Group className="mb-4">
           <Form.Label>
-            <h2>Agregar imagen:</h2>
+            <h2>Agregar imagen (opcional):</h2>
           </Form.Label>
           <div className="border rounded p-3 text-center">
-            {formData.image ? (
+            {formData.image && (
               <img
                 src={URL.createObjectURL(formData.image)}
                 alt="Preview"
@@ -65,25 +94,11 @@ export default function CrearBlog() {
                 }}
                 className="mb-3"
               />
-            ) : (
-              <div
-                className="d-flex justify-content-center align-items-center"
-                style={{
-                  height: "200px",
-                  border: "2px dashed #ccc",
-                  borderRadius: "4px"
-                }}
-              >
-                <span className="text-muted">+ Seleccionar imagen</span>
-              </div>
             )}
             <Form.Control
               type="file"
               accept="image/*"
-              onChange={(e) => 
-                setFormData({ ...formData, image: e.target.files[0] })
-              }
-              required
+              onChange={handleImageChange}
             />
           </div>
         </Form.Group>
@@ -94,8 +109,9 @@ export default function CrearBlog() {
             variant="primary"
             className="rounded-pill px-4 py-2"
             style={{ fontSize: "1.1rem" }}
+            disabled={loading}
           >
-            Publicar en blog
+            {loading ? "Publicando..." : "Publicar en blog"}
           </Button>
         </div>
       </Form>

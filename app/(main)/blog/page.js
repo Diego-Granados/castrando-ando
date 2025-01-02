@@ -1,88 +1,79 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Row, Col, Button } from "react-bootstrap";
-import { useState } from "react";
 import Link from "next/link";
+import BlogController from "@/controllers/BlogController";
 
 export default function Blog() {
-  const [blogPosts] = useState([
-    {
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YNRu7aelgluNIXT1OXPXdS5Xr2TbFpPf8Q&s",
-      date: "11/03/2024",
-      author: "David Fernandez",
-      title: "Heorica mama perro cuida sus crias",
-      content: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident..."
-    },
-    {
-        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YNRu7aelgluNIXT1OXPXdS5Xr2TbFpPf8Q&s",
-        date: "11/03/2024",
-        author: "David Fernandez",
-        title: "Heorica mama perro cuida sus crias",
-        content: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident..."
-      },
-      {
-        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YNRu7aelgluNIXT1OXPXdS5Xr2TbFpPf8Q&s",
-        date: "11/03/2024",
-        author: "David Fernandez",
-        title: "Heorica mama perro cuida sus crias",
-        content: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident... At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non providentAt vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non providentAt vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non providentAt vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident"
-      },
-      {
-        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YNRu7aelgluNIXT1OXPXdS5Xr2TbFpPf8Q&s",
-        date: "11/03/2024",
-        author: "David Fernandez",
-        title: "Heorica mama perro cuida sus crias",
-        content: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident..."
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const loadBlogs = async () => {
+      try {
+        await BlogController.getBlogs(setBlogPosts);
+        setIsAuthenticated(BlogController.isUserAuthenticated());
+      } catch (error) {
+        console.error("Error cargando blogs:", error);
+      } finally {
+        setLoading(false);
       }
-  ]);
+    };
+    loadBlogs();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center">Cargando blogs...</div>;
+  }
 
   return (
     <main className="container">
-      <h1 className="text-center mb-4">Blog</h1>
+      <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Blog</h1>
       
-      <div className="d-flex justify-content-end mb-4">
-        <Link href="/blog/crear" passHref>
-          <Button 
-            variant="primary"
-            className="rounded-pill"
-            style={{ padding: "10px 20px" }}
-          >
-            CREAR BLOG
-          </Button>
-        </Link>
-      </div>
+      {isAuthenticated && (
+        <div className="d-flex justify-content-end mb-4">
+          <Link href="/blog/crear" passHref>
+            <Button 
+              variant="primary"
+              className="rounded-pill"
+              style={{ padding: "10px 20px" }}
+            >
+              CREAR BLOG
+            </Button>
+          </Link>
+        </div>
+      )}
 
-      <Row className="g-4">
-        {blogPosts.map((post, index) => (
-          <Col key={index} xs={12} md={6} lg={4}>
-            <div className="card shadow-sm h-100">
-              <img
-                src={post.image}
-                className="card-img-top"
-                alt=""
-                style={{
-                  height: "250px",
-                  objectFit: "cover"
-                }}
-              />
-              <div className="card-body">
-                <div className="d-flex justify-content-between mb-2">
-                  <small className="text-muted">{post.date}</small>
-                  <small className="text-muted">Autor: {post.author}</small>
+      {blogPosts.length === 0 ? (
+        <div className="text-center">
+          <h2>No hay blogs publicados aún</h2>
+        </div>
+      ) : (
+        <Row className="g-4">
+          {blogPosts.map((post) => (
+            <Col key={post.id} xs={12} md={6} lg={4}>
+              <div className="card shadow-sm h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between mb-2">
+                    <small className="text-muted">{post.date}</small>
+                    <small className="text-muted">Autor: {post.author}</small>
+                  </div>
+                  <h2 
+                    className="card-title text-center"
+                    style={{ color: "#2055A5", fontSize: "1.5rem" }}
+                  >
+                    {post.title}
+                  </h2>
+                  <p className="card-text text-center">
+                    {post.content}
+                  </p>
                 </div>
-                <h2 
-                  className="card-title text-center"
-                  style={{ color: "#2055A5", fontSize: "1.5rem" }}
-                >
-                  {post.title}
-                </h2>
-                <p className="card-text text-center">
-                  {post.content}
-                </p>
               </div>
-            </div>
-          </Col>
-        ))}
-      </Row>
+            </Col>
+          ))}
+        </Row>
+      )}
     </main>
   );
 }
