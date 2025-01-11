@@ -7,7 +7,7 @@ export const metadata = {
   title: "Asociación Castrando Ando",
   description: "Sitio de la Asociación Castrando Ando",
 };
-import ValidateUser from "./ValidateUser";
+import RouteGuard from "@/components/RouteGuard";
 import Link from "next/link";
 import "./globals.css";
 import { Mail, Phone } from "lucide-react";
@@ -19,9 +19,10 @@ export default function RootLayout({ children }) {
         <header>
           <NavBarAdmin />
         </header>{" "}
-        <ValidateUser />
         <ToastContainer />
-        <Suspense fallback={<h2>Cargando...</h2>}>{children}</Suspense>
+        <RouteGuard requiredRole="Admin">
+          <Suspense fallback={<h2>Cargando...</h2>}>{children}</Suspense>
+        </RouteGuard>
         <footer className="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top px-5">
           <div className="col-md-4 d-flex align-items-center">
             <Link
@@ -37,7 +38,7 @@ export default function RootLayout({ children }) {
               />
             </Link>
             <span className="mb-3 mb-md-0 text-body-secondary">
-              © 2024 Asociación Castrando Ando
+              © 2025 Asociación Castrando Ando
             </span>
           </div>
           <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">

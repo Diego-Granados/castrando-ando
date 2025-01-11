@@ -42,6 +42,9 @@ export default function NavBarAdmin() {
             <Link href="/admin" passHref legacyBehavior>
               <Nav.Link>Administrar campañas</Nav.Link>
             </Link>
+            <Link href="/admin/ayuda" passHref legacyBehavior>
+              <Nav.Link>Administrar ayuda</Nav.Link>
+            </Link>
           </Nav>
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>

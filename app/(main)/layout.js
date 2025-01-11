@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
               />
             </Link>
             <span className="mb-3 mb-md-0 text-body-secondary">
-              © 2024 Asociación Castrando Ando
+              © 2025 Asociación Castrando Ando
             </span>
           </div>
           <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">

@@ -24,7 +24,6 @@
     "react-toastify": "^10.0.5"
   },
   "devDependencies": {
-    "@getbrevo/brevo": "^2.2.0",
-    "prettier": "^3.4.2"
+    "@getbrevo/brevo": "^2.2.0"
   }
 }
