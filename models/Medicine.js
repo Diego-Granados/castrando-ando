@@ -1,0 +1,82 @@
+"use client";
+import { db } from "@/lib/firebase/config";
+import { ref, get, push, update, remove, onValue } from "firebase/database";
+
+export default class Medicine {
+  constructor(data) {
+    this.id = data.id;
+    this.name = data.name;
+    this.amount = data.amount;
+    this.unit = data.unit;
+    this.weightMultiplier = data.weightMultiplier;
+    this.daysOfTreatment = data.daysOfTreatment;
+
+    this.validate();
+  }
+
+  validate() {
+    if (!this.name) throw new Error("Medicine must have a name");
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      amount: this.amount,
+      unit: this.unit,
+      weightMultiplier: this.weightMultiplier,
+      daysOfTreatment: this.daysOfTreatment,
+    };
+  }
+
+  static async getAll(setMedicines) {
+    const medicinesRef = ref(db, "medicines");
+    const unsubscribe = onValue(medicinesRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        setMedicines([]);
+        return;
+      }
+      const medicines = snapshot.val();
+      const medicinesList = Object.keys(medicines).map(key => 
+        new Medicine({ id: key, ...medicines[key] })
+      );
+      setMedicines(medicinesList);
+    });
+    return unsubscribe;
+  }
+
+  static async create(medicineData) {
+    try {
+      const medicinesRef = ref(db, "medicines");
+      const newMedicineRef = push(medicinesRef);
+      const updates = {};
+      updates[`/medicines/${newMedicineRef.key}`] = medicineData;
+      await update(ref(db), updates);
+      return new Medicine({ id: newMedicineRef.key, ...medicineData });
+    } catch (error) {
+      console.error("Error creating medicine:", error);
+      throw error;
+    }
+  }
+
+  static async update(id, medicineData) {
+    try {
+      const updates = {};
+      updates[`/medicines/${id}`] = medicineData;
+      await update(ref(db), updates);
+      return new Medicine({ id, ...medicineData });
+    } catch (error) {
+      console.error("Error updating medicine:", error);
+      throw error;
+    }
+  }
+
+  static async delete(id) {
+    try {
+      await remove(ref(db, `medicines/${id}`));
+    } catch (error) {
+      console.error("Error deleting medicine:", error);
+      throw error;
+    }
+  }
+} 

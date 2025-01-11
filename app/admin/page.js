@@ -71,7 +71,6 @@ export default function Home() {
       ) : items ? (
         <>
           <div className="d-flex justify-content-center mt-5">
-            {/* Mostrar las campañas de la página actual */}
             {currentCampaigns.map((campaign) => (
               <CampaignCard
                 key={campaign}
@@ -101,8 +100,9 @@ export default function Home() {
       )}
 
       <Row className="d-flex justify-content-center">
-        <Col className="d-flex justify-content-center">
+        <Col className="d-flex justify-content-center gap-3">
           <Link href="/admin/crear">Crear campañas</Link>
+          <Link href="/admin/medicines">Configurar Medicamentos</Link>
         </Col>
       </Row>
     </main>
