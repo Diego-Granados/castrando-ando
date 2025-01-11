@@ -8,6 +8,7 @@ import {
   Row,
   Col,
   Modal,
+  Nav,
 } from "react-bootstrap";
 import { Plus, Pencil, Trash2, MoveUp, MoveDown } from "lucide-react";
 import { toast } from "react-toastify";
@@ -16,24 +17,79 @@ import HelpController from "@/controllers/HelpController";
 export default function AdminAyuda() {
   const [sections, setSections] = useState([]);
   const [showSectionModal, setShowSectionModal] = useState(false);
+  const [showPageModal, setShowPageModal] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
   const [sectionTitle, setSectionTitle] = useState("");
   const [sectionContent, setSectionContent] = useState("");
-  const [sectionType, setSectionType] = useState("Texto"); // Texto, Imagen, Video
+  const [sectionType, setSectionType] = useState("Texto");
   const [sectionUrl, setSectionUrl] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [pages, setPages] = useState([]);
+  const [activePage, setActivePage] = useState(null);
+  const [newPageName, setNewPageName] = useState("");
   const fileInputRef = useRef(null);
+  const [showDeletePageModal, setShowDeletePageModal] = useState(false);
 
   useEffect(() => {
-    loadSections();
+    loadPages();
   }, []);
+
+  useEffect(() => {
+    if (activePage) {
+      loadSections();
+    }
+  }, [activePage]);
+
+  const loadPages = async () => {
+    try {
+      const helpPages = await HelpController.getPages();
+      console.log("helpPages", helpPages);
+      setPages(helpPages);
+      if (helpPages.length > 0) {
+        setActivePage(helpPages[0]);
+      }
+    } catch (error) {
+      toast.error("Error al cargar las páginas de ayuda");
+    }
+  };
 
   const loadSections = async () => {
     try {
-      const helpData = await HelpController.getHelpContent();
+      const helpData = await HelpController.getHelpContent(activePage);
       setSections(helpData.sections || []);
     } catch (error) {
       toast.error("Error al cargar el contenido de ayuda");
+    }
+  };
+
+  const handleAddPage = async () => {
+    try {
+      if (!newPageName.trim()) {
+        toast.error("El nombre de la página no puede estar vacío");
+        return;
+      }
+
+      const pageName = newPageName.trim();
+      await HelpController.updateHelpContent(pageName, { sections: [] });
+      setShowPageModal(false);
+      setNewPageName("");
+      await loadPages();
+      setActivePage(pageName);
+      toast.success("Página creada con éxito");
+    } catch (error) {
+      console.error("Error al crear la página", error);
+      toast.error("Error al crear la página");
+    }
+  };
+
+  const handleDeletePage = async () => {
+    try {
+      await HelpController.deletePage(activePage);
+      await loadPages();
+      setShowDeletePageModal(false);
+      toast.success("Página eliminada con éxito");
+    } catch (error) {
+      toast.error("Error al eliminar la página");
     }
   };
 
@@ -68,8 +124,7 @@ export default function AdminAyuda() {
       const newSections = [...sections];
       const deletedSection = newSections[index];
 
-      // If it's an image section, delete the image from storage
-      if (deletedSection.type === "image" && deletedSection.url) {
+      if (deletedSection.type === "Imagen" && deletedSection.url) {
         try {
           await fetch("/api/storage/delete", {
             method: "POST",
@@ -85,7 +140,9 @@ export default function AdminAyuda() {
 
       newSections.splice(index, 1);
       try {
-        await HelpController.updateHelpContent({ sections: newSections });
+        await HelpController.updateHelpContent(activePage, {
+          sections: newSections,
+        });
         setSections(newSections);
         toast.success("Sección eliminada con éxito");
       } catch (error) {
@@ -108,7 +165,9 @@ export default function AdminAyuda() {
     newSections[index + direction] = temp;
 
     try {
-      await HelpController.updateHelpContent({ sections: newSections });
+      await HelpController.updateHelpContent(activePage, {
+        sections: newSections,
+      });
       setSections(newSections);
     } catch (error) {
       toast.error("Error al mover la sección");
@@ -118,12 +177,10 @@ export default function AdminAyuda() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         toast.error("Por favor seleccione un archivo de imagen válido");
         return;
       }
-      // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error("La imagen no debe superar los 5MB");
         return;
@@ -152,7 +209,7 @@ export default function AdminAyuda() {
         // Upload new image
         const formData = new FormData();
         formData.append("files", selectedFile);
-        formData.append("path", "help");
+        formData.append("path", `help/${activePage}`);
 
         const uploadResponse = await fetch("/api/storage/upload", {
           method: "POST",
@@ -166,7 +223,7 @@ export default function AdminAyuda() {
         const urls = await uploadResponse.json();
         imageUrl = urls[0];
       }
-      console.log(imageUrl);
+
       const newSection = {
         title: sectionTitle,
         content: sectionContent,
@@ -181,7 +238,9 @@ export default function AdminAyuda() {
         newSections.push(newSection);
       }
 
-      await HelpController.updateHelpContent({ sections: newSections });
+      await HelpController.updateHelpContent(activePage, {
+        sections: newSections,
+      });
       setSections(newSections);
       setShowSectionModal(false);
       toast.success(
@@ -200,91 +259,131 @@ export default function AdminAyuda() {
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Administrar Página de Ayuda</h2>
-            <Button variant="primary" onClick={handleAddSection}>
-              <Plus size={20} className="me-2" />
-              Agregar Sección
-            </Button>
+            <div className="d-flex gap-2">
+              <Button variant="primary" onClick={() => setShowPageModal(true)}>
+                <Plus size={20} className="me-2" />
+                Nueva Página
+              </Button>
+              {activePage && (
+                <Button
+                  variant="danger"
+                  onClick={() => setShowDeletePageModal(true)}
+                >
+                  <Trash2 size={20} className="me-2" />
+                  Eliminar Página
+                </Button>
+              )}
+            </div>
           </div>
 
-          {sections.map((section, index) => (
-            <Card key={index} className="mb-3">
-              <Card.Body>
-                <div className="d-flex justify-content-between align-items-start">
-                  <div>
-                    <h4>{section.title}</h4>
-                    <p className="text-muted small">Tipo: {section.type}</p>
-                  </div>
-                  <div className="d-flex gap-2">
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={() => handleMoveSection(index, -1)}
-                      disabled={index === 0}
+          <Card className="mb-4">
+            <Card.Body>
+              <Nav variant="tabs" className="mb-3">
+                {pages.map((page) => (
+                  <Nav.Item key={page}>
+                    <Nav.Link
+                      active={activePage === page}
+                      onClick={() => setActivePage(page)}
                     >
-                      <MoveUp size={16} />
-                    </Button>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={() => handleMoveSection(index, 1)}
-                      disabled={index === sections.length - 1}
-                    >
-                      <MoveDown size={16} />
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => handleEditSection(section, index)}
-                    >
-                      <Pencil size={16} />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDeleteSection(index)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
+                      {page}
+                    </Nav.Link>
+                  </Nav.Item>
+                ))}
+              </Nav>
 
-                {section.type === "Texto" && (
-                  <div className="mt-3">
-                    <p>{section.content}</p>
-                  </div>
-                )}
-                {section.type === "Imagen" && (
-                  <div className="mt-3">
-                    <img
-                      src={section.url}
-                      alt={section.title}
-                      className="img-fluid"
-                      style={{ maxHeight: "200px" }}
-                    />
-                  </div>
-                )}
-                {section.type === "Video" && (
-                  <div className="mt-3">
-                    <div className="ratio ratio-16x9">
-                      <iframe
-                        width="560"
-                        height="315"
-                        src={section.url}
-                        title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allowfullscreen
-                      ></iframe>
+              {activePage && (
+                <div className="mt-3 d-flex justify-content-between align-items-center">
+                  <h3>{activePage}</h3>
+                  <Button variant="primary" onClick={handleAddSection}>
+                    <Plus size={20} className="me-2" />
+                    Agregar Sección
+                  </Button>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+
+          {activePage &&
+            sections.map((section, index) => (
+              <Card key={index} className="mb-3">
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h4>{section.title}</h4>
+                      <p className="text-muted small">Tipo: {section.type}</p>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => handleMoveSection(index, -1)}
+                        disabled={index === 0}
+                      >
+                        <MoveUp size={16} />
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => handleMoveSection(index, 1)}
+                        disabled={index === sections.length - 1}
+                      >
+                        <MoveDown size={16} />
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleEditSection(section, index)}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteSection(index)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                     </div>
                   </div>
-                )}
-              </Card.Body>
-            </Card>
-          ))}
+
+                  {section.type === "Texto" && (
+                    <div className="mt-3">
+                      <p>{section.content}</p>
+                    </div>
+                  )}
+                  {section.type === "Imagen" && (
+                    <div className="mt-3">
+                      <img
+                        src={section.url}
+                        alt={section.title}
+                        className="img-fluid"
+                        style={{ maxHeight: "200px" }}
+                      />
+                    </div>
+                  )}
+                  {section.type === "Video" && (
+                    <div className="mt-3">
+                      <div className="ratio ratio-16x9">
+                        <iframe
+                          width="560"
+                          height="315"
+                          src={section.url}
+                          title="YouTube video player"
+                          frameborder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            ))}
         </Card.Body>
       </Card>
 
+      {/* Section Modal */}
       <Modal
         show={showSectionModal}
         onHide={() => setShowSectionModal(false)}
@@ -379,6 +478,59 @@ export default function AdminAyuda() {
           </Button>
           <Button variant="primary" onClick={handleSaveSection}>
             Guardar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* New Page Modal */}
+      <Modal show={showPageModal} onHide={() => setShowPageModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Nueva Página de Ayuda</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Nombre de la página</Form.Label>
+              <Form.Control
+                type="text"
+                value={newPageName}
+                onChange={(e) => setNewPageName(e.target.value)}
+                placeholder="Ej: Campañas, Citas, etc."
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPageModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleAddPage}>
+            Crear
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Page Modal */}
+      <Modal
+        show={showDeletePageModal}
+        onHide={() => setShowDeletePageModal(false)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Eliminar Página de Ayuda</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>¿Está seguro que desea eliminar la página "{activePage}"?</p>
+          <p className="text-danger">Esta acción no se puede deshacer.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeletePageModal(false)}
+          >
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeletePage}>
+            Eliminar
           </Button>
         </Modal.Footer>
       </Modal>
