@@ -43,7 +43,13 @@ export default function NavBarAdmin() {
               <Nav.Link>Administrar campañas</Nav.Link>
             </Link>
             <Link href="/admin/ayuda" passHref legacyBehavior>
-              <Nav.Link>Administrar ayuda</Nav.Link>
+              <Nav.Link>Ayuda</Nav.Link>
+            </Link>
+            <Link href="/admin/contacto" passHref legacyBehavior>
+              <Nav.Link>Contacto</Nav.Link>
+            </Link>
+            <Link href="/admin/newsletter" passHref legacyBehavior>
+              <Nav.Link>Boletín</Nav.Link>
             </Link>
           </Nav>
           <Form inline="true" onSubmit={handleSignout}>

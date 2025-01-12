@@ -1,20 +1,17 @@
 import Image from "next/image";
-import { Form } from "react-bootstrap";
+import { Form, Card } from "react-bootstrap";
 import ContactForm from "./ContactoForm";
 import { Weight } from "lucide-react";
+import NewsletterForm from "./NewsletterForm";
 
 function Contacto() {
-  async function contacto(params) {
-    "use server";
-  }
-
   return (
     <main className="container">
       <h1>Contáctenos</h1>
-      <div className="card pt-5 px-5">
+      <div className="card pt-5 px-5 mb-4">
         <div className="row">
           <div className="col" id="form">
-            <ContactForm contacto={contacto}></ContactForm>
+            <ContactForm />
           </div>
           <div className="col" id="img&sinpe">
             <img
@@ -32,6 +29,9 @@ function Contacto() {
           </div>
         </div>
       </div>
+
+      {/* Newsletter Subscription Section */}
+      <NewsletterForm />
     </main>
   );
 }
