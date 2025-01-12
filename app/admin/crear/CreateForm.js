@@ -156,6 +156,64 @@ function CreateForm() {
       setCreating(false);
     }
   }
+
+  async function handleGeneratePoster(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target.form);
+    const rawFormData = {
+      title: formData.get("title"),
+      date: formData.get("date"),
+      startTime: formData.get("startTime"),
+      endTime: formData.get("endTime"),
+      place: formData.get("place"),
+      description: formData.get("description"),
+      phone: formData.get("phone"),
+      priceSpecial: formData.get("priceSpecial"),
+      requirements: formData.getAll("requirement"),
+    };
+
+    const prices = formData.getAll("price");
+    const weights = formData.getAll("weight");
+    rawFormData.pricesData = prices.map((price, index) => {
+      return { price: parseInt(price), weight: parseInt(weights[index]) };
+    });
+
+    try {
+      const response = await fetch("/api/afiche", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rawFormData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al generar el afiche");
+      }
+
+      // Create a blob from the response
+      const blob = await response.blob();
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "afiche.jpg";
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("¡Afiche generado con éxito!");
+    } catch (error) {
+      console.error("Error generating poster:", error);
+      toast.error("Error al generar el afiche");
+    }
+  }
+
   return (
     <Container onSubmit={handleCreateCampaign}>
       <Form>
@@ -285,7 +343,7 @@ function CreateForm() {
                 name="description"
                 required
                 defaultValue={
-                  "Campaña de castración. Incluye medicación inyectada, medicación para la casa, desparasitación, corte de uñas, mini limpieza dental y limpieza de orejas."
+                  "Incluye medicación inyectada, medicación para la casa, desparasitación, corte de uñas, mini limpieza dental y limpieza de orejas."
                 }
               />
             </Form.Group>
@@ -390,6 +448,15 @@ function CreateForm() {
             </div>
           </Row>
         </div>
+        <Button
+          variant="outline-primary"
+          type="button"
+          className="mt-3"
+          onClick={handleGeneratePoster}
+          disabled={creating}
+        >
+          Generar afiche
+        </Button>
         <div className="card shadow-sm p-5 mt-3">
           <h2 className="mb-3" style={{ color: "#606060" }}>
             Imágenes

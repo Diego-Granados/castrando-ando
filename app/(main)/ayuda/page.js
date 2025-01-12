@@ -1,19 +1,40 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Container, Spinner } from "react-bootstrap";
+import { Container, Spinner, Nav, Card } from "react-bootstrap";
 import HelpController from "@/controllers/HelpController";
 
 export default function Ayuda() {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pages, setPages] = useState([]);
+  const [activePage, setActivePage] = useState(null);
 
   useEffect(() => {
-    loadHelpContent();
+    loadPages();
   }, []);
 
-  const loadHelpContent = async () => {
+  useEffect(() => {
+    if (activePage) {
+      loadHelpContent(activePage);
+    }
+  }, [activePage]);
+
+  const loadPages = async () => {
     try {
-      const helpData = await HelpController.getHelpContent();
+      const helpPages = await HelpController.getPages();
+      setPages(helpPages);
+      if (helpPages.length > 0) {
+        setActivePage(helpPages[0]);
+      }
+    } catch (error) {
+      console.error("Error loading help pages:", error);
+    }
+  };
+
+  const loadHelpContent = async (page) => {
+    setLoading(true);
+    try {
+      const helpData = await HelpController.getHelpContent(page);
       setSections(helpData.sections || []);
     } catch (error) {
       console.error("Error loading help content:", error);
@@ -40,6 +61,23 @@ export default function Ayuda() {
       <h1 className="text-center" style={{ color: "#2055A5" }}>
         Ayuda
       </h1>
+
+      <Card className="mb-4">
+        <Card.Body>
+          <Nav variant="tabs" className="mb-3">
+            {pages.map((page) => (
+              <Nav.Item key={page}>
+                <Nav.Link
+                  active={activePage === page}
+                  onClick={() => setActivePage(page)}
+                >
+                  {page}
+                </Nav.Link>
+              </Nav.Item>
+            ))}
+          </Nav>
+        </Card.Body>
+      </Card>
 
       {sections.map((section, index) => (
         <div key={index} className="row mt-5">

@@ -5,6 +5,7 @@ import { sendEmail, sendMsg } from "@/lib/firebase/Brevo";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import ContactController from "@/controllers/ContactController";
+import Link from "next/link";
 
 export default function Contacto() {
   const router = useRouter();
@@ -80,9 +81,14 @@ export default function Contacto() {
           required
         ></textarea>
       </Form.Group>
-      <Button variant="danger" type="submit">
-        Enviar
-      </Button>
+      <div className="d-flex justify-content-between">
+        <Button variant="danger" type="submit">
+          Enviar
+        </Button>
+        <Link href="/contacto/solicitudes">
+          <Button variant="outline-primary">Ver solicitudes</Button>
+        </Link>
+      </div>
     </Form>
   );
 }
