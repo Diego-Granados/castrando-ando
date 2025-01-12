@@ -153,6 +153,34 @@ class Campaign {
 
     await update(ref(db), updates);
   }
+
+  static async getInscriptionsWeight(campaignId) {
+    try {
+      const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
+      const snapshot = await get(inscriptionsRef);
+      if (!snapshot.exists()) {
+        return 0;
+      }
+      
+      const inscriptions = snapshot.val();
+      let totalWeight = 0;
+      
+      Object.values(inscriptions).forEach(timeSlot => {
+        if (timeSlot.appointments) {
+          Object.values(timeSlot.appointments).forEach(appointment => {
+            if (appointment.enabled && !appointment.present) {
+              totalWeight += parseFloat(appointment.priceData.weight);
+            }
+          });
+        }
+      });
+      
+      return totalWeight;
+    } catch (error) {
+      console.error("Error getting inscriptions weight:", error);
+      throw error;
+    }
+  }
 }
 
 export default Campaign;

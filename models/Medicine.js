@@ -79,4 +79,25 @@ export default class Medicine {
       throw error;
     }
   }
+
+  calculateAmountForPet(petWeight) {
+    return Math.ceil((petWeight / this.weightMultiplier) * this.amount);
+  }
+
+  static async getAllOnce() {
+    try {
+      const medicinesRef = ref(db, "medicines");
+      const snapshot = await get(medicinesRef);
+      if (!snapshot.exists()) {
+        return [];
+      }
+      const medicines = snapshot.val();
+      return Object.keys(medicines).map(key => 
+        new Medicine({ id: key, ...medicines[key] })
+      );
+    } catch (error) {
+      console.error("Error getting medicines:", error);
+      throw error;
+    }
+  }
 } 

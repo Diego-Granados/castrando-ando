@@ -10,6 +10,8 @@ import Modal from "react-bootstrap/Modal";
 import { toast } from "react-toastify";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
+import Medicine from "@/models/Medicine";
+import Table from "react-bootstrap/Table";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -55,6 +57,33 @@ export default function Campaign() {
     month: "long",
     year: "numeric",
   });
+
+  const [showInventory, setShowInventory] = useState(false);
+  const [inventoryEstimate, setInventoryEstimate] = useState(null);
+  const [calculatingInventory, setCalculatingInventory] = useState(false);
+
+  const handleCalculateInventory = async () => {
+    setCalculatingInventory(true);
+    try {
+      const medicines = await Medicine.getAllOnce();
+      const totalWeight = await CampaignController.calculateMedicineNeeds(campaignId, medicines);
+      let totals = [];
+      for (const medicine of medicines) {
+        totals.push({
+          name: medicine.name,
+          total: Math.ceil(medicine.amount * (Math.floor(totalWeight / medicine.weightMultiplier)) * medicine.daysOfTreatment),
+          unit: medicine.unit
+        });
+      }
+      setInventoryEstimate(totals);
+      setShowInventory(true);
+    } catch (error) {
+      console.error("Error calculating inventory:", error);
+      toast.error("Error al calcular el inventario estimado");
+    } finally {
+      setCalculatingInventory(false);
+    }
+  };
 
   return (
     <main className="container">
@@ -134,6 +163,13 @@ export default function Campaign() {
                       >
                         Eliminar campaña
                       </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={handleCalculateInventory}
+                        disabled={calculatingInventory}
+                      >
+                        {calculatingInventory ? 'Calculando...' : 'Calcular estimación de inventario'}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -195,6 +231,40 @@ export default function Campaign() {
                   className="px-5"
                 >
                   Sí
+                </Button>
+              </Modal.Footer>
+            </Modal>
+            <Modal show={showInventory} onHide={() => setShowInventory(false)} centered>
+              <Modal.Header closeButton>
+                <Modal.Title>Estimación de Inventario Necesario</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {inventoryEstimate ? (
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Medicamento</th>
+                        <th>Cantidad Total</th>
+                        <th>Unidad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventoryEstimate.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.name}</td>
+                          <td>{item.total}</td>
+                          <td>{item.unit}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <p>No hay datos disponibles</p>
+                )}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowInventory(false)}>
+                  Cerrar
                 </Button>
               </Modal.Footer>
             </Modal>
