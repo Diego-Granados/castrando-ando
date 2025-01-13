@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px; /* Padding for the container */
+}
+
+.sponsors-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: center; /* Center the grid within the container */
+    padding: 100px; /* Padding for the grid */
+}
+
+.sponsor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px; /* Padding for each sponsor item */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sponsor img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.sponsor a {
+    color: inherit; /* Inherit color from parent */
+    text-decoration: none; /* Remove underline */
+    font-size: 1.2em; /* Increase font size */
+}
+
+.sponsor a:hover {
+    color: blue; /* Change color to blue on hover */
+}

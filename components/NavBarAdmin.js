@@ -42,6 +42,18 @@ export default function NavBarAdmin() {
             <Link href="/admin" passHref legacyBehavior>
               <Nav.Link>Administrar campañas</Nav.Link>
             </Link>
+            <Link href="/admin/sales" passHref legacyBehavior>
+              <Nav.Link>Productos</Nav.Link>
+            </Link>
+            <Link href="/admin/volunteers" passHref legacyBehavior>
+              <Nav.Link>Voluntarios</Nav.Link>
+            </Link>
+            <Link href="/admin/raffles" passHref legacyBehavior>
+              <Nav.Link>Rifas</Nav.Link>
+            </Link>
+            <Link href="/admin/allies" passHref legacyBehavior>
+              <Nav.Link>Aliados</Nav.Link>
+            </Link>
           </Nav>
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>
