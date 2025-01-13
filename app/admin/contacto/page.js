@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -11,31 +11,27 @@ import {
 } from "react-bootstrap";
 import { Reply, Trash2, Eye } from "lucide-react";
 import { toast } from "react-toastify";
+import ContactController from "@/controllers/ContactController";
 
 export default function ContactRequests() {
-  // Mock data for demonstration
-  const [requests, setRequests] = useState([
-    {
-      id: 1,
-      cedula: "123456789",
-      name: "Juan Pérez",
-      email: "juan@example.com",
-      message: "Me gustaría obtener más información sobre las campañas...",
-      status: "pending",
-      createdAt: "2024-01-15",
-      reply: null,
-    },
-    {
-      id: 2,
-      cedula: "987654321",
-      name: "María López",
-      email: "maria@example.com",
-      message: "¿Cuándo será la próxima campaña?",
-      status: "replied",
-      createdAt: "2024-01-10",
-      reply: "La próxima campaña será el próximo mes...",
-    },
-  ]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadContactRequests();
+  }, []);
+
+  const loadContactRequests = async () => {
+    try {
+      const contactRequests = await ContactController.getAllContactRequests();
+      setRequests(contactRequests);
+    } catch (error) {
+      console.error("Error loading contact requests:", error);
+      toast.error("Error al cargar las solicitudes");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
@@ -66,9 +62,30 @@ export default function ContactRequests() {
 
   const handleSendReply = async (event) => {
     event.preventDefault();
-    // Here will go the logic to send the reply
-    toast.success("Respuesta enviada con éxito");
-    handleCloseModals();
+    const formData = new FormData(event.target);
+    const reply = formData.get("reply");
+
+    try {
+      if (!reply?.trim()) {
+        toast.error("La respuesta no puede estar vacía");
+        return;
+      }
+
+      const success = await ContactController.replyToContactRequest(
+        selectedRequest.id,
+        selectedRequest,
+        reply
+      );
+
+      if (success) {
+        toast.success("Respuesta enviada con éxito");
+        loadContactRequests();
+        handleCloseModals();
+      }
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      toast.error("Error al enviar la respuesta");
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -88,62 +105,87 @@ export default function ContactRequests() {
     }
   };
 
+  // Separate requests into pending and responded
+  const pendingRequests = requests.filter(request => !request.read);
+  const respondedRequests = requests.filter(request => request.read);
+
   return (
     <Container className="py-4">
+      {/* Pending Requests Section */}
+      <Card className="shadow mb-4">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2>Solicitudes Pendientes</h2>
+          </div>
+
+          {loading ? (
+            <p>Cargando solicitudes...</p>
+          ) : pendingRequests.length === 0 ? (
+            <p className="text-muted">No hay solicitudes pendientes</p>
+          ) : (
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Cédula</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingRequests.map((request) => (
+                  <RequestRow 
+                    key={request.id} 
+                    request={request}
+                    onView={handleView}
+                    onReply={handleReply}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Responded Requests Section */}
       <Card className="shadow">
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h1>Solicitudes de Contacto</h1>
+            <h2>Solicitudes Respondidas</h2>
           </div>
 
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Cédula</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((request) => (
-                <tr key={request.id}>
-                  <td>{request.cedula}</td>
-                  <td>{request.name}</td>
-                  <td>{request.email}</td>
-                  <td>{request.createdAt}</td>
-                  <td>{getStatusBadge(request.status)}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleView(request)}
-                    >
-                      <Eye size={16} />
-                    </Button>
-                    <Button
-                      variant="outline-success"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleReply(request)}
-                    >
-                      <Reply size={16} />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(request)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </td>
+          {loading ? (
+            <p>Cargando solicitudes...</p>
+          ) : respondedRequests.length === 0 ? (
+            <p className="text-muted">No hay solicitudes respondidas</p>
+          ) : (
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Cédula</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {respondedRequests.map((request) => (
+                  <RequestRow 
+                    key={request.id} 
+                    request={request}
+                    onView={handleView}
+                    onReply={handleReply}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </tbody>
+            </Table>
+          )}
         </Card.Body>
       </Card>
 
@@ -185,39 +227,35 @@ export default function ContactRequests() {
 
       {/* Reply Modal */}
       <Modal show={showReplyModal} onHide={handleCloseModals}>
-        <Modal.Header closeButton>
-          <Modal.Title>Responder Solicitud</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSendReply}>
+        <Form onSubmit={handleSendReply}>
+          <Modal.Header closeButton>
+            <Modal.Title>Responder Solicitud</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
             <div className="mb-3">
               <strong>Mensaje original:</strong>
               <p className="mt-2">{selectedRequest?.message}</p>
             </div>
             <Form.Group className="mb-3">
-              <Form.Label>Su respuesta</Form.Label>
+              <Form.Label>Tu respuesta:</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={5}
-                placeholder="Escriba su respuesta..."
-                defaultValue={selectedRequest?.reply}
+                name="reply"
+                rows={4}
                 required
+                placeholder="Escribe tu respuesta aquí..."
               />
             </Form.Group>
-            <div className="text-end">
-              <Button
-                variant="secondary"
-                onClick={handleCloseModals}
-                className="me-2"
-              >
-                Cancelar
-              </Button>
-              <Button variant="primary" type="submit">
-                Enviar Respuesta
-              </Button>
-            </div>
-          </Form>
-        </Modal.Body>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModals}>
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit">
+              Enviar Respuesta
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
       {/* Delete Confirmation Modal */}
@@ -242,5 +280,47 @@ export default function ContactRequests() {
         </Modal.Footer>
       </Modal>
     </Container>
+  );
+}
+
+// Separate component for table rows to reduce duplication
+function RequestRow({ request, onView, onReply, onDelete }) {
+  return (
+    <tr>
+      <td>{request.idNumber}</td>
+      <td>{request.name}</td>
+      <td>{request.email}</td>
+      <td>{new Date(request.date).toLocaleDateString()}</td>
+      <td>
+        <Badge bg={request.read ? "success" : "warning"}>
+          {request.read ? "Respondido" : "Pendiente"}
+        </Badge>
+      </td>
+      <td>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          className="me-2"
+          onClick={() => onView(request)}
+        >
+          <Eye size={16} />
+        </Button>
+        <Button
+          variant="outline-success"
+          size="sm"
+          className="me-2"
+          onClick={() => onReply(request)}
+        >
+          <Reply size={16} />
+        </Button>
+        <Button
+          variant="outline-danger"
+          size="sm"
+          onClick={() => onDelete(request)}
+        >
+          <Trash2 size={16} />
+        </Button>
+      </td>
+    </tr>
   );
 }
