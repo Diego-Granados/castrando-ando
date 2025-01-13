@@ -1,63 +1,59 @@
 "use client";
 import { auth, db } from "@/lib/firebase/config";
-import { ref, set, get } from "firebase/database";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, get, set, push, remove, query, orderByChild } from "firebase/database";
 
 class Blog {
-  static async createBlog(title, content, imageFile, author, authorId) {
+  static async createBlog(blogData) {
     try {
-      // Generar un ID único para el blog
-      const blogId = Date.now().toString();
+      const blogsRef = ref(db, "blogs");
+      const newBlogRef = push(blogsRef);
       
-      // Subir la imagen a Firebase Storage (si existe)
-      let imageUrl = null;
-      if (imageFile) {
-        const storage = getStorage();
-        const fileName = `${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        const imageRef = storageRef(storage, `blog_images/${fileName}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
-      }
-
-      // Crear entrada en la base de datos
-      const blogRef = ref(db, `blog/${blogId}`);
-      const blogData = {
-        title,
-        content,
-        imageUrl,
-        author,
-        authorId,
+      const newBlog = {
+        title: blogData.title,
+        content: blogData.content,
+        imageUrl: blogData.imageUrl || "",
+        author: blogData.author,
+        authorId: blogData.authorId,
         date: new Date().toLocaleDateString(),
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
 
-      await set(blogRef, blogData);
-      console.log("Blog creado exitosamente:", blogData);
-
-      return { ok: true, blogId };
+      await set(newBlogRef, newBlog);
+      return { id: newBlogRef.key };
     } catch (error) {
-      console.error("Error en Blog model:", error);
       throw error;
     }
   }
 
   static async getBlogs(setBlogs) {
     try {
-      const blogsRef = ref(db, 'blog');
+      const blogsRef = ref(db, "blogs");
       const snapshot = await get(blogsRef);
+      
       if (snapshot.exists()) {
-        const blogsData = snapshot.val();
-        const blogsArray = Object.entries(blogsData).map(([id, blog]) => ({
-          id,
-          ...blog
-        })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        console.log("Blogs obtenidos:", blogsArray);
+        const blogsArray = [];
+        snapshot.forEach((childSnapshot) => {
+          const blogData = childSnapshot.val();
+          blogsArray.push({
+            id: childSnapshot.key,
+            title: blogData.title,
+            content: blogData.content,
+            imageUrl: blogData.imageUrl,
+            author: blogData.author,
+            date: blogData.date,
+          });
+        });
+        
+        blogsArray.sort((a, b) => 
+          new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+        );
+        
         setBlogs(blogsArray);
       } else {
         setBlogs([]);
       }
     } catch (error) {
-      console.error("Error obteniendo blogs:", error);
+      console.error("Error getting blogs:", error);
       throw error;
     }
   }

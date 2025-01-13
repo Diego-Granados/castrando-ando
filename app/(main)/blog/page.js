@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Row, Col, Button } from "react-bootstrap";
+import { Row, Col, Button, Image } from "react-bootstrap";
 import Link from "next/link";
 import BlogController from "@/controllers/BlogController";
 
@@ -24,7 +24,7 @@ export default function Blog() {
   }, []);
 
   if (loading) {
-    return <div className="text-center">Cargando blogs...</div>;
+    return <div>Cargando...</div>;
   }
 
   return (
@@ -54,6 +54,14 @@ export default function Blog() {
           {blogPosts.map((post) => (
             <Col key={post.id} xs={12} md={6} lg={4}>
               <div className="card shadow-sm h-100">
+                {post.imageUrl && (
+                  <Image
+                    src={post.imageUrl}
+                    alt={post.title}
+                    className="card-img-top"
+                    style={{ height: "200px", objectFit: "cover" }}
+                  />
+                )}
                 <div className="card-body">
                   <div className="d-flex justify-content-between mb-2">
                     <small className="text-muted">{post.date}</small>

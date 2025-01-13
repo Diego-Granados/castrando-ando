@@ -1,120 +1,173 @@
 "use client";
 import { useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Form, Button, Image, Row, Col } from "react-bootstrap";
+import { CldUploadButton } from "next-cloudinary";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import BlogController from "@/controllers/BlogController";
 
-export default function CrearBlog() {
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    image: null
-  });
-  const [loading, setLoading] = useState(false);
+export default function CreateBlog() {
   const router = useRouter();
+  const [imageUrl, setImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file && !file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen válido');
-      return;
+  const handleUpload = async (result) => {
+    try {
+      if (result.event !== "success") return;
+
+      const newImageUrl = result.info.secure_url;
+      setImageUrl(newImageUrl);
+
+      toast.success("¡Imagen subida con éxito!", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    } catch (error) {
+      toast.error("Error al subir la imagen", {
+        position: "top-center",
+        autoClose: 5000,
+      });
     }
-    setFormData({ ...formData, image: file });
+  };
+
+  const handleImageRemoval = () => {
+    setImageUrl("");
+    toast.success("Imagen eliminada", {
+      position: "top-center",
+      autoClose: 3000,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const result = await BlogController.createBlog(
-        formData.title,
-        formData.content,
-        formData.image
-      );
+      const formData = new FormData(e.target);
+      const blogData = {
+        title: formData.get("title"),
+        content: formData.get("content"),
+        imageUrl: imageUrl,
+      };
 
+      const result = await BlogController.createBlog(blogData);
       if (result.ok) {
+        toast.success("¡Blog creado con éxito!", {
+          position: "top-center",
+          autoClose: 3000,
+        });
         router.push("/blog");
       } else {
-        alert(result.error);
+        toast.error(result.error, {
+          position: "top-center",
+          autoClose: 5000,
+        });
       }
     } catch (error) {
-      console.error("Error al crear blog:", error);
-      alert("Error al crear el blog: " + error.message);
+      toast.error(error.message, {
+        position: "top-center",
+        autoClose: 5000,
+      });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="container">
-      <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
-        Crear Blog
-      </h1>
+    <div className="container mt-4">
+      <h1 className="text-center mb-4">Crear Nuevo Blog</h1>
+      <Form onSubmit={handleSubmit}>
+        <div className="text-center mb-4">
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt="Imagen del blog"
+              style={{ maxWidth: "300px", height: "auto" }}
+              className="mb-3"
+            />
+          )}
+          
+          <Row>
+            <Col className={`${imageUrl ? "text-end pe-5" : "text-center"}`}>
+              <CldUploadButton
+                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                onSuccess={handleUpload}
+                options={{
+                  maxFiles: 1,
+                  resourceType: "image",
+                  maxFileSize: 5000000, // 5MB
+                  sources: ["local"],
+                  styles: {
+                    palette: {
+                      window: "#FFFFFF",
+                      windowBorder: "#90A0B3",
+                      tabIcon: "#0078FF",
+                      menuIcons: "#5A616A",
+                      textDark: "#000000",
+                      textLight: "#FFFFFF",
+                      link: "#0078FF",
+                      action: "#FF620C",
+                      inactiveTabIcon: "#0E2F5A",
+                      error: "#F44235",
+                      inProgress: "#0078FF",
+                      complete: "#20B832",
+                      sourceBg: "#E4EBF1",
+                    },
+                  },
+                }}
+                className="btn btn-primary"
+              >
+                {imageUrl ? "Cambiar imagen" : "Subir imagen"}
+              </CldUploadButton>
+            </Col>
+            {imageUrl && (
+              <Col className="text-start ps-5">
+                <Button
+                  variant="outline-danger"
+                  type="button"
+                  onClick={handleImageRemoval}
+                >
+                  Eliminar imagen
+                </Button>
+              </Col>
+            )}
+          </Row>
 
-      <Form onSubmit={handleSubmit} className="card shadow-sm p-4">
-        <Form.Group className="mb-4">
-          <Form.Label>
-            <h2>Ingresar título</h2>
-          </Form.Label>
+          <Form.Text className="text-muted d-block mt-2">
+            Tamaño máximo: 5MB. Formatos permitidos: JPG, PNG, GIF
+          </Form.Text>
+        </div>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Título</Form.Label>
           <Form.Control
             type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            name="title"
             required
+            placeholder="Ingrese el título del blog"
           />
         </Form.Group>
 
-        <Form.Group className="mb-4">
-          <Form.Label>
-            <h2>Agregar texto:</h2>
-          </Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label>Contenido</Form.Label>
           <Form.Control
             as="textarea"
-            rows={6}
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+            name="content"
             required
+            rows={5}
+            placeholder="Escriba el contenido del blog"
           />
         </Form.Group>
 
-        <Form.Group className="mb-4">
-          <Form.Label>
-            <h2>Agregar imagen (opcional):</h2>
-          </Form.Label>
-          <div className="border rounded p-3 text-center">
-            {formData.image && (
-              <img
-                src={URL.createObjectURL(formData.image)}
-                alt="Preview"
-                style={{
-                  maxHeight: "300px",
-                  width: "auto",
-                  objectFit: "contain"
-                }}
-                className="mb-3"
-              />
-            )}
-            <Form.Control
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-          </div>
-        </Form.Group>
-
-        <div className="d-flex justify-content-end">
-          <Button
-            type="submit"
-            variant="primary"
-            className="rounded-pill px-4 py-2"
-            style={{ fontSize: "1.1rem" }}
-            disabled={loading}
-          >
-            {loading ? "Publicando..." : "Publicar en blog"}
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          type="submit"
+          className="w-100"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Creando..." : "Crear Blog"}
+        </Button>
       </Form>
-    </main>
+    </div>
   );
 } 

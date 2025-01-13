@@ -1,65 +1,25 @@
+"use client";
 import Blog from "@/models/Blog";
-import { auth, db } from "@/lib/firebase/config";
-import { ref, get } from "firebase/database";
+import Auth from "@/models/Auth";
+import { auth } from "@/lib/firebase/config";
 
 class BlogController {
-  static async getCurrentUser() {
+  static async createBlog(blogData) {
     try {
-      const firebaseUser = auth.currentUser;
-      
-      if (!firebaseUser) {
-        throw new Error("No hay usuario autenticado");
+      const user = await Auth.getCurrentUser();
+      if (!user) {
+        return { ok: false, error: "Usuario no autenticado" };
       }
 
-      // Obtener la cédula del usuario
-      const cedulaRef = ref(db, `uidToCedula/${firebaseUser.uid}`);
-      const cedulaSnapshot = await get(cedulaRef);
-      const cedula = cedulaSnapshot.val();
+      const result = await Blog.createBlog({
+        ...blogData,
+        authorId: user.uid,
+        author: user.displayName || user.email
+      });
 
-      // Obtener los datos del usuario
-      const userRef = ref(db, `users/${cedula}`);
-      const userSnapshot = await get(userRef);
-      const userData = userSnapshot.val();
-
-      if (!userData) {
-        throw new Error("No se encontraron datos del usuario");
-      }
-
-      return {
-        ...userData,
-        uid: firebaseUser.uid
-      };
+      return { ok: true, id: result.id };
     } catch (error) {
-      console.error("Error obteniendo usuario actual:", error);
-      throw error;
-    }
-  }
-
-  static async createBlog(title, content, imageFile = null) {
-    try {
-      // Validaciones básicas
-      if (!title || !content) {
-        throw new Error("El título y el contenido son obligatorios");
-      }
-
-      // Obtener información del usuario actual
-      const currentUser = await this.getCurrentUser();
-      
-      if (!currentUser) {
-        throw new Error("Debes iniciar sesión para crear un blog");
-      }
-
-      const result = await Blog.createBlog(
-        title, 
-        content,
-        imageFile,
-        currentUser.name,
-        currentUser.uid
-      );
-      
-      return { ok: true, blogId: result.blogId };
-    } catch (error) {
-      console.error("Error en BlogController:", error);
+      console.error("Error creating blog:", error);
       return { ok: false, error: error.message };
     }
   }
@@ -69,7 +29,7 @@ class BlogController {
       await Blog.getBlogs(setBlogs);
       return { ok: true };
     } catch (error) {
-      console.error("Error obteniendo blogs:", error);
+      console.error("Error getting blogs:", error);
       return { ok: false, error: error.message };
     }
   }
