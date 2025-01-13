@@ -1,13 +1,15 @@
 "use client";
-import { Row, Col, Button } from "react-bootstrap";
+import { Row, Col, Button, Form } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Carousel } from "react-bootstrap";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "react-bootstrap/Badge";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
+import CampaignCommentController from "@/controllers/CampaignCommentController";
+import { auth } from "@/lib/firebase/config";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -15,6 +17,11 @@ export default function Campaign() {
   const [campaign, setCampaign] = useState(null);
   const [active, setActive] = useState(true);
   const router = useRouter();
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const messagesEndRef = useRef(null);
+
   if (!campaignId) {
     router.push("/");
   }
@@ -36,6 +43,55 @@ export default function Campaign() {
     year: "numeric",
   });
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    if (campaignId) {
+      CampaignCommentController.getComments(campaignId, setComments);
+      setIsAuthenticated(CampaignCommentController.isUserAuthenticated());
+    }
+  }, [campaignId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [comments]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    try {
+      const result = await CampaignCommentController.createComment(campaignId, newComment);
+      if (result.ok) {
+        setNewComment("");
+        await CampaignCommentController.getComments(campaignId, setComments);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error("Error enviando comentario:", error);
+      alert("Error al enviar el comentario");
+    }
+  };
+
+  const handleDelete = async (commentId) => {
+    try {
+      const result = await CampaignCommentController.deleteComment(campaignId, commentId);
+      if (result.ok) {
+        await CampaignCommentController.getComments(campaignId, setComments);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error("Error eliminando comentario:", error);
+      alert("Error al eliminar el comentario");
+    }
+  };
+
   return (
     <main className="container">
       <h1>Asociación Castrando Ando</h1>
@@ -45,8 +101,8 @@ export default function Campaign() {
         <div>Error: No hay una campaña con este identificador.</div>
       ) : campaign ? (
         <Row>
-          <Col xs={12} sm={6}>
-            <div className="card shadow-sm">
+          <Col xs={12} md={4}>
+            <div className="card shadow-sm mb-4">
               <div className="card-body">
                 <h2 className="card-title text-center">{campaign.title}</h2>
                 <Badge bg={active ? "success" : "danger"} className="mb-3">
@@ -98,8 +154,9 @@ export default function Campaign() {
               </div>
             </div>
           </Col>
-          <Col xs={12} sm={6}>
-            <div className="card shadow-sm">
+
+          <Col xs={12} md={4}>
+            <div className="card shadow-sm mb-4">
               <Carousel>
                 {campaign.photos.map((photo) => (
                   <Carousel.Item key={photo}>
@@ -129,6 +186,68 @@ export default function Campaign() {
                 </Col>
               </Row>
               <p className="card-body">{campaign.description}</p>
+            </div>
+          </Col>
+
+          <Col xs={12} md={4}>
+            <div className="card shadow-sm mb-4">
+              <div className="card-body">
+                <h3 className="text-center mb-4">Preguntas sobre la campaña</h3>
+                
+                <div style={{ maxHeight: "500px", overflowY: "auto" }}>
+                  {comments.length === 0 ? (
+                    <p className="text-center">No hay preguntas aún</p>
+                  ) : (
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className={`mb-3 p-3 border rounded ${
+                          isAuthenticated && comment.authorId === auth.currentUser?.uid
+                            ? "ms-auto"
+                            : "me-auto"
+                        }`}
+                        style={{ maxWidth: "80%" }}
+                      >
+                        <div className="d-flex justify-content-between align-items-start">
+                          <strong>{comment.author}</strong>
+                          <small className="text-muted">{comment.createdAt}</small>
+                        </div>
+                        <p className="mb-1">{comment.content}</p>
+                        {isAuthenticated && comment.authorId === auth.currentUser?.uid && (
+                          <Button
+                            variant="link"
+                            className="p-0 text-danger"
+                            onClick={() => handleDelete(comment.id)}
+                          >
+                            🗑️
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {isAuthenticated ? (
+                  <Form onSubmit={handleSubmit} className="mt-3">
+                    <Form.Group className="d-flex gap-2">
+                      <Form.Control
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Escribe tu pregunta..."
+                      />
+                      <Button type="submit" variant="primary">
+                        Enviar
+                      </Button>
+                    </Form.Group>
+                  </Form>
+                ) : (
+                  <p className="text-center mt-3">
+                    Debes iniciar sesión para hacer preguntas
+                  </p>
+                )}
+              </div>
             </div>
           </Col>
         </Row>
