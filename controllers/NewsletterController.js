@@ -40,25 +40,53 @@ export default class NewsletterController {
 
   static async sendMessage(message) {
     try {
-      // First send the email to all subscribers
-      const response = await sendNewsletterEmail(message);
+      // Get all active subscribers
+      const subscribers = await Newsletter.getAllSubscribers();
       
-      if (!response.ok) {
-        throw new Error("Failed to send newsletter");
+      if (subscribers.length === 0) {
+        throw new Error("No hay suscriptores para enviar el boletín");
       }
 
-      // Then update the message status
+      const failedEmails = [];
+
+      // Send email to each subscriber sequentially
+      for (const subscriber of subscribers) {
+        try {
+          const response = await sendNewsletterEmail(
+            message.content,
+            subscriber.email,
+            message.subject
+          );
+          
+          if (!response.ok) {
+            failedEmails.push(subscriber.email);
+          }
+        } catch (error) {
+          console.error(`Error sending to ${subscriber.email}:`, error);
+          failedEmails.push(subscriber.email);
+          continue; // Continue with next subscriber even if one fails
+        }
+      }
+
+      // Update message status after sending to all subscribers
       const success = await Newsletter.update(message.id, {
         ...message,
         status: 'sent',
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        failedRecipients: failedEmails.length > 0 ? failedEmails : null
       });
 
       if (!success) {
         throw new Error("Failed to update message status");
       }
 
-      return true;
+      // Return detailed result
+      return {
+        success: true,
+        totalSent: subscribers.length - failedEmails.length,
+        failedCount: failedEmails.length,
+        failedEmails: failedEmails
+      };
     } catch (error) {
       console.error("Error sending newsletter:", error);
       throw error;
