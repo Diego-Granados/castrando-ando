@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import AuthController from "@/controllers/AuthController";
 import Link from "next/link";
 import useSubscription from "@/hooks/useSubscription";
+import NotificationsPopover from "./NotificationsPopover";
 
 function NavBar() {
   const router = useRouter();
@@ -78,6 +79,15 @@ function NavBar() {
             <Link href="/mensajes" passHref legacyBehavior>
               <Nav.Link>Foro mensajes</Nav.Link>
             </Link>
+            <Link href="/animales_perdidos" passHref legacyBehavior>
+              <Nav.Link>Animales perdidos</Nav.Link>
+            </Link>
+            <Link href="/adopcion" passHref legacyBehavior>
+              <Nav.Link>Adopción</Nav.Link>
+            </Link>
+            <Link href="/actividades" passHref legacyBehavior>
+              <Nav.Link>Actividades</Nav.Link>
+            </Link>
             <Link href="/solicitar-apoyo" passHref legacyBehavior>
               <Nav.Link>Solicitar apoyo</Nav.Link>
             </Link>
@@ -86,6 +96,7 @@ function NavBar() {
             </Link>
           </Nav>
           <Nav>
+            {isAuthenticated && isUser && <NotificationsPopover userType="user" />}
             {isAuthenticated && isUser ? (
               <>
                 <Link href="/cuenta" passHref legacyBehavior>

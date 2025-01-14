@@ -5,6 +5,7 @@ import ProfileForm from "./ProfileForm";
 import { Container, Card } from "react-bootstrap";
 import RouteGuard from "@/components/RouteGuard";
 import PetPanel from "./PetPanel";
+import ActionsPanel from "./ActionsPanel";
 
 export default function AccountPage() {
   const [userData, setUserData] = useState(null);
@@ -33,7 +34,10 @@ export default function AccountPage() {
           </Card.Body>
         </Card>
 
-        <PetPanel />
+        <div className="mb-5">
+          <PetPanel />
+        </div>
+        <ActionsPanel />
       </Container>
     </RouteGuard>
   );

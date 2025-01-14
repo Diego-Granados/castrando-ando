@@ -8,6 +8,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import AuthController from "@/controllers/AuthController";
 import Link from "next/link";
+import NotificationsPopover from "./NotificationsPopover";
 
 export default function NavBarAdmin() {
   const router = useRouter();
@@ -42,6 +43,23 @@ export default function NavBarAdmin() {
             <Link href="/admin" passHref legacyBehavior>
               <Nav.Link>Administrar campañas</Nav.Link>
             </Link>
+            <Link href="/admin/adopciones" passHref legacyBehavior>
+              <Nav.Link>Administrar adopciones</Nav.Link>
+            </Link>
+            <Link href="/admin/perdidos" passHref legacyBehavior>
+              <Nav.Link>Administrar mascotas perdidas</Nav.Link>
+            </Link>
+            <NavDropdown title="Actividades" id="basic-nav-dropdown">
+              <Link href="/admin/actividades/crear" passHref legacyBehavior>
+                <NavDropdown.Item>Crear actividad</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/actividades" passHref legacyBehavior>
+                <NavDropdown.Item>Administrar actividades</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+            <Link href="/admin/usuarios" passHref legacyBehavior>
+              <Nav.Link>Actividad de usuarios</Nav.Link>
+            </Link>
             <Link href="/admin/ayuda" passHref legacyBehavior>
               <Nav.Link>Ayuda</Nav.Link>
             </Link>
@@ -55,6 +73,7 @@ export default function NavBarAdmin() {
               <Nav.Link>Solicitudes</Nav.Link>
             </Link>
           </Nav>
+          <NotificationsPopover userType="admin" />
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>
           </Form>
