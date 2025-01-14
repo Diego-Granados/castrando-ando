@@ -88,6 +88,18 @@ function NavBar() {
             <Link href="/actividades" passHref legacyBehavior>
               <Nav.Link>Actividades</Nav.Link>
             </Link>
+            <Link href="/sales" passHref legacyBehavior>
+              <Nav.Link>Ventas</Nav.Link>
+            </Link>
+            <Link href="/volunteers" passHref legacyBehavior>
+              <Nav.Link>Voluntariado</Nav.Link>
+            </Link>
+            <Link href="/funds" passHref legacyBehavior>
+              <Nav.Link>Apoyo</Nav.Link>
+            </Link>
+            <Link href="/allies" passHref legacyBehavior>
+              <Nav.Link>Aliados</Nav.Link>
+            </Link>
           </Nav>
           <Nav>
             {isAuthenticated && isUser && <NotificationsPopover userType="user" />}

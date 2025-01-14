@@ -69,6 +69,18 @@ export default function NavBarAdmin() {
             <Link href="/admin/newsletter" passHref legacyBehavior>
               <Nav.Link>Boletín</Nav.Link>
             </Link>
+            <Link href="/admin/sales" passHref legacyBehavior>
+              <Nav.Link>Productos</Nav.Link>
+            </Link>
+            <Link href="/admin/volunteers" passHref legacyBehavior>
+              <Nav.Link>Voluntarios</Nav.Link>
+            </Link>
+            <Link href="/admin/raffles" passHref legacyBehavior>
+              <Nav.Link>Rifas</Nav.Link>
+            </Link>
+            <Link href="/admin/allies" passHref legacyBehavior>
+              <Nav.Link>Aliados</Nav.Link>
+            </Link>
           </Nav>
           <NotificationsPopover userType="admin" />
           <Form inline="true" onSubmit={handleSignout}>

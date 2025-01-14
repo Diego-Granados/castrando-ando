@@ -1,0 +1,28 @@
+.raffle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    width: 40%;
+}
+
+.raffleImage {
+    width: 150px; /* Set the width of the image */
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tabbed {
+    padding-left: .5em; /* Ajusta el valor según sea necesario */
+}
