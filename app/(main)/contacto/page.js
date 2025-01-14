@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { Form, Card } from "react-bootstrap";
 import ContactForm from "./ContactoForm";
-import { Weight } from "lucide-react";
 import NewsletterForm from "./NewsletterForm";
+import { Weight } from "lucide-react";
 
 function Contacto() {
   return (
@@ -37,17 +37,3 @@ function Contacto() {
 }
 
 export default Contacto;
-{
-  /* <h1 className="">Asociación Castrando Ando</h1>
-      <h2>Contáctanos</h2>
-      <div>
-        <p>
-          Si desea realizar donaciones o llamarnos, puede realizar un Sinpe a
-          los siguientes números de teléfono:
-        </p>
-        <ul>
-          <li>8594-7283: Lorena Jiménez</li>
-          <li>8585-8505: Lorena Jiménez</li>
-        </ul>
-      </div> */
-}

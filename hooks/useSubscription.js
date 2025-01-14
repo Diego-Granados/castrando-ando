@@ -6,16 +6,24 @@ export default function useSubscription(subscriptionFn, dependencies = []) {
 
   useEffect(() => {
     let unsubscribe = () => {}; // Initialize with empty function
+    let mounted = true; // Add mounted flag
 
     const setupSubscription = async () => {
       try {
-        setLoading(true);
-        // Await the subscription setup
-        unsubscribe = await subscriptionFn();
-        setLoading(false);
+        if (mounted) {
+          setLoading(true);
+          // Await the subscription setup
+          unsubscribe = await subscriptionFn();
+          if (mounted) {
+            setLoading(false);
+          }
+        }
       } catch (err) {
-        setError(err);
-        setLoading(false);
+        if (mounted) {
+          console.error("Subscription error:", err);
+          setError(err);
+          setLoading(false);
+        }
       }
     };
 
@@ -23,7 +31,12 @@ export default function useSubscription(subscriptionFn, dependencies = []) {
 
     // Cleanup function
     return () => {
-      unsubscribe();
+      mounted = false; // Set mounted to false before cleanup
+      try {
+        unsubscribe();
+      } catch (err) {
+        console.error("Cleanup error:", err);
+      }
     };
   }, dependencies);
 

@@ -2,6 +2,8 @@
 import Campaign from "@/models/Campaign";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
+import { ref, get } from "firebase/database";
+
 class CampaignController {
   static async getAllCampaigns(setCampaigns) {
     const unsubscribe = await Campaign.getAll(setCampaigns);
@@ -153,6 +155,15 @@ class CampaignController {
       return NextResponse.json({ message: "Campaign deleted successfully!" });
     } catch (error) {
       return NextResponse.error(error);
+    }
+  }
+
+  static async calculateMedicineNeeds(campaignId) {
+    try {
+      return await Campaign.getInscriptionsWeight(campaignId);
+    } catch (error) {
+      console.error("Error calculating medicine needs:", error);
+      throw error;
     }
   }
 }
