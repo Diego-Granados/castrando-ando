@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -12,31 +12,53 @@ import {
 import { Plus, Pencil, Trash2, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import Link from "next/link";
-export default function NewsletterMessages() {
-  // Mock data for demonstration
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      subject: "Nueva campaña de castración",
-      content: "Detalles sobre la próxima campaña...",
-      status: "draft",
-      createdAt: "2024-01-15",
-    },
-    {
-      id: 2,
-      subject: "Resultados de la campaña",
-      content: "Gracias a todos los participantes...",
-      status: "sent",
-      createdAt: "2024-01-10",
-      sentAt: "2024-01-11",
-    },
-  ]);
+import NewsletterController from "@/controllers/NewsletterController";
 
+export default function NewsletterMessages() {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Use AbortController for cleanup
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchMessages = async () => {
+      try {
+        const newsletterMessages = await NewsletterController.getAllMessages();
+        if (!abortController.signal.aborted) {
+          setMessages(newsletterMessages);
+          setLoading(false);
+        }
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.error("Error loading messages:", error);
+          toast.error("Error al cargar los mensajes");
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchMessages();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
+
+  const loadMessages = async () => {
+    try {
+      const newsletterMessages = await NewsletterController.getAllMessages();
+      setMessages(newsletterMessages);
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      toast.error("Error al cargar los mensajes");
+    }
+  };
 
   const handleCloseModals = () => {
     setShowMessageModal(false);
@@ -64,22 +86,73 @@ export default function NewsletterMessages() {
 
   const handleSaveMessage = async (event) => {
     event.preventDefault();
-    // Here will go the logic to save the message
-    toast.success(isEditing ? "Mensaje actualizado" : "Mensaje guardado");
-    handleCloseModals();
+    const formData = new FormData(event.target);
+    
+    try {
+      if (!formData.get("subject")?.trim() || !formData.get("content")?.trim()) {
+        toast.error("Por favor complete todos los campos");
+        return;
+      }
+
+      const messageData = {
+        subject: formData.get("subject").trim(),
+        content: formData.get("content").trim()
+      };
+
+      if (isEditing && selectedMessage) {
+        await NewsletterController.updateMessage(selectedMessage.id, {
+          ...selectedMessage,
+          ...messageData
+        });
+        toast.success("Mensaje actualizado");
+      } else {
+        await NewsletterController.createMessage(messageData);
+        toast.success("Mensaje guardado");
+      }
+      
+      await loadMessages();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error saving message:", error);
+      toast.error("Error al guardar el mensaje");
+    }
   };
 
   const handleConfirmSend = async () => {
-    // Here will go the logic to send the newsletter
-    toast.success("Mensaje enviado a todos los suscriptores");
-    handleCloseModals();
+    try {
+      await NewsletterController.sendMessage(selectedMessage);
+      toast.success("Mensaje enviado a todos los suscriptores");
+      loadMessages();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error sending newsletter:", error);
+      toast.error("Error al enviar el boletín");
+    }
   };
 
   const handleConfirmDelete = async () => {
-    // Here will go the logic to delete the message
-    toast.success("Mensaje eliminado");
-    handleCloseModals();
+    try {
+      await NewsletterController.deleteMessage(selectedMessage.id);
+      toast.success("Mensaje eliminado");
+      loadMessages();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast.error("Error al eliminar el mensaje");
+    }
   };
+
+  if (loading) {
+    return (
+      <Container className="py-4">
+        <Card className="shadow">
+          <Card.Body>
+            <p>Cargando mensajes...</p>
+          </Card.Body>
+        </Card>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-4">
@@ -171,6 +244,7 @@ export default function NewsletterMessages() {
               <Form.Label>Asunto</Form.Label>
               <Form.Control
                 type="text"
+                name="subject"
                 placeholder="Ingrese el asunto del mensaje"
                 defaultValue={selectedMessage?.subject}
                 required
@@ -180,6 +254,7 @@ export default function NewsletterMessages() {
               <Form.Label>Contenido</Form.Label>
               <Form.Control
                 as="textarea"
+                name="content"
                 rows={10}
                 placeholder="Escriba el contenido del mensaje..."
                 defaultValue={selectedMessage?.content}

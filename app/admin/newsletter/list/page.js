@@ -1,44 +1,98 @@
 "use client";
-import { useState } from "react";
-import { Container, Table, Button, Modal, Form, Badge } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Container, Table, Button, Modal, Form } from "react-bootstrap";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+import NewsletterController from "@/controllers/NewsletterController";
 
 export default function NewsletterAdmin() {
-  // Mock data for demonstration
-  const [subscribers, setSubscribers] = useState([
-    {
-      id: 1,
-      email: "ejemplo@mail.com",
-      subscribed: true,
-    },
-    {
-      id: 2,
-      email: "test@mail.com",
-      subscribed: true,
-    },
-  ]);
-
+  const [subscribers, setSubscribers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedSubscriber, setSelectedSubscriber] = useState(null);
+  const [newEmail, setNewEmail] = useState("");
+
+  useEffect(() => {
+    loadSubscribers();
+  }, []);
+
+  const loadSubscribers = async () => {
+    try {
+      const subscribersList = await NewsletterController.getAllSubscribers();
+      setSubscribers(subscribersList);
+    } catch (error) {
+      console.error("Error loading subscribers:", error);
+      toast.error("Error al cargar los suscriptores");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCloseModals = () => {
     setShowAddModal(false);
     setShowEditModal(false);
     setShowDeleteModal(false);
     setSelectedSubscriber(null);
+    setNewEmail("");
   };
 
-  const handleEdit = (subscriber) => {
-    setSelectedSubscriber(subscriber);
-    setShowEditModal(true);
+  const handleAddSubscriber = async (e) => {
+    e.preventDefault();
+    try {
+      await NewsletterController.addSubscriber({
+        email: newEmail.trim(),
+        subscribedAt: new Date().toISOString()
+      });
+      
+      toast.success("Suscriptor agregado correctamente");
+      await loadSubscribers();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error adding subscriber:", error);
+      toast.error("Error al agregar el suscriptor");
+    }
   };
 
-  const handleDelete = (subscriber) => {
-    setSelectedSubscriber(subscriber);
-    setShowDeleteModal(true);
+  const handleUpdateSubscriber = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      
+      await NewsletterController.updateSubscriber(selectedSubscriber.id, {
+        ...selectedSubscriber,
+        email: formData.get("email").trim()
+      });
+      
+      toast.success("Suscriptor actualizado correctamente");
+      await loadSubscribers();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error updating subscriber:", error);
+      toast.error("Error al actualizar el suscriptor");
+    }
   };
+
+  const handleDeleteSubscriber = async () => {
+    try {
+      await NewsletterController.deleteSubscriber(selectedSubscriber.id);
+      toast.success("Suscriptor eliminado correctamente");
+      await loadSubscribers();
+      handleCloseModals();
+    } catch (error) {
+      console.error("Error deleting subscriber:", error);
+      toast.error("Error al eliminar el suscriptor");
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container className="py-4">
+        <p>Cargando suscriptores...</p>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-4">
@@ -50,68 +104,78 @@ export default function NewsletterAdmin() {
         </Button>
       </div>
 
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {subscribers.map((subscriber) => (
-            <tr key={subscriber.id}>
-              <td>{subscriber.email}</td>
-              <td>
-                <Badge bg={subscriber.subscribed ? "success" : "danger"}>
-                  {subscriber.subscribed ? "Activo" : "Inactivo"}
-                </Badge>
-              </td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => handleEdit(subscriber)}
-                >
-                  <Pencil size={16} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={() => handleDelete(subscriber)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </td>
+      {subscribers.length === 0 ? (
+        <p>No hay suscriptores registrados</p>
+      ) : (
+        <Table striped bordered hover responsive>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Fecha de suscripción</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {subscribers.map((subscriber) => (
+              <tr key={subscriber.id}>
+                <td>{subscriber.email}</td>
+                <td>{new Date(subscriber.subscribedAt).toLocaleDateString()}</td>
+                <td>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => {
+                      setSelectedSubscriber(subscriber);
+                      setShowEditModal(true);
+                    }}
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSubscriber(subscriber);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
 
       {/* Add Subscriber Modal */}
       <Modal show={showAddModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
           <Modal.Title>Agregar Suscriptor</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
+        <Form onSubmit={handleAddSubscriber}>
+          <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Correo electrónico</Form.Label>
               <Form.Control
                 type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Ingrese el correo electrónico"
                 required
               />
             </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModals}>
-            Cancelar
-          </Button>
-          <Button variant="primary">Agregar</Button>
-        </Modal.Footer>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModals}>
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit">
+              Agregar
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
       {/* Edit Subscriber Modal */}
@@ -119,33 +183,28 @@ export default function NewsletterAdmin() {
         <Modal.Header closeButton>
           <Modal.Title>Editar Suscriptor</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
+        <Form onSubmit={handleUpdateSubscriber}>
+          <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Correo electrónico</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="Ingrese el correo electrónico"
+                name="email"
                 defaultValue={selectedSubscriber?.email}
+                placeholder="Ingrese el correo electrónico"
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="switch"
-                id="subscription-status"
-                label="Suscripción activa"
-                defaultChecked={selectedSubscriber?.subscribed}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModals}>
-            Cancelar
-          </Button>
-          <Button variant="primary">Guardar cambios</Button>
-        </Modal.Footer>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModals}>
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit">
+              Guardar cambios
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
       {/* Delete Confirmation Modal */}
@@ -164,7 +223,9 @@ export default function NewsletterAdmin() {
           <Button variant="secondary" onClick={handleCloseModals}>
             Cancelar
           </Button>
-          <Button variant="danger">Eliminar</Button>
+          <Button variant="danger" onClick={handleDeleteSubscriber}>
+            Eliminar
+          </Button>
         </Modal.Footer>
       </Modal>
     </Container>
