@@ -100,6 +100,12 @@ function NavBar() {
             <Link href="/allies" passHref legacyBehavior>
               <Nav.Link>Aliados</Nav.Link>
             </Link>
+            <Link href="/solicitar-apoyo" passHref legacyBehavior>
+              <Nav.Link>Solicitar apoyo</Nav.Link>
+            </Link>
+            <Link href="/calendario" passHref legacyBehavior>
+              <Nav.Link>Calendario</Nav.Link>
+            </Link>
           </Nav>
           <Nav>
             {isAuthenticated && isUser && <NotificationsPopover userType="user" />}
