@@ -58,57 +58,80 @@ function NavBar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Link href="/" passHref legacyBehavior>
-              <Nav.Link>Campañas</Nav.Link>
-            </Link>
-            <Link href="/appointments" passHref legacyBehavior>
-              <Nav.Link>Citas</Nav.Link>
-            </Link>
-            <Link href="/aboutus" passHref legacyBehavior>
-              <Nav.Link>Quiénes somos</Nav.Link>
-            </Link>
-            <Link href="/contacto" passHref legacyBehavior>
-              <Nav.Link>Contacto</Nav.Link>
-            </Link>
-            <Link href="/ayuda" passHref legacyBehavior>
-              <Nav.Link>Ayuda</Nav.Link>
-            </Link>
-            <Link href="/blog" passHref legacyBehavior>
-              <Nav.Link>Blog</Nav.Link>
-            </Link>
-            <Link href="/mensajes" passHref legacyBehavior>
-              <Nav.Link>Foro mensajes</Nav.Link>
-            </Link>
-            <Link href="/animales_perdidos" passHref legacyBehavior>
-              <Nav.Link>Animales perdidos</Nav.Link>
-            </Link>
-            <Link href="/adopcion" passHref legacyBehavior>
-              <Nav.Link>Adopción</Nav.Link>
-            </Link>
-            <Link href="/actividades" passHref legacyBehavior>
-              <Nav.Link>Actividades</Nav.Link>
-            </Link>
-            <Link href="/sales" passHref legacyBehavior>
-              <Nav.Link>Ventas</Nav.Link>
-            </Link>
-            <Link href="/volunteers" passHref legacyBehavior>
-              <Nav.Link>Voluntariado</Nav.Link>
-            </Link>
-            <Link href="/funds" passHref legacyBehavior>
-              <Nav.Link>Apoyo</Nav.Link>
-            </Link>
-            <Link href="/allies" passHref legacyBehavior>
-              <Nav.Link>Aliados</Nav.Link>
-            </Link>
-            <Link href="/solicitar-apoyo" passHref legacyBehavior>
-              <Nav.Link>Solicitar apoyo</Nav.Link>
-            </Link>
-            <Link href="/calendario" passHref legacyBehavior>
-              <Nav.Link>Calendario</Nav.Link>
-            </Link>
+            <NavDropdown
+              title="Campañas de castración"
+              id="campaigns-nav-dropdown"
+            >
+              <Link href="/" passHref legacyBehavior>
+                <NavDropdown.Item>Campañas</NavDropdown.Item>
+              </Link>
+              <Link href="/appointments" passHref legacyBehavior>
+                <NavDropdown.Item>Citas</NavDropdown.Item>
+              </Link>
+              <Link href="/calendario" passHref legacyBehavior>
+                <NavDropdown.Item>Calendario</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown title="Comunidad" id="community-nav-dropdown">
+              <Link href="/actividades" passHref legacyBehavior>
+                <NavDropdown.Item>Actividades</NavDropdown.Item>
+              </Link>
+
+              <Link href="/blog" passHref legacyBehavior>
+                <NavDropdown.Item>Blog</NavDropdown.Item>
+              </Link>
+              <Link href="/mensajes" passHref legacyBehavior>
+                <NavDropdown.Item>Foro mensajes</NavDropdown.Item>
+              </Link>
+              <Link href="/volunteers" passHref legacyBehavior>
+                <NavDropdown.Item>Voluntariado</NavDropdown.Item>
+              </Link>
+              <Link href="/allies" passHref legacyBehavior>
+                <NavDropdown.Item>Aliados</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown title="Contacto" id="contact-nav-dropdown">
+              <Link href="/aboutus" passHref legacyBehavior>
+                <NavDropdown.Item>Quiénes somos</NavDropdown.Item>
+              </Link>
+              <Link href="/contacto" passHref legacyBehavior>
+                <NavDropdown.Item>Contacto</NavDropdown.Item>
+              </Link>
+              <Link href="/ayuda" passHref legacyBehavior>
+                <NavDropdown.Item>Ayuda</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown title="Apoyo a animales" id="support-nav-dropdown">
+              <Link href="/animales_perdidos" passHref legacyBehavior>
+                <NavDropdown.Item>Animales perdidos</NavDropdown.Item>
+              </Link>
+              <Link href="/adopcion" passHref legacyBehavior>
+                <NavDropdown.Item>Adopción</NavDropdown.Item>
+              </Link>
+              <Link href="/solicitar-apoyo" passHref legacyBehavior>
+                <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown
+              title="Recaudación de fondos"
+              id="fundraising-nav-dropdown"
+            >
+              <Link href="/sales" passHref legacyBehavior>
+                <NavDropdown.Item>Ventas</NavDropdown.Item>
+              </Link>
+              <Link href="/funds" passHref legacyBehavior>
+                <NavDropdown.Item>Apoyo</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
           </Nav>
           <Nav>
-            {isAuthenticated && isUser && <NotificationsPopover userType="user" />}
+            {isAuthenticated && isUser && (
+              <NotificationsPopover userType="user" />
+            )}
             {isAuthenticated && isUser ? (
               <>
                 <Link href="/cuenta" passHref legacyBehavior>

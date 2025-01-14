@@ -37,53 +37,77 @@ export default function NavBarAdmin() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Link href="/admin/crear" passHref legacyBehavior>
-              <Nav.Link>Crear campaña</Nav.Link>
-            </Link>
-            <Link href="/admin" passHref legacyBehavior>
-              <Nav.Link>Administrar campañas</Nav.Link>
-            </Link>
-            <Link href="/admin/adopciones" passHref legacyBehavior>
-              <Nav.Link>Administrar adopciones</Nav.Link>
-            </Link>
-            <Link href="/admin/perdidos" passHref legacyBehavior>
-              <Nav.Link>Administrar mascotas perdidas</Nav.Link>
-            </Link>
-            <NavDropdown title="Actividades" id="basic-nav-dropdown">
-              <Link href="/admin/actividades/crear" passHref legacyBehavior>
-                <NavDropdown.Item>Crear actividad</NavDropdown.Item>
+            <NavDropdown
+              title="Campañas de castración"
+              id="campaigns-nav-dropdown"
+            >
+              <Link href="/admin/crear" passHref legacyBehavior>
+                <NavDropdown.Item>Crear campaña</NavDropdown.Item>
               </Link>
+              <Link href="/admin" passHref legacyBehavior>
+                <NavDropdown.Item>Administrar campañas</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/medicines" passHref legacyBehavior>
+                <NavDropdown.Item>Administrar medicamentos</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown title="Comunidad" id="community-nav-dropdown">
               <Link href="/admin/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar actividades</NavDropdown.Item>
               </Link>
+              <Link href="/admin/usuarios" passHref legacyBehavior>
+                <NavDropdown.Item>Actividad de usuarios</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/newsletter" passHref legacyBehavior>
+                <NavDropdown.Item>Boletín</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/volunteers" passHref legacyBehavior>
+                <NavDropdown.Item>Voluntarios</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/allies" passHref legacyBehavior>
+                <NavDropdown.Item>Aliados</NavDropdown.Item>
+              </Link>
             </NavDropdown>
-            <Link href="/admin/usuarios" passHref legacyBehavior>
-              <Nav.Link>Actividad de usuarios</Nav.Link>
-            </Link>
-            <Link href="/admin/ayuda" passHref legacyBehavior>
-              <Nav.Link>Ayuda</Nav.Link>
-            </Link>
-            <Link href="/admin/contacto" passHref legacyBehavior>
-              <Nav.Link>Contacto</Nav.Link>
-            </Link>
-            <Link href="/admin/newsletter" passHref legacyBehavior>
-              <Nav.Link>Boletín</Nav.Link>
-            </Link>
-            <Link href="/admin/sales" passHref legacyBehavior>
-              <Nav.Link>Productos</Nav.Link>
-            </Link>
-            <Link href="/admin/volunteers" passHref legacyBehavior>
-              <Nav.Link>Voluntarios</Nav.Link>
-            </Link>
-            <Link href="/admin/raffles" passHref legacyBehavior>
-              <Nav.Link>Rifas</Nav.Link>
-            </Link>
-            <Link href="/admin/allies" passHref legacyBehavior>
-              <Nav.Link>Aliados</Nav.Link>
-            </Link>
-            <Link href="/admin/solicitudes" passHref legacyBehavior>
-              <Nav.Link>Solicitudes</Nav.Link>
-            </Link>
+
+            <NavDropdown title="Contacto" id="contact-nav-dropdown">
+              <Link href="/admin/ayuda" passHref legacyBehavior>
+                <NavDropdown.Item>Ayuda</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/contacto" passHref legacyBehavior>
+                <NavDropdown.Item>Contacto</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown title="Apoyo a animales" id="support-nav-dropdown">
+              <Link href="/admin/adopciones" passHref legacyBehavior>
+                <NavDropdown.Item>Administrar adopciones</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/perdidos" passHref legacyBehavior>
+                <NavDropdown.Item>
+                  Administrar mascotas perdidas
+                </NavDropdown.Item>
+              </Link>
+              <Link href="/admin/solicitudes" passHref legacyBehavior>
+                <NavDropdown.Item>Solicitudes</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
+
+            <NavDropdown
+              title="Recaudación de fondos"
+              id="fundraising-nav-dropdown"
+            >
+              <Link href="/admin/actividades/crear" passHref legacyBehavior>
+                <NavDropdown.Item>Crear actividad</NavDropdown.Item>
+              </Link>
+
+              <Link href="/admin/sales" passHref legacyBehavior>
+                <NavDropdown.Item>Productos</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/raffles" passHref legacyBehavior>
+                <NavDropdown.Item>Rifas</NavDropdown.Item>
+              </Link>
+            </NavDropdown>
           </Nav>
           <NotificationsPopover userType="admin" />
           <Form inline="true" onSubmit={handleSignout}>
