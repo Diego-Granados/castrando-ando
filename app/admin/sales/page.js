@@ -6,12 +6,13 @@ import Modal from '@/components/Modal';
 
 const SalesPage = () => {
     const [products, setProducts] = useState([
-        { id: 1, name: 'Producto de Mascota 1', image: '/images/placeholder.png', price: '₡5000', contact: 'contacto1@example.com', available: 10 },
-        { id: 2, name: 'Producto de Mascota 2', image: '/images/placeholder.png', price: '₡7000', contact: 'contacto2@example.com', available: 5 },
-        { id: 3, name: 'Producto de Mascota 3', image: '/images/placeholder.png', price: '₡6000', contact: 'contacto3@example.com', available: 8 },
-        { id: 4, name: 'Joyería y Accesorio 1', image: '/images/placeholder.png', price: '₡15000', contact: 'contacto4@example.com', available: 3 },
-        { id: 5, name: 'Joyería y Accesorio 2', image: '/images/placeholder.png', price: '₡20000', contact: 'contacto5@example.com', available: 7 },
-        { id: 6, name: 'Joyería y Accesorio 3', image: '/images/placeholder.png', price: '₡18000', contact: 'contacto6@example.com', available: 2 },
+        { id: 1, name: 'Producto de Mascota 1', image: '/placeholder.png', price: '₡5000', contact: 'contacto1@example.com', available: 10 },
+        { id: 2, name: 'Producto de Mascota 2', image: '/placeholder.png', price: '₡7000', contact: 'contacto2@example.com', available: 5 },
+        { id: 3, name: 'Producto de Mascota 3', image: '/placeholder.png', price: '₡6000', contact: 'contacto3@example.com', available: 8 },
+        { id: 4, name: 'Joyería y Accesorio 1', image: '/placeholder.png', price: '₡15000', contact: 'contacto4@example.com', available: 3 },
+        { id: 5, name: 'Joyería y Accesorio 2', image: '/placeholder.png', price: '₡20000', contact: 'contacto5@example.com', available: 7 },
+        { id: 6, name: 'Joyería y Accesorio 3', image: '/placeholder.png', price: '₡18000', contact: 'contacto6@example.com', available: 2 },
+        { id: 7, name: 'Alimento 1', image: '/placeholder.png', price: '₡3000', contact: '3534', available: 15 },
     ]);
 
     const [showModal, setShowModal] = useState(false);
