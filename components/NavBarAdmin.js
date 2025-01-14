@@ -51,6 +51,9 @@ export default function NavBarAdmin() {
             <Link href="/admin/newsletter" passHref legacyBehavior>
               <Nav.Link>Boletín</Nav.Link>
             </Link>
+            <Link href="/admin/solicitudes" passHref legacyBehavior>
+              <Nav.Link>Solicitudes</Nav.Link>
+            </Link>
           </Nav>
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>

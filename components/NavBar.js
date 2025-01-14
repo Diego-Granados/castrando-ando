@@ -78,6 +78,12 @@ function NavBar() {
             <Link href="/mensajes" passHref legacyBehavior>
               <Nav.Link>Foro mensajes</Nav.Link>
             </Link>
+            <Link href="/solicitar-apoyo" passHref legacyBehavior>
+              <Nav.Link>Solicitar apoyo</Nav.Link>
+            </Link>
+            <Link href="/calendario" passHref legacyBehavior>
+              <Nav.Link>Calendario</Nav.Link>
+            </Link>
           </Nav>
           <Nav>
             {isAuthenticated && isUser ? (
