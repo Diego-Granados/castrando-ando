@@ -8,6 +8,7 @@ export default function CampaignForum({ campaignId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -18,8 +19,21 @@ export default function CampaignForum({ campaignId }) {
 
   useEffect(() => {
     if (campaignId) {
-      CampaignCommentController.getComments(campaignId, setComments);
-      setIsAuthenticated(CampaignCommentController.isUserAuthenticated());
+      const loadData = async () => {
+        try {
+          await CampaignCommentController.getComments(campaignId, setComments);
+          setIsAuthenticated(CampaignCommentController.isUserAuthenticated());
+          
+          // Verificar si el usuario es administrador
+          const adminStatus = await CampaignCommentController.isUserAdmin();
+          console.log("Estado de admin:", adminStatus); // Para debugging
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          console.error("Error cargando datos:", error);
+        }
+      };
+      
+      loadData();
     }
   }, [campaignId]);
 
@@ -83,7 +97,7 @@ export default function CampaignForum({ campaignId }) {
                   <small className="text-muted">{comment.createdAt}</small>
                 </div>
                 <p className="mb-1">{comment.content}</p>
-                {isAuthenticated && comment.authorId === auth.currentUser?.uid && (
+                {(isAdmin || (isAuthenticated && comment.authorId === auth.currentUser?.uid)) && (
                   <Button
                     variant="link"
                     className="p-0 text-danger"

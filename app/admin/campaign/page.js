@@ -10,6 +10,7 @@ import Modal from "react-bootstrap/Modal";
 import { toast } from "react-toastify";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
+import CampaignForum from "@/app/(main)/campaign/mensajes/CampaignForum";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -172,6 +173,13 @@ export default function Campaign() {
                 </div>
               </Col>
             </Row>
+
+            <Row className="mt-4">
+              <Col xs={12}>
+                <CampaignForum campaignId={campaignId} />
+              </Col>
+            </Row>
+
             <Modal show={showCancel} onHide={handleCloseCancel} centered>
               <Modal.Header closeButton>
                 <Modal.Title>Eliminar campaña</Modal.Title>

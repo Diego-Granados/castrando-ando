@@ -42,23 +42,29 @@ class CampaignComment {
     }
   }
 
-  static async deleteComment(campaignId, commentId, userId) {
+  static async deleteComment(campaignId, commentId, userId, isAdmin) {
     try {
       const commentRef = ref(db, `campaignComments/${campaignId}/${commentId}`);
-      const snapshot = await get(commentRef);
       
-      if (snapshot.exists()) {
-        const commentData = snapshot.val();
-        if (commentData.authorId === userId) {
-          await remove(commentRef);
-          return { ok: true };
-        } else {
-          throw new Error("No tienes permiso para eliminar este comentario");
-        }
+      // Si es admin, permitir borrar directamente
+      if (isAdmin) {
+        await remove(commentRef);
+        return;
       }
-      throw new Error("Comentario no encontrado");
+      
+      // Si no es admin, verificar que sea el autor
+      const snapshot = await get(commentRef);
+      if (!snapshot.exists()) {
+        throw new Error("Comentario no encontrado");
+      }
+
+      const comment = snapshot.val();
+      if (comment.authorId !== userId) {
+        throw new Error("No tienes permiso para eliminar este comentario");
+      }
+
+      await remove(commentRef);
     } catch (error) {
-      console.error("Error eliminando comentario:", error);
       throw error;
     }
   }

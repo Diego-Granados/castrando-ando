@@ -11,13 +11,9 @@ var _config = require("@/lib/firebase/config");
 
 var _database = require("firebase/database");
 
+var _Auth = _interopRequireDefault(require("@/models/Auth"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -33,148 +29,114 @@ function () {
   }
 
   _createClass(CampaignCommentController, null, [{
-    key: "getCurrentUser",
-    value: function getCurrentUser() {
-      var firebaseUser, cedulaRef, cedulaSnapshot, cedula, userRef, userSnapshot, userData;
-      return regeneratorRuntime.async(function getCurrentUser$(_context) {
+    key: "createComment",
+    value: function createComment(campaignId, content) {
+      var user, isAdmin, authorName, userData, result;
+      return regeneratorRuntime.async(function createComment$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
               _context.prev = 0;
-              firebaseUser = _config.auth.currentUser;
-
-              if (firebaseUser) {
-                _context.next = 4;
-                break;
-              }
-
-              throw new Error("No hay usuario autenticado");
-
-            case 4:
-              cedulaRef = (0, _database.ref)(_config.db, "uidToCedula/".concat(firebaseUser.uid));
-              _context.next = 7;
-              return regeneratorRuntime.awrap((0, _database.get)(cedulaRef));
-
-            case 7:
-              cedulaSnapshot = _context.sent;
-              cedula = cedulaSnapshot.val();
-              userRef = (0, _database.ref)(_config.db, "users/".concat(cedula));
-              _context.next = 12;
-              return regeneratorRuntime.awrap((0, _database.get)(userRef));
-
-            case 12:
-              userSnapshot = _context.sent;
-              userData = userSnapshot.val();
-
-              if (userData) {
-                _context.next = 16;
-                break;
-              }
-
-              throw new Error("No se encontraron datos del usuario");
-
-            case 16:
-              return _context.abrupt("return", _objectSpread({}, userData, {
-                uid: firebaseUser.uid
-              }));
-
-            case 19:
-              _context.prev = 19;
-              _context.t0 = _context["catch"](0);
-              console.error("Error obteniendo usuario actual:", _context.t0);
-              throw _context.t0;
-
-            case 23:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, null, null, [[0, 19]]);
-    }
-  }, {
-    key: "createComment",
-    value: function createComment(campaignId, content) {
-      var currentUser, result;
-      return regeneratorRuntime.async(function createComment$(_context2) {
-        while (1) {
-          switch (_context2.prev = _context2.next) {
-            case 0:
-              _context2.prev = 0;
 
               if (content.trim()) {
-                _context2.next = 3;
+                _context.next = 3;
                 break;
               }
 
               throw new Error("El comentario no puede estar vacío");
 
             case 3:
-              _context2.next = 5;
-              return regeneratorRuntime.awrap(this.getCurrentUser());
+              _context.next = 5;
+              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
 
             case 5:
-              currentUser = _context2.sent;
+              user = _context.sent;
+              _context.next = 8;
+              return regeneratorRuntime.awrap(this.isUserAdmin());
 
-              if (currentUser) {
-                _context2.next = 8;
+            case 8:
+              isAdmin = _context.sent;
+
+              if (!isAdmin) {
+                _context.next = 13;
+                break;
+              }
+
+              // Si es admin, usar el rol como nombre
+              authorName = "Administrador";
+              _context.next = 19;
+              break;
+
+            case 13:
+              _context.next = 15;
+              return regeneratorRuntime.awrap(_Auth["default"].getUserData(user.uid));
+
+            case 15:
+              userData = _context.sent;
+
+              if (userData) {
+                _context.next = 18;
                 break;
               }
 
               throw new Error("Debes iniciar sesión para comentar");
 
-            case 8:
-              _context2.next = 10;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].createComment(campaignId, content, currentUser.name, currentUser.uid));
+            case 18:
+              authorName = userData.name;
 
-            case 10:
-              result = _context2.sent;
-              return _context2.abrupt("return", {
+            case 19:
+              _context.next = 21;
+              return regeneratorRuntime.awrap(_CampaignComment["default"].createComment(campaignId, content, authorName, user.uid));
+
+            case 21:
+              result = _context.sent;
+              return _context.abrupt("return", {
                 ok: true,
                 commentId: result.commentId
               });
 
-            case 14:
-              _context2.prev = 14;
+            case 25:
+              _context.prev = 25;
+              _context.t0 = _context["catch"](0);
+              return _context.abrupt("return", {
+                ok: false,
+                error: _context.t0.message
+              });
+
+            case 28:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, null, this, [[0, 25]]);
+    }
+  }, {
+    key: "getComments",
+    value: function getComments(campaignId, setComments) {
+      return regeneratorRuntime.async(function getComments$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              _context2.prev = 0;
+              _context2.next = 3;
+              return regeneratorRuntime.awrap(_CampaignComment["default"].getComments(campaignId, setComments));
+
+            case 3:
+              return _context2.abrupt("return", {
+                ok: true
+              });
+
+            case 6:
+              _context2.prev = 6;
               _context2.t0 = _context2["catch"](0);
               return _context2.abrupt("return", {
                 ok: false,
                 error: _context2.t0.message
               });
 
-            case 17:
-            case "end":
-              return _context2.stop();
-          }
-        }
-      }, null, this, [[0, 14]]);
-    }
-  }, {
-    key: "getComments",
-    value: function getComments(campaignId, setComments) {
-      return regeneratorRuntime.async(function getComments$(_context3) {
-        while (1) {
-          switch (_context3.prev = _context3.next) {
-            case 0:
-              _context3.prev = 0;
-              _context3.next = 3;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].getComments(campaignId, setComments));
-
-            case 3:
-              return _context3.abrupt("return", {
-                ok: true
-              });
-
-            case 6:
-              _context3.prev = 6;
-              _context3.t0 = _context3["catch"](0);
-              return _context3.abrupt("return", {
-                ok: false,
-                error: _context3.t0.message
-              });
-
             case 9:
             case "end":
-              return _context3.stop();
+              return _context2.stop();
           }
         }
       }, null, null, [[0, 6]]);
@@ -182,53 +144,97 @@ function () {
   }, {
     key: "deleteComment",
     value: function deleteComment(campaignId, commentId) {
-      var currentUser;
-      return regeneratorRuntime.async(function deleteComment$(_context4) {
+      var user, isAdmin;
+      return regeneratorRuntime.async(function deleteComment$(_context3) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context3.prev = _context3.next) {
             case 0:
-              _context4.prev = 0;
-              _context4.next = 3;
-              return regeneratorRuntime.awrap(this.getCurrentUser());
+              _context3.prev = 0;
+              _context3.next = 3;
+              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
 
             case 3:
-              currentUser = _context4.sent;
+              user = _context3.sent;
 
-              if (currentUser) {
-                _context4.next = 6;
+              if (user) {
+                _context3.next = 6;
                 break;
               }
 
               throw new Error("Usuario no autenticado");
 
             case 6:
-              _context4.next = 8;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].deleteComment(campaignId, commentId, currentUser.uid));
+              _context3.next = 8;
+              return regeneratorRuntime.awrap(this.isUserAdmin());
 
             case 8:
-              return _context4.abrupt("return", {
+              isAdmin = _context3.sent;
+              _context3.next = 11;
+              return regeneratorRuntime.awrap(_CampaignComment["default"].deleteComment(campaignId, commentId, user.uid, isAdmin));
+
+            case 11:
+              return _context3.abrupt("return", {
                 ok: true
               });
 
-            case 11:
-              _context4.prev = 11;
-              _context4.t0 = _context4["catch"](0);
-              return _context4.abrupt("return", {
+            case 14:
+              _context3.prev = 14;
+              _context3.t0 = _context3["catch"](0);
+              return _context3.abrupt("return", {
                 ok: false,
-                error: _context4.t0.message
+                error: _context3.t0.message
               });
+
+            case 17:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, null, this, [[0, 14]]);
+    }
+  }, {
+    key: "isUserAuthenticated",
+    value: function isUserAuthenticated() {
+      return _config.auth.currentUser !== null;
+    }
+  }, {
+    key: "isUserAdmin",
+    value: function isUserAdmin() {
+      var user, userRole;
+      return regeneratorRuntime.async(function isUserAdmin$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              user = _config.auth.currentUser;
+
+              if (user) {
+                _context4.next = 4;
+                break;
+              }
+
+              return _context4.abrupt("return", false);
+
+            case 4:
+              _context4.next = 6;
+              return regeneratorRuntime.awrap(_Auth["default"].getUserRole(user.uid));
+
+            case 6:
+              userRole = _context4.sent;
+              return _context4.abrupt("return", userRole === "Admin");
+
+            case 10:
+              _context4.prev = 10;
+              _context4.t0 = _context4["catch"](0);
+              console.error("Error checking admin status:", _context4.t0);
+              return _context4.abrupt("return", false);
 
             case 14:
             case "end":
               return _context4.stop();
           }
         }
-      }, null, this, [[0, 11]]);
-    }
-  }, {
-    key: "isUserAuthenticated",
-    value: function isUserAuthenticated() {
-      return _config.auth.currentUser !== null;
+      }, null, null, [[0, 10]]);
     }
   }]);
 

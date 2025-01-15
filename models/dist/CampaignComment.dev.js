@@ -128,50 +128,61 @@ function () {
     }
   }, {
     key: "deleteComment",
-    value: function deleteComment(campaignId, commentId, userId) {
-      var commentRef, snapshot, commentData;
+    value: function deleteComment(campaignId, commentId, userId, isAdmin) {
+      var commentRef, snapshot, comment;
       return regeneratorRuntime.async(function deleteComment$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.prev = 0;
-              commentRef = (0, _database.ref)(_config.db, "campaignComments/".concat(campaignId, "/").concat(commentId));
-              _context3.next = 4;
+              commentRef = (0, _database.ref)(_config.db, "campaignComments/".concat(campaignId, "/").concat(commentId)); // Si es admin, permitir borrar directamente
+
+              if (!isAdmin) {
+                _context3.next = 6;
+                break;
+              }
+
+              _context3.next = 5;
+              return regeneratorRuntime.awrap((0, _database.remove)(commentRef));
+
+            case 5:
+              return _context3.abrupt("return");
+
+            case 6:
+              _context3.next = 8;
               return regeneratorRuntime.awrap((0, _database.get)(commentRef));
 
-            case 4:
+            case 8:
               snapshot = _context3.sent;
 
-              if (!snapshot.exists()) {
+              if (snapshot.exists()) {
+                _context3.next = 11;
+                break;
+              }
+
+              throw new Error("Comentario no encontrado");
+
+            case 11:
+              comment = snapshot.val();
+
+              if (!(comment.authorId !== userId)) {
                 _context3.next = 14;
                 break;
               }
 
-              commentData = snapshot.val();
-
-              if (!(commentData.authorId === userId)) {
-                _context3.next = 13;
-                break;
-              }
-
-              _context3.next = 10;
-              return regeneratorRuntime.awrap((0, _database.remove)(commentRef));
-
-            case 10:
-              return _context3.abrupt("return", {
-                ok: true
-              });
-
-            case 13:
               throw new Error("No tienes permiso para eliminar este comentario");
 
             case 14:
-              throw new Error("Comentario no encontrado");
+              _context3.next = 16;
+              return regeneratorRuntime.awrap((0, _database.remove)(commentRef));
 
-            case 17:
-              _context3.prev = 17;
+            case 16:
+              _context3.next = 21;
+              break;
+
+            case 18:
+              _context3.prev = 18;
               _context3.t0 = _context3["catch"](0);
-              console.error("Error eliminando comentario:", _context3.t0);
               throw _context3.t0;
 
             case 21:
@@ -179,7 +190,7 @@ function () {
               return _context3.stop();
           }
         }
-      }, null, null, [[0, 17]]);
+      }, null, null, [[0, 18]]);
     }
   }]);
 
