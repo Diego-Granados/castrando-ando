@@ -53,9 +53,9 @@ class InscriptionController {
     await Inscription.getAppointments(cedula, setAppointments);
   }
 
-  static async updateAppointment(formData) {
+  static async updateAppointment(formData, authenticated) {
     try {
-      await Inscription.updateAppointment(formData);
+      await Inscription.updateAppointment(formData, authenticated);
       return NextResponse.json({ message: "Appointment updated correctly!" });
     } catch (error) {
       console.error(error);

@@ -21,6 +21,7 @@ export default function AppointmentCard({
   setAppointments,
   name,
   setName,
+  authenticated,
 }) {
   const datetime = new Date(
     appointment.date +
@@ -90,7 +91,10 @@ export default function AppointmentCard({
       timeslot: appointment.timeslot,
     };
 
-    const response = await InscriptionController.updateAppointment(rawFormData);
+    const response = await InscriptionController.updateAppointment(
+      rawFormData,
+      authenticated
+    );
     if (response.ok) {
       toast.success("Cita actualizada correctamente.");
       const updated = { ...appointments };

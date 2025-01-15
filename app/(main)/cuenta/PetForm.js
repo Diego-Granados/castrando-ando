@@ -7,6 +7,9 @@ import PetController from "@/controllers/PetController";
 export default function PetForm({ petId, onSuccess, initialData = null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState(
+    initialData?.imageUrl || ""
+  );
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -29,12 +32,33 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
     }
   };
 
+  const handleDeleteImage = async () => {
+    try {
+      const response = await PetController.deleteImage(petId, currentImageUrl);
+      if (response.ok) {
+        setCurrentImageUrl("");
+        setImageFile(null);
+        toast.success("Imagen eliminada con éxito", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } else {
+        throw new Error("Error al eliminar la imagen");
+      }
+    } catch (error) {
+      toast.error("Error al eliminar la imagen", {
+        position: "top-center",
+        autoClose: 5000,
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      let imageUrl = initialData?.imageUrl || null;
+      let imageUrl = currentImageUrl;
 
       // Upload new image if selected
       if (imageFile) {
@@ -95,14 +119,26 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
   return (
     <Form onSubmit={handleSubmit}>
       <Form.Group className="mb-4">
-        <Form.Label>Foto de la mascota {initialData ? "(opcional)" : ""}</Form.Label>
-        <Form.Control
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="mb-2"
-          required={!initialData && !imageFile}
-        />
+        <Form.Label>
+          Foto de la mascota {initialData ? "(opcional)" : ""}
+        </Form.Label>
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className={currentImageUrl ? "flex-grow-1" : "w-100"}
+          />
+          {currentImageUrl && (
+            <Button
+              variant="outline-danger"
+              type="button"
+              onClick={handleDeleteImage}
+            >
+              Eliminar foto
+            </Button>
+          )}
+        </div>
         <Form.Text className="text-muted">
           Tamaño máximo: 5MB. Formatos permitidos: JPG, PNG, GIF
         </Form.Text>
@@ -121,8 +157,8 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
 
       <Form.Group className="mb-3" controlId="animal">
         <Form.Label>Especie</Form.Label>
-        <Form.Select 
-          name="animal" 
+        <Form.Select
+          name="animal"
           defaultValue={initialData?.animal?.toString() || ""}
           required
         >
@@ -158,8 +194,8 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
 
       <Form.Group className="mb-4" controlId="sex">
         <Form.Label>Sexo</Form.Label>
-        <Form.Select 
-          name="sex" 
+        <Form.Select
+          name="sex"
           defaultValue={initialData?.sex?.toString() || ""}
           required
         >
@@ -183,9 +219,12 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="priceSpecial">
-        <Form.Label>¿Tiene una condición especial? (preñez, celo, piometra, perros XL, etc...)</Form.Label>
-        <Form.Select 
-          name="priceSpecial" 
+        <Form.Label>
+          ¿Tiene una condición especial? (preñez, celo, piometra, perros XL,
+          etc...)
+        </Form.Label>
+        <Form.Select
+          name="priceSpecial"
           defaultValue={initialData?.priceSpecial?.toString() || ""}
           required
         >
@@ -196,17 +235,12 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
       </Form.Group>
 
       <div className="d-grid gap-2">
-        <Button
-          variant="primary"
-          type="submit"
-          disabled={isSubmitting}
-        >
-          {isSubmitting 
-            ? "Guardando..." 
-            : initialData 
-              ? "Actualizar mascota" 
-              : "Agregar mascota"
-          }
+        <Button variant="primary" type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? "Guardando..."
+            : initialData
+            ? "Actualizar mascota"
+            : "Agregar mascota"}
         </Button>
         <Button
           variant="outline-secondary"
@@ -219,4 +253,4 @@ export default function PetForm({ petId, onSuccess, initialData = null }) {
       </div>
     </Form>
   );
-} 
+}

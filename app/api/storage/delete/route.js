@@ -16,6 +16,6 @@ export async function POST(request) {
 
     return NextResponse.json({ message: "Files deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.error({ error: error.message }, { status: 500 });
   }
 }

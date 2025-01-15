@@ -82,10 +82,9 @@ class Inscription {
       present: false,
     };
     if (!authenticated) {
-      updates[`/users/${formData.id}`] = {
-        name: formData.name,
-      };
+      updates[`/users/${formData.id}/name`] = formData.name;
     }
+
     updates[`/appointments/${formData.id}/${newInscriptionRef.key}`] = {
       campaignId: formData.campaignId,
       timeslot: formData.timeslot,
@@ -120,7 +119,7 @@ class Inscription {
     }
   }
 
-  static async updateAppointment(formData) {
+  static async updateAppointment(formData, authenticated) {
     const updates = {};
 
     const appointmentKey = formData.appointmentKey;
@@ -150,10 +149,9 @@ class Inscription {
     ] = formData.email;
 
     if (!authenticated) {
-      updates[`/users/${formData.id}`] = {
-        name: formData.name,
-      };
+      updates[`/users/${formData.id}/name`] = formData.name;
     }
+
     updates[`/appointments/${formData.id}/${appointmentKey}/animal`] =
       formData.animal;
     updates[`/appointments/${formData.id}/${appointmentKey}/pet`] =

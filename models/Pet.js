@@ -12,56 +12,61 @@ import {
 } from "firebase/database";
 
 class Pet {
-    static filterEnabled(pets) {
-        const filteredPets = {};
-        Object.entries(pets).forEach(([key, pet]) => {
-            if (pet.enabled) {
-                filteredPets[key] = pet;
-            }
-        });
-        return filteredPets;
-    }
-    
-    static async create(pet, ownerId) {
-        const petRef = ref(db, `pets/${ownerId}`);
-        const newPetRef = push(petRef);
-        pet.enabled = true;
-        await set(newPetRef, pet)         
-    }
+  static filterEnabled(pets) {
+    const filteredPets = {};
+    Object.entries(pets).forEach(([key, pet]) => {
+      if (pet.enabled) {
+        filteredPets[key] = pet;
+      }
+    });
+    return filteredPets;
+  }
 
-    static async getPetsByOwner(ownerId, setPets) {
-        const petsRef = ref(db, `pets/${ownerId}`);
-        const unsubscribe = onValue(petsRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const pets = snapshot.val();
-                console.log(Pet.filterEnabled(pets));
-                setPets(Pet.filterEnabled(pets));
-            }
-        })
-        return unsubscribe;
-    }
+  static async create(pet, ownerId) {
+    const petRef = ref(db, `pets/${ownerId}`);
+    const newPetRef = push(petRef);
+    pet.enabled = true;
+    await set(newPetRef, pet);
+  }
 
-    static async getPetsByOwnerOnce(ownerId) {
-        const petsRef = ref(db, `pets/${ownerId}`);
-        const snapshot = await get(petsRef);
-        if (snapshot.exists()) {
-            return Pet.filterEnabled(snapshot.val());
-        } else {
-            return {};
-        }
-    }
+  static async getPetsByOwner(ownerId, setPets) {
+    const petsRef = ref(db, `pets/${ownerId}`);
+    const unsubscribe = onValue(petsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const pets = snapshot.val();
+        setPets(Pet.filterEnabled(pets));
+      }
+    });
+    return unsubscribe;
+  }
 
-    static async update(petId, ownerId, updates) {
-        const petRef = ref(db, `pets/${ownerId}/${petId}`);
-        updates["enabled"] = true;
-        await set(petRef, updates);
+  static async getPetsByOwnerOnce(ownerId) {
+    const petsRef = ref(db, `pets/${ownerId}`);
+    const snapshot = await get(petsRef);
+    if (snapshot.exists()) {
+      return Pet.filterEnabled(snapshot.val());
+    } else {
+      return {};
     }
+  }
 
-    static async delete(petId, ownerId) {
-        const updates = {};
-        updates[`pets/${ownerId}/${petId}/enabled`] = false;
-        await update(ref(db), updates)
-    }
+  static async update(petId, ownerId, updates) {
+    const petRef = ref(db, `pets/${ownerId}/${petId}`);
+    updates["enabled"] = true;
+    await set(petRef, updates);
+  }
+
+  static async delete(petId, ownerId) {
+    const updates = {};
+    updates[`pets/${ownerId}/${petId}/enabled`] = false;
+    await update(ref(db), updates);
+  }
+
+  static async deleteImage(petId, ownerId, imageUrl) {
+    const updates = {};
+    updates[`pets/${ownerId}/${petId}/imageUrl`] = "";
+    await update(ref(db), updates);
+  }
 }
 
 export default Pet;

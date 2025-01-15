@@ -11,7 +11,7 @@ export default function ProfileForm({ initialData }) {
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [profileUrl, setProfileUrl] = useState(initialData.profileUrl);
+  const [profileUrl, setProfileUrl] = useState(initialData.profileUrl || "");
 
   const handleUpload = async (result) => {
     try {
