@@ -8,17 +8,8 @@ export default function AdminAdopcion() {
   const [loading, setLoading] = useState(true);
   const [selectedPet, setSelectedPet] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    nombre: "",
-    tipoAnimal: "",
-    peso: "",
-    descripcion: "",
-    contact: "",
-    location: "",
-    estado: "",
-    images: []
-  });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [petToDelete, setPetToDelete] = useState(null);
 
   const mockPets = [
     {
@@ -68,43 +59,19 @@ export default function AdminAdopcion() {
 
   const handlePetClick = (pet) => {
     setSelectedPet(pet);
-    setEditForm({
-      nombre: pet.nombre,
-      tipoAnimal: pet.tipoAnimal,
-      peso: pet.peso,
-      descripcion: pet.descripcion,
-      contact: pet.contact,
-      location: pet.location,
-      estado: pet.estado,
-      images: pet.images
-    });
     setShowModal(true);
   };
 
-  const handleEditSubmit = async () => {
-    try {
-      const updatedPets = pets.map(pet => {
-        if (pet.id === selectedPet.id) {
-          return {
-            ...pet,
-            ...editForm
-          };
-        }
-        return pet;
-      });
-      setPets(updatedPets);
-      setIsEditing(false);
-      alert("Publicación actualizada exitosamente");
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      alert("Error al actualizar la publicación");
-    }
+  const handleDeleteClick = (pet) => {
+    setPetToDelete(pet);
+    setShowDeleteModal(true);
   };
 
-  const handleDeletePost = async () => {
+  const handleConfirmDelete = async () => {
     try {
-      const updatedPets = pets.filter(pet => pet.id !== selectedPet.id);
+      const updatedPets = pets.filter(pet => pet.id !== petToDelete.id);
       setPets(updatedPets);
+      setShowDeleteModal(false);
       setShowModal(false);
       alert("Publicación eliminada exitosamente");
     } catch (error) {
@@ -205,7 +172,6 @@ export default function AdminAdopcion() {
 
       <Modal show={showModal} onHide={() => {
         setShowModal(false);
-        setIsEditing(false);
       }} size="lg">
         {selectedPet && (
           <>
@@ -228,153 +194,75 @@ export default function AdminAdopcion() {
                 </Carousel>
               )}
               
-              {isEditing ? (
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Nombre</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={editForm.nombre}
-                      onChange={(e) => setEditForm({...editForm, nombre: e.target.value})}
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Tipo de Animal</Form.Label>
-                    <Form.Select
-                      value={editForm.tipoAnimal}
-                      onChange={(e) => setEditForm({...editForm, tipoAnimal: e.target.value})}
-                    >
-                      {tiposAnimales.map(tipo => (
-                        <option key={tipo} value={tipo}>{tipo}</option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Estado de Adopción</Form.Label>
-                    <Form.Select
-                      value={editForm.estado}
-                      onChange={(e) => setEditForm({...editForm, estado: e.target.value})}
-                    >
-                      {estadosAdopcion.map(estado => (
-                        <option key={estado} value={estado}>{estado}</option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Peso (kg)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.1"
-                      value={editForm.peso}
-                      onChange={(e) => setEditForm({...editForm, peso: e.target.value})}
-                    />
-                  </Form.Group>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label>Descripción</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      value={editForm.descripcion}
-                      onChange={(e) => setEditForm({...editForm, descripcion: e.target.value})}
-                    />
-                  </Form.Group>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label>Contacto</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={editForm.contact}
-                      onChange={(e) => setEditForm({...editForm, contact: e.target.value})}
-                    />
-                  </Form.Group>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ubicación</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={editForm.location}
-                      onChange={(e) => setEditForm({...editForm, location: e.target.value})}
-                    />
-                  </Form.Group>
-                </Form>
-              ) : (
-                <>
-                  <div className="mb-3">
-                    <h5>Estado de Adopción</h5>
-                    {getStatusBadge(selectedPet.estado)}
-                  </div>
-                  <div className="mb-3">
-                    <h5>Descripción</h5>
-                    <p>{selectedPet.descripcion}</p>
-                  </div>
-                  <div className="mb-3">
-                    <h5>Peso</h5>
-                    <p>{selectedPet.peso} kg</p>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <BsGeoAlt className="me-2" />
-                      <h5 className="mb-0">Ubicación</h5>
-                    </div>
-                    <p>{selectedPet.location}</p>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <BsTelephone className="me-2" />
-                      <h5 className="mb-0">Contacto</h5>
-                    </div>
-                    <p>{selectedPet.contact}</p>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <BsCalendar className="me-2" />
-                      <h5 className="mb-0">Fecha de Publicación</h5>
-                    </div>
-                    <p>{new Date(selectedPet.date).toLocaleDateString()}</p>
-                  </div>
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <BsPerson className="me-2" />
-                      <h5 className="mb-0">Publicado por</h5>
-                    </div>
-                    <p>{selectedPet.userName}</p>
-                  </div>
-                </>
-              )}
+              <div className="mb-3">
+                <h5>Estado de Adopción</h5>
+                {getStatusBadge(selectedPet.estado)}
+              </div>
+              <div className="mb-3">
+                <h5>Descripción</h5>
+                <p>{selectedPet.descripcion}</p>
+              </div>
+              <div className="mb-3">
+                <h5>Peso</h5>
+                <p>{selectedPet.peso} kg</p>
+              </div>
+              <div className="mb-3">
+                <div className="d-flex align-items-center">
+                  <BsGeoAlt className="me-2" />
+                  <h5 className="mb-0">Ubicación</h5>
+                </div>
+                <p>{selectedPet.location}</p>
+              </div>
+              <div className="mb-3">
+                <div className="d-flex align-items-center">
+                  <BsTelephone className="me-2" />
+                  <h5 className="mb-0">Contacto</h5>
+                </div>
+                <p>{selectedPet.contact}</p>
+              </div>
+              <div className="mb-3">
+                <div className="d-flex align-items-center">
+                  <BsCalendar className="me-2" />
+                  <h5 className="mb-0">Fecha de Publicación</h5>
+                </div>
+                <p>{new Date(selectedPet.date).toLocaleDateString()}</p>
+              </div>
+              <div className="mb-3">
+                <div className="d-flex align-items-center">
+                  <BsPerson className="me-2" />
+                  <h5 className="mb-0">Publicado por</h5>
+                </div>
+                <p>{selectedPet.userName}</p>
+              </div>
             </Modal.Body>
             <Modal.Footer>
-              {isEditing ? (
-                <>
-                  <Button variant="primary" onClick={handleEditSubmit}>
-                    Guardar Cambios
-                  </Button>
-                  <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                    Cancelar
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="primary" onClick={() => setIsEditing(true)}>
-                    Editar
-                  </Button>
-                  <Button variant="danger" onClick={handleDeletePost}>
-                    Eliminar
-                  </Button>
-                </>
-              )}
-              <Button variant="secondary" onClick={() => {
-                setShowModal(false);
-                setIsEditing(false);
-              }}>
+              <Button variant="danger" onClick={() => handleDeleteClick(selectedPet)}>
+                Eliminar Publicación
+              </Button>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
                 Cerrar
               </Button>
             </Modal.Footer>
           </>
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar esta publicación? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       <style jsx global>{`
