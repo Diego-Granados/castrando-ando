@@ -10,10 +10,10 @@ import Form from "react-bootstrap/Form";
 import { CircleX } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
-import { sendRecordatorio } from "@/lib/firebase/Brevo";
 import InscriptionController from "@/controllers/InscriptionController";
 import CampaignController from "@/controllers/CampaignController";
 import useSubscription from "@/hooks/useSubscription";
+import { sendReminder } from "@/controllers/EmailSenderController";
 
 import styles from "./Checkbox.module.css";
 
@@ -67,17 +67,17 @@ export default function Inscritos() {
               timeslots[timeslot]["appointments"][inscriptionId];
             if (inscription.enabled) {
               if (inscription.email) {
-                const correo = inscription.email;
-                const nombre = inscription.name;
-                const hora = timeslot;
-                const fecha = campaign.date;
-                const titulo = campaign.title;
-                const recordatorioEmail = await sendRecordatorio(
-                  correo,
-                  nombre,
-                  hora,
-                  fecha,
-                  titulo
+                const email = inscription.email;
+                const name = inscription.name;
+                const hour = timeslot;
+                const date = campaign.date;
+                const campaignName = campaign.title;
+                const recordatorioEmail = await sendReminder(
+                  email,
+                  name,
+                  hour,
+                  date,
+                  campaignName
                 );
                 if (!recordatorioEmail.ok) {
                   error = true;

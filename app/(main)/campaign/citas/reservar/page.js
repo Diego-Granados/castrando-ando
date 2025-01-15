@@ -4,9 +4,6 @@ import Button from "react-bootstrap/Button";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase/config";
-import { sendConfirmationEmail } from "@/lib/firebase/Brevo";
-import { ref, get, child, onValue } from "firebase/database";
 import { toast } from "react-toastify";
 import CampaignController from "@/controllers/CampaignController";
 import InscriptionController from "@/controllers/InscriptionController";
@@ -41,7 +38,7 @@ export default function Reservar() {
         }
         const userSnapshot = await AuthController.getUserData(user.uid);
         setUserData(userSnapshot);
-        
+
         // Load user's pets
         const userPets = await PetController.getPetsOnce(user.uid);
         setUserPets(userPets);
@@ -89,14 +86,18 @@ export default function Reservar() {
       setSelectedPet(null);
       return;
     }
-    
+
     setSelectedPet({ id, ...pet });
     // Auto-fill pet data
-    const animalRadio = document.querySelector(`input[name="flexAnimal"][value="${pet.animal ? 'perro' : 'gato'}"]`);
-    const sexRadio = document.querySelector(`input[name="flexSex"][value="${pet.sex ? 'macho' : 'hembra'}"]`);
+    const animalRadio = document.querySelector(
+      `input[name="flexAnimal"][value="${pet.animal ? "perro" : "gato"}"]`
+    );
+    const sexRadio = document.querySelector(
+      `input[name="flexSex"][value="${pet.sex ? "macho" : "hembra"}"]`
+    );
     if (animalRadio) animalRadio.checked = true;
     if (sexRadio) sexRadio.checked = true;
-    
+
     // Find and select the appropriate weight option
     const weightOptions = document.querySelectorAll('input[name="price"]');
     for (let option of weightOptions) {
@@ -106,7 +107,7 @@ export default function Reservar() {
         break;
       }
     }
-    
+
     // Set special price if applicable
     const specialCheck = document.querySelector('input[name="priceSpecial"]');
     if (specialCheck) specialCheck.checked = pet.priceSpecial;
@@ -161,7 +162,10 @@ export default function Reservar() {
   async function submitReservation(data) {
     try {
       const authenticated = userData ? true : false;
-      const response = await InscriptionController.reserveAppointment(data, authenticated);
+      const response = await InscriptionController.reserveAppointment(
+        data,
+        authenticated
+      );
       if (response.ok) {
         toast.success("¡Cita reservada con éxito!", {
           position: "top-center",
@@ -173,14 +177,8 @@ export default function Reservar() {
           },
         });
 
-        const confirmationEmail = await sendConfirmationEmail(
-          data.email,
-          data.name,
-          data.timeslot,
-          data.date,
-          data.campaign + " en " + data.place
-        );
-        if (confirmationEmail.ok) {
+        const emailResponse = response.json().emailResponse;
+        if (emailResponse.ok) {
           toast.success("Confirmación enviada correctamente", {});
         } else {
           toast.error("Error al enviar confirmación");
@@ -378,11 +376,12 @@ export default function Reservar() {
                     label={
                       (price.weight != "100"
                         ? `Hasta ${price.weight} kg`
-                        : `Más de ${campaign.pricesData[index - 1].weight} kg`) +
-                      ` (₡${price.price})`
+                        : `Más de ${
+                            campaign.pricesData[index - 1].weight
+                          } kg`) + ` (₡${price.price})`
                     }
                     name="price"
-                    id="10kg"
+                    id={`${price.weight}kg`}
                     required
                     value={JSON.stringify({
                       price: price.price,
@@ -422,8 +421,8 @@ export default function Reservar() {
         </div>
       </main>
 
-      <Modal 
-        show={showAccountModal} 
+      <Modal
+        show={showAccountModal}
         onHide={() => {
           if (!creatingAccount) {
             setShowAccountModal(false);
@@ -467,8 +466,8 @@ export default function Reservar() {
             </Form.Group>
 
             <div className="d-grid gap-2">
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 type="submit"
                 disabled={creatingAccount}
               >

@@ -11,7 +11,6 @@ import Badge from "react-bootstrap/Badge";
 import { get, ref, child } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 import Link from "next/link";
-import { sendCancelEmail } from "@/lib/firebase/Brevo";
 import InscriptionController from "@/controllers/InscriptionController";
 
 export default function AppointmentCard({
@@ -40,18 +39,13 @@ export default function AppointmentCard({
     const response = await InscriptionController.deleteAppointment({
       id,
       appointmentKey,
+      name,
       ...appointment,
     });
     if (response.ok) {
       toast.success("Cita cancelada correctamente.");
-      const cancelEmail = await sendCancelEmail(
-        appointment.email,
-        name,
-        appointment.timeslot,
-        appointment.date,
-        appointment.campaign + " en " + appointment.place
-      );
-      if (cancelEmail.ok) {
+      const emailResponse = response.json().emailResponse;
+      if (emailResponse.ok) {
         toast.success("Cancelación enviada correctamente", {});
       } else {
         toast.error("Error al enviar cancelación");
@@ -305,8 +299,9 @@ export default function AppointmentCard({
                       label={
                         (price.weight != "100"
                           ? `Hasta ${price.weight} kg`
-                          : `Más de ${campaign.pricesData[index - 1].weight} kg`) +
-                        ` (₡${price.price})`
+                          : `Más de ${
+                              campaign.pricesData[index - 1].weight
+                            } kg`) + ` (₡${price.price})`
                       }
                       name="price"
                       id="10kg"

@@ -1,5 +1,5 @@
 import Newsletter from "@/models/Newsletter";
-import { sendNewsletterEmail } from "@/lib/firebase/Brevo";
+import { sendNewsletterEmail } from "@/controllers/EmailSenderController";
 
 export default class NewsletterController {
   static async createMessage(messageData) {
@@ -42,7 +42,7 @@ export default class NewsletterController {
     try {
       // First send the email to all subscribers
       const response = await sendNewsletterEmail(message);
-      
+
       if (!response.ok) {
         throw new Error("Failed to send newsletter");
       }
@@ -50,8 +50,8 @@ export default class NewsletterController {
       // Then update the message status
       const success = await Newsletter.update(message.id, {
         ...message,
-        status: 'sent',
-        sentAt: new Date().toISOString()
+        status: "sent",
+        sentAt: new Date().toISOString(),
       });
 
       if (!success) {
@@ -100,4 +100,4 @@ export default class NewsletterController {
       throw error;
     }
   }
-} 
+}

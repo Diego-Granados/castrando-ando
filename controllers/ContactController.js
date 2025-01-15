@@ -1,12 +1,14 @@
 import ContactRequest from "@/models/ContactRequest";
-import { sendEmail, sendReply } from "@/lib/firebase/Brevo";
-
+import {
+  sendContactEmail,
+  sendReply,
+} from "@/controllers/EmailSenderController";
 export default class ContactController {
   static async createContactRequest(contactData) {
     try {
       const success = await ContactRequest.create(contactData);
       if (success) {
-        const response = await sendEmail(
+        const response = await sendContactEmail(
           contactData.message,
           contactData.email,
           contactData.name,
@@ -14,7 +16,7 @@ export default class ContactController {
         );
         if (!response.ok) {
           console.error("Error in createContactRequest:", error);
-        } 
+        }
       }
       return success;
     } catch (error) {
@@ -58,7 +60,7 @@ export default class ContactController {
       const success = await ContactRequest.update(requestId, {
         ...updateData,
         reply: replyMessage.trim(),
-        read: true
+        read: true,
       });
 
       if (!success) {
@@ -83,4 +85,4 @@ export default class ContactController {
       throw error;
     }
   }
-} 
+}
