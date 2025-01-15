@@ -1,13 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button, Modal, Carousel } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Modal, Carousel, Form } from "react-bootstrap";
 import { BsCalendar, BsClock, BsGeoAlt, BsPeople } from "react-icons/bs";
+import AuthController from "@/controllers/AuthController";
 
 export default function Actividades() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [registrationForm, setRegistrationForm] = useState({
+    email: "",
+    cedula: ""
+  });
 
   useEffect(() => {
     const loadActivities = async () => {
@@ -17,7 +24,7 @@ export default function Actividades() {
             id: 1,
             titulo: "Campaña de Esterilización",
             descripcion: "Únete a nuestra campaña mensual de esterilización. Ayúdanos a controlar la población de mascotas de manera responsable.",
-            fecha: "2024-03-15",
+            fecha: "2025-03-15",
             hora: "09:00",
             duracion: "6 horas",
             ubicacion: "Clínica Veterinaria Central",
@@ -86,39 +93,106 @@ export default function Actividades() {
     setSelectedActivity(null);
   };
 
-  const handleRegistration = (activity) => {
-    const activityDate = new Date(`${activity.fecha}T${activity.hora}`);
-    const now = new Date();
+  const handleRegistration = async (activity) => {
+    try {
+      let userData = null;
 
-    // Check if activity has ended
-    if (activityDate < now || activity.estado === "finalizada") {
-      alert("No es posible registrarse a una actividad que ya finalizó");
-      return;
-    }
-
-    // Check if activity has available spots
-    if (activity.tipoCapacidad === "limitada") {
-      if (activity.cuposDisponibles <= 0) {
-        alert("Lo sentimos, no hay cupos disponibles para esta actividad");
+      // Check if user is authenticated
+      try {
+        const { user } = await AuthController.getCurrentUser();
+        if (user) {
+          userData = await AuthController.getUserData(user.uid);
+        }
+      } catch (error) {
+        // User is not authenticated, show registration modal
+        setShowRegistrationModal(true);
         return;
       }
 
-      // Update available spots
-      const updatedActivities = activities.map(act => {
-        if (act.id === activity.id) {
-          return {
-            ...act,
-            cuposDisponibles: act.cuposDisponibles - 1,
-            estado: act.cuposDisponibles - 1 === 0 ? "sin_cupos" : act.estado
-          };
+      const activityDate = new Date(`${activity.fecha}T${activity.hora}`);
+      const now = new Date();
+
+      // Check if activity has ended
+      if (activityDate < now || activity.estado === "finalizada") {
+        alert("No es posible registrarse a una actividad que ya finalizó");
+        return;
+      }
+
+      // Check if activity has available spots
+      if (activity.tipoCapacidad === "limitada") {
+        if (activity.cuposDisponibles <= 0) {
+          alert("Lo sentimos, no hay cupos disponibles para esta actividad");
+          return;
         }
-        return act;
-      });
-      setActivities(updatedActivities);
+
+        // Update available spots
+        const updatedActivities = activities.map(act => {
+          if (act.id === activity.id) {
+            return {
+              ...act,
+              cuposDisponibles: act.cuposDisponibles - 1,
+              estado: act.cuposDisponibles - 1 === 0 ? "sin_cupos" : act.estado
+            };
+          }
+          return act;
+        });
+        setActivities(updatedActivities);
+      }
+
+      if (userData) {
+        // For logged in users
+        console.log("Registrando usuario en actividad:", {
+          activityId: activity.id,
+          userId: userData.id,
+          userEmail: userData.email,
+          registrationDate: new Date().toISOString()
+        });
+      }
+      
+      alert("Te has registrado exitosamente para esta actividad");
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al registrar:", error);
+      alert("Error al registrarse en la actividad. Por favor, intenta de nuevo.");
     }
-    
-    alert("Te has registrado exitosamente para esta actividad");
-    handleCloseModal();
+  };
+
+  const handleGuestRegistration = async () => {
+    try {
+      // Basic validation
+      if (!registrationForm.email || !registrationForm.cedula) {
+        alert("Por favor complete todos los campos");
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(registrationForm.email)) {
+        alert("Por favor ingrese un correo electrónico válido");
+        return;
+      }
+
+      // Cedula validation (assuming it should be numeric and at least 9 digits)
+      if (!/^\d{9,}$/.test(registrationForm.cedula)) {
+        alert("Por favor ingrese una cédula válida (mínimo 9 dígitos)");
+        return;
+      }
+
+      console.log("Registrando usuario invitado en actividad:", {
+        activityId: selectedActivity.id,
+        userId: registrationForm.cedula,
+        userEmail: registrationForm.email,
+        registrationDate: new Date().toISOString()
+      });
+
+      setShowRegistrationModal(false);
+      setRegistrationForm({ email: "", cedula: "" });
+      alert("Te has registrado exitosamente para esta actividad");
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al registrar usuario invitado:", error);
+      alert("Error al registrarse en la actividad. Por favor, intenta de nuevo.");
+    }
   };
 
   const getStatusBadge = (activity) => {
@@ -184,6 +258,49 @@ export default function Actividades() {
           </Col>
         ))}
       </Row>
+
+      <Modal show={showRegistrationModal} onHide={() => setShowRegistrationModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Registro para Actividad</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Correo Electrónico</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="ejemplo@correo.com"
+                value={registrationForm.email}
+                onChange={(e) => setRegistrationForm(prev => ({
+                  ...prev,
+                  email: e.target.value
+                }))}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Cédula</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Ingrese su cédula"
+                value={registrationForm.cedula}
+                onChange={(e) => setRegistrationForm(prev => ({
+                  ...prev,
+                  cedula: e.target.value
+                }))}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRegistrationModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleGuestRegistration}>
+            Registrarme
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
         {selectedActivity && (

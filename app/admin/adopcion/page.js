@@ -1,19 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Modal, Carousel, Form, Badge } from "react-bootstrap";
-import Link from "next/link";
-import AuthController from "@/controllers/AuthController";
-import { BsGeoAlt, BsCalendar, BsTelephone, BsPerson } from "react-icons/bs";
+import { BsCalendar, BsGeoAlt, BsTelephone, BsPerson } from "react-icons/bs";
 
-export default function Adopcion() {
+export default function AdminAdopcion() {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPet, setSelectedPet] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [showMyPosts, setShowMyPosts] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [editForm, setEditForm] = useState({
     nombre: "",
     tipoAnimal: "",
@@ -36,7 +31,7 @@ export default function Adopcion() {
       location: "San José, Barrio Los Yoses",
       date: "2024-03-15",
       images: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1"],
-      userId: currentUser?.uid || "user1",
+      userId: "user1",
       userName: "María González",
       estado: "Buscando Hogar"
     },
@@ -53,52 +48,14 @@ export default function Adopcion() {
       userId: "user2",
       userName: "Carlos Rodríguez",
       estado: "Adoptado"
-    },
-    {
-      id: 3,
-      nombre: "Rocky",
-      tipoAnimal: "Perro",
-      peso: "25.0",
-      descripcion: "Rocky es un perro grande y protector. Ideal para familia con casa espaciosa. Está entrenado en comandos básicos y es muy obediente.",
-      contact: "+506 6666-6666",
-      location: "Cartago, Centro",
-      date: "2024-03-13",
-      images: ["https://images.unsplash.com/photo-1587300003388-59208cc962cb"],
-      userId: "user3",
-      userName: "María González",
-      estado: "En proceso"
     }
   ];
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { user } = await AuthController.getCurrentUser();
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-        const updatedMockPets = [...mockPets];
-        if (updatedMockPets[0]) {
-          updatedMockPets[0].userId = user.uid;
-        }
-        setPets(updatedMockPets);
-      } catch (error) {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
-        setShowMyPosts(false);
-      }
-    };
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     const loadPets = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        let filteredPets = mockPets;
-        if (showMyPosts && currentUser) {
-          filteredPets = filteredPets.filter(pet => pet.userId === currentUser.uid);
-        }
-        setPets(filteredPets);
+        setPets(mockPets);
       } catch (error) {
         console.error("Error al cargar mascotas:", error);
       } finally {
@@ -107,7 +64,7 @@ export default function Adopcion() {
     };
 
     loadPets();
-  }, [showMyPosts, currentUser]);
+  }, []);
 
   const handlePetClick = (pet) => {
     setSelectedPet(pet);
@@ -118,33 +75,10 @@ export default function Adopcion() {
       descripcion: pet.descripcion,
       contact: pet.contact,
       location: pet.location,
+      estado: pet.estado,
       images: pet.images
     });
     setShowModal(true);
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 3) {
-      alert("Máximo 3 imágenes permitidas");
-      return;
-    }
-    
-    const mockImageUrls = files.map((_, index) => 
-      `https://example.com/mock-image-${index + 1}.jpg`
-    );
-    
-    setEditForm(prev => ({
-      ...prev,
-      images: mockImageUrls
-    }));
-  };
-
-  const handleRemoveImage = (indexToRemove) => {
-    setEditForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, index) => index !== indexToRemove)
-    }));
   };
 
   const handleEditSubmit = async () => {
@@ -218,32 +152,8 @@ export default function Adopcion() {
   return (
     <Container className="py-4">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
-        Adopción de Mascotas
+        Administrar Adopciones
       </h1>
-
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          {isAuthenticated && (
-            <Button
-              variant={showMyPosts ? "primary" : "secondary"}
-              className="rounded-pill"
-              style={{ padding: "10px 20px" }}
-              onClick={() => setShowMyPosts(!showMyPosts)}
-            >
-              Mis Publicaciones
-            </Button>
-          )}
-        </div>
-        <Link href="/adopcion/crear" passHref>
-          <Button 
-            variant="success" 
-            className="rounded-pill"
-            style={{ padding: "10px 20px" }}
-          >
-            Publicar en Adopción
-          </Button>
-        </Link>
-      </div>
 
       {pets.length === 0 ? (
         <div className="text-center">
@@ -437,26 +347,24 @@ export default function Adopcion() {
               )}
             </Modal.Body>
             <Modal.Footer>
-              {currentUser && selectedPet.userId === currentUser.uid && (
-                isEditing ? (
-                  <>
-                    <Button variant="primary" onClick={handleEditSubmit}>
-                      Guardar Cambios
-                    </Button>
-                    <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                      Cancelar
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="primary" onClick={() => setIsEditing(true)}>
-                      Editar
-                    </Button>
-                    <Button variant="danger" onClick={handleDeletePost}>
-                      Eliminar
-                    </Button>
-                  </>
-                )
+              {isEditing ? (
+                <>
+                  <Button variant="primary" onClick={handleEditSubmit}>
+                    Guardar Cambios
+                  </Button>
+                  <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                    Cancelar
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="primary" onClick={() => setIsEditing(true)}>
+                    Editar
+                  </Button>
+                  <Button variant="danger" onClick={handleDeletePost}>
+                    Eliminar
+                  </Button>
+                </>
               )}
               <Button variant="secondary" onClick={() => {
                 setShowModal(false);
@@ -478,4 +386,4 @@ export default function Adopcion() {
       `}</style>
     </Container>
   );
-}
+} 

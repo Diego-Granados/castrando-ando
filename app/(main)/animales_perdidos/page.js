@@ -2,15 +2,17 @@
 import { useEffect, useState } from "react";
 import { Row, Col, Button, Badge, Modal, Carousel, Form } from "react-bootstrap";
 import Link from "next/link";
+import AuthController from "@/controllers/AuthController";
 
 export default function AnimalesPerdidos() {
   const [petPosts, setPetPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showMyPosts, setShowMyPosts] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [editForm, setEditForm] = useState({
     estado: "",
     descripcion: "",
@@ -95,12 +97,27 @@ export default function AnimalesPerdidos() {
   ];
 
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { user } = await AuthController.getCurrentUser();
+        setIsAuthenticated(true);
+        setCurrentUser(user);
+      } catch (error) {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        setShowMyPosts(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
     const loadPets = async () => {
       try {
         let filteredPosts = [...sampleData];
         
-        if (showMyPosts) {
-          filteredPosts = filteredPosts.filter(pet => pet.userId === "user1");
+        if (showMyPosts && currentUser) {
+          filteredPosts = filteredPosts.filter(pet => pet.userId === currentUser.uid);
         }
         
         setPetPosts(filteredPosts);
@@ -111,7 +128,7 @@ export default function AnimalesPerdidos() {
       }
     };
     loadPets();
-  }, [showMyPosts]);
+  }, [showMyPosts, currentUser]);
 
   if (loading) {
     return <div className="text-center">Cargando publicaciones...</div>;
