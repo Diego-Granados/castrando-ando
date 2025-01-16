@@ -10,6 +10,12 @@ var _config = require("@/lib/firebase/config");
 
 var _database = require("firebase/database");
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -74,56 +80,31 @@ function () {
     }
   }, {
     key: "getRequests",
-    value: function getRequests(setRequests) {
-      var requestsRef, snapshot, requestsArray;
+    value: function getRequests(callback) {
+      var requestsRef, unsubscribe;
       return regeneratorRuntime.async(function getRequests$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.prev = 0;
               requestsRef = (0, _database.ref)(_config.db, "supportRequests");
-              _context2.next = 4;
-              return regeneratorRuntime.awrap((0, _database.get)(requestsRef));
+              unsubscribe = (0, _database.onValue)(requestsRef, function (snapshot) {
+                callback(snapshot.val());
+              });
+              return _context2.abrupt("return", unsubscribe);
 
-            case 4:
-              snapshot = _context2.sent;
-
-              if (snapshot.exists()) {
-                requestsArray = [];
-                snapshot.forEach(function (childSnapshot) {
-                  var requestData = childSnapshot.val();
-                  requestsArray.push({
-                    id: childSnapshot.key,
-                    title: requestData.title,
-                    description: requestData.description,
-                    userName: requestData.userName,
-                    userId: requestData.userId,
-                    date: requestData.date
-                  });
-                });
-                requestsArray.sort(function (a, b) {
-                  return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
-                });
-                setRequests(requestsArray);
-              } else {
-                setRequests([]);
-              }
-
-              _context2.next = 12;
-              break;
-
-            case 8:
-              _context2.prev = 8;
+            case 6:
+              _context2.prev = 6;
               _context2.t0 = _context2["catch"](0);
-              console.error("Error getting support requests:", _context2.t0);
+              console.error("Error getting requests:", _context2.t0);
               throw _context2.t0;
 
-            case 12:
+            case 10:
             case "end":
               return _context2.stop();
           }
         }
-      }, null, null, [[0, 8]]);
+      }, null, null, [[0, 6]]);
     }
   }, {
     key: "deleteRequest",
@@ -139,7 +120,9 @@ function () {
               return regeneratorRuntime.awrap((0, _database.remove)(requestRef));
 
             case 4:
-              return _context3.abrupt("return", true);
+              return _context3.abrupt("return", {
+                ok: true
+              });
 
             case 7:
               _context3.prev = 7;
@@ -153,6 +136,58 @@ function () {
           }
         }
       }, null, null, [[0, 7]]);
+    }
+  }, {
+    key: "updateStatus",
+    value: function updateStatus(requestId, newStatus) {
+      var requestRef, snapshot, currentData;
+      return regeneratorRuntime.async(function updateStatus$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              requestRef = (0, _database.ref)(_config.db, "supportRequests/".concat(requestId));
+              _context4.next = 4;
+              return regeneratorRuntime.awrap((0, _database.get)(requestRef));
+
+            case 4:
+              snapshot = _context4.sent;
+
+              if (!snapshot.exists()) {
+                _context4.next = 12;
+                break;
+              }
+
+              currentData = snapshot.val();
+              _context4.next = 9;
+              return regeneratorRuntime.awrap((0, _database.set)(requestRef, _objectSpread({}, currentData, {
+                status: newStatus
+              })));
+
+            case 9:
+              return _context4.abrupt("return", {
+                ok: true
+              });
+
+            case 12:
+              throw new Error("Solicitud no encontrada");
+
+            case 13:
+              _context4.next = 19;
+              break;
+
+            case 15:
+              _context4.prev = 15;
+              _context4.t0 = _context4["catch"](0);
+              console.error("Error updating request status:", _context4.t0);
+              throw _context4.t0;
+
+            case 19:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, null, null, [[0, 15]]);
     }
   }]);
 

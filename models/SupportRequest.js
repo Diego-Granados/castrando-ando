@@ -1,6 +1,6 @@
 "use client";
 import { auth, db } from "@/lib/firebase/config";
-import { ref, get, set, push, remove, query, orderByChild } from "firebase/database";
+import { ref, get, set, push, remove, query, orderByChild, onValue } from "firebase/database";
 
 class SupportRequest {
   static async createRequest(requestData) {
@@ -29,35 +29,15 @@ class SupportRequest {
     }
   }
 
-  static async getRequests(setRequests) {
+  static async getRequests(callback) {
     try {
       const requestsRef = ref(db, "supportRequests");
-      const snapshot = await get(requestsRef);
-      
-      if (snapshot.exists()) {
-        const requestsArray = [];
-        snapshot.forEach((childSnapshot) => {
-          const requestData = childSnapshot.val();
-          requestsArray.push({
-            id: childSnapshot.key,
-            title: requestData.title,
-            description: requestData.description,
-            userName: requestData.userName,
-            userId: requestData.userId,
-            date: requestData.date,
-          });
-        });
-        
-        requestsArray.sort((a, b) => 
-          new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
-        );
-        
-        setRequests(requestsArray);
-      } else {
-        setRequests([]);
-      }
+      const unsubscribe = onValue(requestsRef, (snapshot) => {
+        callback(snapshot.val());
+      });
+      return unsubscribe;
     } catch (error) {
-      console.error("Error getting support requests:", error);
+      console.error("Error getting requests:", error);
       throw error;
     }
   }
@@ -66,9 +46,29 @@ class SupportRequest {
     try {
       const requestRef = ref(db, `supportRequests/${requestId}`);
       await remove(requestRef);
-      return true;
+      return { ok: true };
     } catch (error) {
       console.error("Error deleting request:", error);
+      throw error;
+    }
+  }
+
+  static async updateStatus(requestId, newStatus) {
+    try {
+      const requestRef = ref(db, `supportRequests/${requestId}`);
+      const snapshot = await get(requestRef);
+      if (snapshot.exists()) {
+        const currentData = snapshot.val();
+        await set(requestRef, {
+          ...currentData,
+          status: newStatus
+        });
+        return { ok: true };
+      } else {
+        throw new Error("Solicitud no encontrada");
+      }
+    } catch (error) {
+      console.error("Error updating request status:", error);
       throw error;
     }
   }
