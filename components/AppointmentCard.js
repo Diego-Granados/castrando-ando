@@ -44,7 +44,11 @@ export default function AppointmentCard({
       ...appointment,
     });
     if (response.ok) {
-      toast.success("Cita cancelada correctamente.");
+      toast.success("Cita cancelada correctamente.", {
+        position: "top-center",
+        autoClose: 5000,
+        toastId: "cancel-appointment",
+      });
       const data = await response.json();
       const emailResponse = data.emailResponse;
       if (emailResponse.ok) {
