@@ -31,13 +31,18 @@ class InscriptionController {
 
   static async reserveAppointment(formData, authenticated) {
     try {
-      // await Inscription.reserveAppointment(formData, authenticated);
+      const appointmentKey = await Inscription.reserveAppointment(
+        formData,
+        authenticated
+      );
       const emailResponse = await sendConfirmationEmail(
         formData.email,
         formData.name,
         formData.timeslot,
         formData.date,
-        formData.campaign + " en " + formData.place
+        formData.campaign + " en " + formData.place,
+        formData.campaignId,
+        appointmentKey
       );
       return NextResponse.json({
         message: "Appointment saved correctly!",
@@ -65,15 +70,20 @@ class InscriptionController {
 
   static async deleteAppointment(formData) {
     try {
+      console.log(formData);
       await Inscription.deleteAppointment(formData);
       const emailResponse = await sendCancelEmail(
         formData.email,
         formData.name,
         formData.timeslot,
         formData.date,
-        formData.campaign + " en " + formData.place
+        formData.campaign
       );
-      return NextResponse.json({ message: "Appointment deleted correctly!" });
+      console.log(emailResponse);
+      return NextResponse.json({
+        message: "Appointment deleted correctly!",
+        emailResponse: emailResponse,
+      });
     } catch (error) {
       console.error(error);
       return NextResponse.error(error);

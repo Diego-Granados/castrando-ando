@@ -20,12 +20,22 @@ import styles from "./Checkbox.module.css";
 export default function Inscritos() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
+  const timeslot = searchParams.get("timeslot");
+  const inscriptionId = searchParams.get("inscriptionId");
+
   const [campaign, setCampaign] = useState(null);
 
   const router = useRouter();
   if (!campaignId) {
     router.push("/admin");
   }
+
+  useEffect(() => {
+    console.log(timeslot, inscriptionId);
+    if (timeslot && inscriptionId) {
+      handleUpdateAttendance(campaignId, timeslot, inscriptionId, true, {});
+    }
+  }, [timeslot, inscriptionId]);
 
   const [timeslots, setTimeslots] = useState(null);
   const [sortedKeys, setSortedKeys] = useState(null);
@@ -50,6 +60,18 @@ export default function Inscritos() {
   async function cancelAppointment() {
     const response = await InscriptionController.deleteAppointment(appointment);
     if (response.ok) {
+      toast.success("Cita cancelada correctamente.", {
+        position: "top-center",
+        autoClose: 5000,
+        toastId: "cancel-appointment",
+      });
+      const data = await response.json();
+      const emailResponse = data.emailResponse;
+      if (emailResponse.ok) {
+        toast.success("Cancelación enviada correctamente", {});
+      } else {
+        toast.error("Error al enviar cancelación");
+      }
       toast.success("Cita cancelada correctamente.");
     } else {
       toast.error("Error al cancelar la cita.");
@@ -57,7 +79,7 @@ export default function Inscritos() {
     handleCloseCancel();
   }
 
-  async function enviarRecordatorio() {
+  async function sendReminders() {
     let error = false;
     sortedKeys.map((timeslot) => {
       if (timeslots[timeslot]["appointments"]) {
@@ -94,6 +116,30 @@ export default function Inscritos() {
     }
   }
 
+  async function handleUpdateAttendance(
+    campaignId,
+    timeslot,
+    inscriptionId,
+    present,
+    inscription
+  ) {
+    const response = await InscriptionController.updateAttendance(
+      campaignId,
+      timeslot,
+      inscriptionId,
+      present
+    );
+    if (response.ok) {
+      toast.success(
+        `Inscripción ${
+          present ? "marcada como presente." : "desmarcada como presente."
+        }`
+      );
+      inscription.present = present;
+    } else {
+      toast.error("Error al marcar la asistencia.");
+    }
+  }
   return (
     <main className="container">
       {campaign && (
@@ -173,28 +219,13 @@ export default function Inscritos() {
                                           className={`${styles.customCheckbox}`}
                                           checked={inscription.present}
                                           onChange={async (event) => {
-                                            const response =
-                                              await InscriptionController.updateAttendance(
-                                                campaignId,
-                                                timeslot,
-                                                inscriptionId,
-                                                event.target.checked
-                                              );
-                                            if (response.ok) {
-                                              toast.success(
-                                                `Inscripción ${
-                                                  event.target.checked
-                                                    ? "marcada como presente."
-                                                    : "desmarcada como presente."
-                                                }`
-                                              );
-                                              inscription.present =
-                                                event.target.checked;
-                                            } else {
-                                              toast.error(
-                                                "Error al marcar la asistencia."
-                                              );
-                                            }
+                                            handleUpdateAttendance(
+                                              campaignId,
+                                              timeslot,
+                                              inscriptionId,
+                                              event.target.checked,
+                                              inscription
+                                            );
                                           }}
                                         />
                                       </Form>
@@ -204,13 +235,13 @@ export default function Inscritos() {
                                         style={{ border: "none" }}
                                         onClick={(e) => {
                                           setAppointment({
-                                            name: inscription.name,
-                                            pet: inscription.pet,
-                                            timeslot: timeslot,
-                                            date: campaign.date,
-                                            id: inscription.id,
                                             appointmentKey: inscriptionId,
                                             campaignId: campaignId,
+                                            date: campaign.date,
+                                            timeslot: timeslot,
+                                            campaign: campaign.title,
+                                            place: campaign.place,
+                                            ...inscription,
                                           });
                                           handleShowCancel();
                                         }}
@@ -233,7 +264,7 @@ export default function Inscritos() {
                 </Accordion.Item>
               ))}
           </Accordion>
-          <Button className="mt-3" onClick={enviarRecordatorio}>
+          <Button className="mt-3" onClick={sendReminders}>
             Enviar recordatorio
           </Button>
         </>

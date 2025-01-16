@@ -6,13 +6,23 @@ export async function sendContactEmail(msg, email, name, type) {
   return await EmailSender.sendContactEmail(msg, email, name, type);
 }
 
-export async function sendConfirmationEmail(email, name, hour, date, campaign) {
+export async function sendConfirmationEmail(
+  email,
+  name,
+  hour,
+  date,
+  campaign,
+  campaignId,
+  appointmentKey
+) {
   return await EmailSender.sendConfirmationEmail(
     email,
     name,
     hour,
     date,
-    campaign
+    campaign,
+    campaignId,
+    appointmentKey
   );
 }
 

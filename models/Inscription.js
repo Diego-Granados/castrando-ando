@@ -102,6 +102,7 @@ class Inscription {
     };
 
     await update(ref(db), updates);
+    return newInscriptionRef.key;
   }
 
   static async getAppointments(cedula, setAppointments) {

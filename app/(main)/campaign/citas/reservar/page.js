@@ -176,8 +176,8 @@ export default function Reservar() {
             router.push("/");
           },
         });
-
-        const emailResponse = response.json().emailResponse;
+        const data = await response.json();
+        const emailResponse = data.emailResponse;
         if (emailResponse.ok) {
           toast.success("Confirmación enviada correctamente", {});
         } else {
