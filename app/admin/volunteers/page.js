@@ -1,42 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button, Table } from "react-bootstrap";
-import { Pencil, Send, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Button, Table, Modal, Alert } from "react-bootstrap";
+import { Pencil, Trash2 } from "lucide-react";
+import VolunteerController from "@/controllers/VolunteerController";
 import styles from "./VolunteersPage.module.css";
 
 const VolunteersPage = () => {
-  const [volunteers, setVolunteers] = useState([
-    {
-      id: 1,
-      name: "Juan Pérez",
-      email: "juan@example.com",
-      phone: "8888-8888",
-      comment: "Disponible los fines de semana",
-    },
-    {
-      id: 2,
-      name: "María López",
-      email: "maria@example.com",
-      phone: "8777-7777",
-      comment: "Puede ayudar con eventos",
-    },
-    {
-      id: 3,
-      name: "Carlos Sánchez",
-      email: "carlos@example.com",
-      phone: "8666-6666",
-      comment: "Disponible para transporte",
-    },
-  ]);
+  const [volunteers, setVolunteers] = useState([]);
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalError, setModalError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleDelete = (id) => {
-    setVolunteers(volunteers.filter((volunteer) => volunteer.id !== id));
+  useEffect(() => {
+    const fetchVolunteers = async () => {
+      try {
+        await VolunteerController.getVolunteers(setVolunteers);
+      } catch (error) {
+        console.error("Error fetching volunteers:", error);
+      }
+    };
+    fetchVolunteers();
+  }, []);
+
+  const handleEdit = (volunteer) => {
+    setId(volunteer.id);
+    setName(volunteer.name);
+    setEmail(volunteer.email);
+    setPhone(volunteer.phone);
+    setComment(volunteer.comment);
+    setIsEditing(true);
+    setShowModal(true);
   };
 
-  const handleEdit = (id) => {
-    // Aquí puedes agregar la lógica para editar un voluntario
-    console.log(`Editar voluntario con id: ${id}`);
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta solicitud?"
+    );
+    if (confirmDelete) {
+      try {
+        await VolunteerController.deleteVolunteer(id);
+        setVolunteers(volunteers.filter((volunteer) => volunteer.id !== id));
+      } catch (error) {
+        console.error("Error deleting volunteer:", error);
+      }
+    }
+  };
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    const updatedVolunteer = { id, name, email, phone, comment };
+    try {
+      await VolunteerController.updateVolunteer(id, updatedVolunteer);
+      setVolunteers(
+        volunteers.map((volunteer) =>
+          volunteer.id === id ? updatedVolunteer : volunteer
+        )
+      );
+      setShowModal(false);
+      setIsEditing(false);
+    } catch (error) {
+      setModalError(error.message);
+    }
   };
 
   return (
@@ -46,6 +77,7 @@ const VolunteersPage = () => {
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Cédula</th>
             <th>Email</th>
             <th>Teléfono</th>
             <th>Comentario</th>
@@ -56,6 +88,7 @@ const VolunteersPage = () => {
           {volunteers.map((volunteer) => (
             <tr key={volunteer.id}>
               <td>{volunteer.name}</td>
+              <td>{volunteer.id}</td>
               <td>{volunteer.email}</td>
               <td>{volunteer.phone}</td>
               <td>{volunteer.comment}</td>
@@ -63,7 +96,7 @@ const VolunteersPage = () => {
                 <Button
                   variant="outline-primary"
                   className={styles.btn}
-                  onClick={() => handleEdit(volunteer.id)}
+                  onClick={() => handleEdit(volunteer)}
                 >
                   <Pencil size={16} />
                 </Button>
@@ -74,19 +107,77 @@ const VolunteersPage = () => {
                 >
                   <Trash2 size={16} />
                 </Button>
-
-                <Button
-                  variant="outline-success"
-                  className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
-                >
-                  <Send size={16} />
-                </Button>
               </td>
             </tr>
           ))}
         </tbody>
-      </Table>{" "}
+      </Table>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar Voluntario</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form onSubmit={handleModalSubmit}>
+            {modalError && <Alert variant="danger">{modalError}</Alert>}
+            <div className="mb-3">
+              <label htmlFor="name" className="form-label">
+                Nombre
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">
+                Email
+              </label>
+              <input
+                type="email"
+                className="form-control"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="phone" className="form-label">
+                Teléfono
+              </label>
+              <input
+                type="tel"
+                className="form-control"
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="comment" className="form-label">
+                Comentario
+              </label>
+              <textarea
+                className="form-control"
+                id="comment"
+                rows="3"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                required
+              ></textarea>
+            </div>
+            <Button type="submit" variant="primary">
+              Guardar cambios
+            </Button>
+          </form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

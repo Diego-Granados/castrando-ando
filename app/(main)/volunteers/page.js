@@ -1,32 +1,89 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Button, Modal, Alert } from "react-bootstrap";
+import VolunteerController from "@/controllers/VolunteerController";
 import styles from "./VolunteersPage.module.css";
 
 const VolunteersPage = () => {
+  const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [message, setMessage] = useState("");
+  const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [id, setId] = useState("");
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalError, setModalError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (modalError) {
+      const timer = setTimeout(() => {
+        setModalError("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [modalError]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí puedes agregar la lógica para enviar los datos a tu backend o Firebase
-    console.log("Nombre:", name);
-    console.log("Correo electrónico:", email);
-    console.log("Teléfono:", phone);
-    console.log("Dirección:", address);
-    console.log("Mensaje:", message);
-    console.log("id:", id);
-    setSubmitted(true);
+    if (id.length !== 9) {
+      setError("La cédula debe tener 9 dígitos.");
+      return;
+    }
+    const newVolunteer = { id, name, email, phone, comment };
+    try {
+      if (isEditing) {
+        await VolunteerController.updateVolunteer(id, newVolunteer);
+      } else {
+        await VolunteerController.createVolunteer(newVolunteer);
+      }
+      setId("");
+      setName("");
+      setEmail("");
+      setPhone("");
+      setComment("");
+      setSubmitted(true);
+      setError("");
+      setIsEditing(false);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    if (id.length !== 9) {
+      setModalError("La cédula debe tener 9 dígitos.");
+      return;
+    }
+    try {
+      const volunteerData = await VolunteerController.getVolunteerById(id);
+      setName(volunteerData.name);
+      setEmail(volunteerData.email);
+      setPhone(volunteerData.phone);
+      setComment(volunteerData.comment);
+      setModalError("");
+      setShowModal(false);
+      setIsEditing(true);
+    } catch (error) {
+      setModalError(error.message);
+    }
   };
 
   return (
-    <div className="container">
-      <h1>Voluntariado</h1>
+    <div className={styles.container}>
+      <h1>Voluntarios</h1>
       <p>
         Bienvenidos. Aquí puedes enviar tu información para ser parte del
         voluntariado de Castrando Ando.
@@ -36,11 +93,12 @@ const VolunteersPage = () => {
         <h2>Formulario de solicitud</h2>
         {submitted ? (
           <p>
-            Gracias por enviar tu información! nos estaremos comunicando
+            Gracias por enviar tu información! Nos estaremos comunicando
             contigo.
           </p>
         ) : (
           <form onSubmit={handleSubmit}>
+            {error && <Alert variant="danger">{error}</Alert>}
             <div className="mb-3">
               <label htmlFor="name" className="form-label">
                 Nombre
@@ -94,48 +152,60 @@ const VolunteersPage = () => {
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="address" className="form-label">
-                Ubicación
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="message" className="form-label">
+              <label htmlFor="comment" className="form-label">
                 Comentario
               </label>
               <textarea
                 className="form-control"
-                id="message"
+                id="comment"
                 rows="3"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
                 required
               ></textarea>
             </div>
             <div className="mb-3">
-              <button
-                type="submit"
-                className={`${styles.btn} ${styles.btnPrimary}`}
+              <Button type="submit" variant="primary">
+                {isEditing ? "Guardar cambios" : "Enviar solicitud"}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowModal(true)}
+                style={{ marginLeft: "10px" }}
               >
-                Subir
-              </button>
-              <button
-                type="button"
-                className={`${styles.btn} ${styles.btnSecondary}`}
-              >
-                Consultar solicitud
-              </button>
+                Consultar voluntario
+              </Button>
             </div>
           </form>
         )}
       </section>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Ingresar cédula</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form onSubmit={handleModalSubmit}>
+            {modalError && <Alert variant="danger">{modalError}</Alert>}
+            <div className="mb-3">
+              <label htmlFor="modalId" className="form-label">
+                Cédula
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="modalId"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" variant="primary">
+              Buscar
+            </Button>
+          </form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
