@@ -9,30 +9,25 @@ import Link from "next/link";
 
 export default function Contacto() {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState('');
-  const [validated, setValidated] = useState(false);
+  const [selectedType, setSelectedType] = useState("");
 
   const handleTypeChange = (e) => {
     const type = e.target.value;
     setSelectedType(type);
-    
-    if (type === 'Solicitud de campaña en zona') {
-      alert("¿Deseás que realicemos una campaña de castración en tu comunidad? Se deben contar con un salón comunal amplio y usted se encargará de ayudarnos con la organización.");
+
+    if (type === "Solicitud de campaña en zona") {
+      alert(
+        "¿Deseás que realicemos una campaña de castración en tu comunidad? Se deben contar con un salón comunal amplio y usted se encargará de ayudarnos con la organización."
+      );
     }
   };
 
   async function contactoData(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    
-    if (!form.checkValidity()) {
-      event.stopPropagation();
-      setValidated(true);
-      return;
-    }
 
     const formData = new FormData(form);
-    
+
     const rawFormData = {
       idNumber: formData.get("idNumber"),
       name: formData.get("name"),
@@ -40,7 +35,7 @@ export default function Contacto() {
       message: formData.get("message"),
       type: formData.get("type"),
       date: new Date().toISOString(),
-      read: false
+      read: false,
     };
     try {
       const success = await ContactController.createContactRequest(rawFormData);
@@ -51,19 +46,20 @@ export default function Contacto() {
           },
         });
       } else {
+        console.error("Error al enviar el mensaje");
         toast.error("Error al enviar el mensaje");
       }
     } catch (error) {
-      console.error("Error saving contact request:", error);
+      console.error(error);
       toast.error("Error al guardar el mensaje");
     }
   }
 
   return (
-    <Form noValidate validated={validated} onSubmit={contactoData}>
+    <Form onSubmit={contactoData}>
       <Form.Group className="mb-3" controlId="formBasicType">
         <Form.Label>Tipo de solicitud *</Form.Label>
-        <Form.Select 
+        <Form.Select
           name="type"
           onChange={handleTypeChange}
           value={selectedType}
@@ -72,7 +68,9 @@ export default function Contacto() {
           <option value="">Seleccione un tipo</option>
           <option value="Consulta">Consulta</option>
           <option value="Sugerencia">Sugerencia</option>
-          <option value="Solicitud de campaña en zona">Solicitud de campaña en zona</option>
+          <option value="Solicitud de campaña en zona">
+            Solicitud de campaña en zona
+          </option>
         </Form.Select>
         <Form.Control.Feedback type="invalid">
           Por favor seleccione un tipo de solicitud
@@ -81,10 +79,10 @@ export default function Contacto() {
 
       <Form.Group className="mb-3" controlId="formBasicIdNumber">
         <Form.Label>Cédula *</Form.Label>
-        <Form.Control 
-          type="number" 
-          placeholder="Cédula" 
-          name="idNumber" 
+        <Form.Control
+          type="number"
+          placeholder="Cédula"
+          name="idNumber"
           required
           min="100000000"
           max="999999999"
@@ -96,10 +94,10 @@ export default function Contacto() {
 
       <Form.Group className="mb-3" controlId="formBasicName">
         <Form.Label>Nombre completo *</Form.Label>
-        <Form.Control 
-          type="text" 
-          placeholder="Nombre" 
-          name="name" 
+        <Form.Control
+          type="text"
+          placeholder="Nombre"
+          name="name"
           required
           minLength={3}
         />
@@ -115,7 +113,6 @@ export default function Contacto() {
           placeholder="Correo electrónico"
           name="email"
           required
-          pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
         />
         <Form.Control.Feedback type="invalid">
           Por favor ingrese un correo electrónico válido

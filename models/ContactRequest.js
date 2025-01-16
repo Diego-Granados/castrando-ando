@@ -31,7 +31,7 @@ export default class ContactRequest {
       message: this.message,
       type: this.type,
       date: this.date,
-      read: this.read
+      read: this.read,
     };
   }
 
@@ -53,7 +53,7 @@ export default class ContactRequest {
     try {
       const contactsRef = ref(db, "contactRequests");
       const snapshot = await get(contactsRef);
-      
+
       if (!snapshot.exists()) {
         return [];
       }
@@ -62,7 +62,7 @@ export default class ContactRequest {
       snapshot.forEach((child) => {
         requests.push({
           id: child.key,
-          ...child.val()
+          ...child.val(),
         });
       });
 
@@ -85,4 +85,4 @@ export default class ContactRequest {
       return false;
     }
   }
-} 
+}

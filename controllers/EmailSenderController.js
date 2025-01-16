@@ -38,6 +38,6 @@ export async function sendReply(msg, mail, name, adminReply) {
   return await EmailSender.sendReply(msg, mail, name, adminReply);
 }
 
-export async function sendNewsletterEmail(email, name, newsletter) {
-  return await EmailSender.sendNewsletterEmail(email, name, newsletter);
+export async function sendNewsletterEmail(content, email, subject) {
+  return await EmailSender.sendNewsletterEmail(content, email, subject);
 }

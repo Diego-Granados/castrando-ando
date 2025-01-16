@@ -1,3 +1,4 @@
+"use client;";
 import ContactRequest from "@/models/ContactRequest";
 import {
   sendContactEmail,
@@ -20,7 +21,7 @@ export default class ContactController {
       }
       return success;
     } catch (error) {
-      console.error("Error in createContactRequest:", error);
+      console.error(error);
       throw error;
     }
   }
