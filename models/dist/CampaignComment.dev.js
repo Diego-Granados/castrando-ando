@@ -1,4 +1,5 @@
 "use strict";
+"use client";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -14,14 +15,6 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -39,34 +32,32 @@ function () {
   _createClass(CampaignComment, null, [{
     key: "createComment",
     value: function createComment(campaignId, content, author, authorId) {
-      var commentId, commentRef, commentData;
+      var commentsRef, newComment, commentRef;
       return regeneratorRuntime.async(function createComment$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
               _context.prev = 0;
-              commentId = Date.now().toString();
-              commentRef = (0, _database.ref)(_config.db, "campaignComments/".concat(campaignId, "/").concat(commentId));
-              commentData = {
+              commentsRef = (0, _database.ref)(_config.db, "campaign-comments/".concat(campaignId));
+              newComment = {
                 content: content,
                 author: author,
                 authorId: authorId,
-                timestamp: new Date().toISOString(),
-                createdAt: new Date().toLocaleString()
+                createdAt: (0, _database.serverTimestamp)()
               };
-              _context.next = 6;
-              return regeneratorRuntime.awrap((0, _database.set)(commentRef, commentData));
+              _context.next = 5;
+              return regeneratorRuntime.awrap((0, _database.push)(commentsRef, newComment));
 
-            case 6:
+            case 5:
+              commentRef = _context.sent;
               return _context.abrupt("return", {
-                ok: true,
-                commentId: commentId
+                commentId: commentRef.key
               });
 
             case 9:
               _context.prev = 9;
               _context.t0 = _context["catch"](0);
-              console.error("Error en CampaignComment model:", _context.t0);
+              console.error("Error creating comment:", _context.t0);
               throw _context.t0;
 
             case 13:
@@ -78,53 +69,49 @@ function () {
     }
   }, {
     key: "getComments",
-    value: function getComments(campaignId, setComments) {
-      var commentsRef, snapshot, commentsData, commentsArray;
+    value: function getComments(campaignId, callback) {
+      var commentsRef, unsubscribe;
       return regeneratorRuntime.async(function getComments$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.prev = 0;
-              commentsRef = (0, _database.ref)(_config.db, "campaignComments/".concat(campaignId));
-              _context2.next = 4;
-              return regeneratorRuntime.awrap((0, _database.get)(commentsRef));
+              commentsRef = (0, _database.ref)(_config.db, "campaign-comments/".concat(campaignId)); // Configurar el listener en tiempo real
 
-            case 4:
-              snapshot = _context2.sent;
+              unsubscribe = (0, _database.onValue)(commentsRef, function (snapshot) {
+                var comments = [];
+                snapshot.forEach(function (childSnapshot) {
+                  var comment = _objectSpread({
+                    id: childSnapshot.key
+                  }, childSnapshot.val(), {
+                    createdAt: new Date(childSnapshot.val().createdAt).toLocaleString()
+                  });
 
-              if (snapshot.exists()) {
-                commentsData = snapshot.val();
-                commentsArray = Object.entries(commentsData).map(function (_ref) {
-                  var _ref2 = _slicedToArray(_ref, 2),
-                      id = _ref2[0],
-                      comment = _ref2[1];
+                  comments.push(comment);
+                }); // Ordenar comentarios por fecha (más antiguos primero)
 
-                  return _objectSpread({
-                    id: id
-                  }, comment);
-                }).sort(function (a, b) {
-                  return new Date(a.timestamp) - new Date(b.timestamp);
+                comments.sort(function (a, b) {
+                  return new Date(a.createdAt) - new Date(b.createdAt);
                 });
-                setComments(commentsArray);
-              } else {
-                setComments([]);
-              }
+                callback(comments);
+              }); // Devolver la función de limpieza
 
-              _context2.next = 12;
-              break;
+              return _context2.abrupt("return", function () {
+                return unsubscribe();
+              });
 
-            case 8:
-              _context2.prev = 8;
+            case 6:
+              _context2.prev = 6;
               _context2.t0 = _context2["catch"](0);
-              console.error("Error obteniendo comentarios:", _context2.t0);
+              console.error("Error getting comments:", _context2.t0);
               throw _context2.t0;
 
-            case 12:
+            case 10:
             case "end":
               return _context2.stop();
           }
         }
-      }, null, null, [[0, 8]]);
+      }, null, null, [[0, 6]]);
     }
   }, {
     key: "deleteComment",
@@ -135,62 +122,51 @@ function () {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.prev = 0;
-              commentRef = (0, _database.ref)(_config.db, "campaignComments/".concat(campaignId, "/").concat(commentId)); // Si es admin, permitir borrar directamente
-
-              if (!isAdmin) {
-                _context3.next = 6;
-                break;
-              }
-
-              _context3.next = 5;
-              return regeneratorRuntime.awrap((0, _database.remove)(commentRef));
-
-            case 5:
-              return _context3.abrupt("return");
-
-            case 6:
-              _context3.next = 8;
+              // Verificar si el usuario puede eliminar el comentario
+              commentRef = (0, _database.ref)(_config.db, "campaign-comments/".concat(campaignId, "/").concat(commentId));
+              _context3.next = 4;
               return regeneratorRuntime.awrap((0, _database.get)(commentRef));
 
-            case 8:
+            case 4:
               snapshot = _context3.sent;
 
               if (snapshot.exists()) {
-                _context3.next = 11;
+                _context3.next = 7;
                 break;
               }
 
               throw new Error("Comentario no encontrado");
 
-            case 11:
+            case 7:
               comment = snapshot.val();
 
-              if (!(comment.authorId !== userId)) {
-                _context3.next = 14;
+              if (!(!isAdmin && comment.authorId !== userId)) {
+                _context3.next = 10;
                 break;
               }
 
               throw new Error("No tienes permiso para eliminar este comentario");
 
-            case 14:
-              _context3.next = 16;
+            case 10:
+              _context3.next = 12;
               return regeneratorRuntime.awrap((0, _database.remove)(commentRef));
 
-            case 16:
-              _context3.next = 21;
+            case 12:
+              _context3.next = 18;
               break;
 
-            case 18:
-              _context3.prev = 18;
+            case 14:
+              _context3.prev = 14;
               _context3.t0 = _context3["catch"](0);
+              console.error("Error deleting comment:", _context3.t0);
               throw _context3.t0;
 
-            case 21:
+            case 18:
             case "end":
               return _context3.stop();
           }
         }
-      }, null, null, [[0, 18]]);
+      }, null, null, [[0, 14]]);
     }
   }]);
 

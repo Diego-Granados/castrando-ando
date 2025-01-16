@@ -1,70 +1,73 @@
-import { auth, db } from "@/lib/firebase/config";
-import { ref, set, get, remove, query, orderByChild } from "firebase/database";
+"use client";
+import { db } from "@/lib/firebase/config";
+import { ref, push, serverTimestamp, onValue, remove, get } from "firebase/database";
 
 class CampaignComment {
   static async createComment(campaignId, content, author, authorId) {
     try {
-      const commentId = Date.now().toString();
-      const commentRef = ref(db, `campaignComments/${campaignId}/${commentId}`);
-      const commentData = {
+      const commentsRef = ref(db, `campaign-comments/${campaignId}`);
+      const newComment = {
         content,
         author,
         authorId,
-        timestamp: new Date().toISOString(),
-        createdAt: new Date().toLocaleString()
+        createdAt: serverTimestamp(),
       };
 
-      await set(commentRef, commentData);
-      return { ok: true, commentId };
+      const commentRef = await push(commentsRef, newComment);
+      return { commentId: commentRef.key };
     } catch (error) {
-      console.error("Error en CampaignComment model:", error);
+      console.error("Error creating comment:", error);
       throw error;
     }
   }
 
-  static async getComments(campaignId, setComments) {
+  static async getComments(campaignId, callback) {
     try {
-      const commentsRef = ref(db, `campaignComments/${campaignId}`);
-      const snapshot = await get(commentsRef);
-      if (snapshot.exists()) {
-        const commentsData = snapshot.val();
-        const commentsArray = Object.entries(commentsData).map(([id, comment]) => ({
-          id,
-          ...comment
-        })).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        setComments(commentsArray);
-      } else {
-        setComments([]);
-      }
+      const commentsRef = ref(db, `campaign-comments/${campaignId}`);
+      
+      // Configurar el listener en tiempo real
+      const unsubscribe = onValue(commentsRef, (snapshot) => {
+        const comments = [];
+        snapshot.forEach((childSnapshot) => {
+          const comment = {
+            id: childSnapshot.key,
+            ...childSnapshot.val(),
+            createdAt: new Date(childSnapshot.val().createdAt).toLocaleString(),
+          };
+          comments.push(comment);
+        });
+        
+        // Ordenar comentarios por fecha (más antiguos primero)
+        comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        callback(comments);
+      });
+
+      // Devolver la función de limpieza
+      return () => unsubscribe();
     } catch (error) {
-      console.error("Error obteniendo comentarios:", error);
+      console.error("Error getting comments:", error);
       throw error;
     }
   }
 
   static async deleteComment(campaignId, commentId, userId, isAdmin) {
     try {
-      const commentRef = ref(db, `campaignComments/${campaignId}/${commentId}`);
-      
-      // Si es admin, permitir borrar directamente
-      if (isAdmin) {
-        await remove(commentRef);
-        return;
-      }
-      
-      // Si no es admin, verificar que sea el autor
+      // Verificar si el usuario puede eliminar el comentario
+      const commentRef = ref(db, `campaign-comments/${campaignId}/${commentId}`);
       const snapshot = await get(commentRef);
+      
       if (!snapshot.exists()) {
         throw new Error("Comentario no encontrado");
       }
 
       const comment = snapshot.val();
-      if (comment.authorId !== userId) {
+      if (!isAdmin && comment.authorId !== userId) {
         throw new Error("No tienes permiso para eliminar este comentario");
       }
 
       await remove(commentRef);
     } catch (error) {
+      console.error("Error deleting comment:", error);
       throw error;
     }
   }

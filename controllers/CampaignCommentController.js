@@ -1,6 +1,7 @@
+"use client";
 import CampaignComment from "@/models/CampaignComment";
-import { auth, db } from "@/lib/firebase/config";
-import { ref, get } from "firebase/database";
+import { auth } from "@/lib/firebase/config";
+import { ref, onValue } from "firebase/database";
 import Auth from "@/models/Auth";
 
 class CampaignCommentController {
@@ -39,12 +40,14 @@ class CampaignCommentController {
     }
   }
 
-  static async getComments(campaignId, setComments) {
+  static async getComments(campaignId, callback) {
     try {
-      await CampaignComment.getComments(campaignId, setComments);
-      return { ok: true };
+      // Devolvemos la función de limpieza
+      const unsubscribe = await CampaignComment.getComments(campaignId, callback);
+      return unsubscribe;
     } catch (error) {
-      return { ok: false, error: error.message };
+      console.error("Error obteniendo comentarios:", error);
+      throw error;
     }
   }
 
@@ -64,15 +67,20 @@ class CampaignCommentController {
     }
   }
 
-  static isUserAuthenticated() {
-    return auth.currentUser !== null;
+  static async isUserAuthenticated() {
+    try {
+      const user = await Auth.getCurrentUser();
+      return user !== null;
+    } catch (error) {
+      return false;
+    }
   }
 
   static async isUserAdmin() {
     try {
       const user = auth.currentUser;
       if (!user) return false;
-
+      
       const userRole = await Auth.getUserRole(user.uid);
       return userRole === "Admin";
     } catch (error) {

@@ -1,4 +1,5 @@
 "use strict";
+"use client";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -112,34 +113,32 @@ function () {
     }
   }, {
     key: "getComments",
-    value: function getComments(campaignId, setComments) {
+    value: function getComments(campaignId, callback) {
+      var unsubscribe;
       return regeneratorRuntime.async(function getComments$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.prev = 0;
               _context2.next = 3;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].getComments(campaignId, setComments));
+              return regeneratorRuntime.awrap(_CampaignComment["default"].getComments(campaignId, callback));
 
             case 3:
-              return _context2.abrupt("return", {
-                ok: true
-              });
+              unsubscribe = _context2.sent;
+              return _context2.abrupt("return", unsubscribe);
 
-            case 6:
-              _context2.prev = 6;
+            case 7:
+              _context2.prev = 7;
               _context2.t0 = _context2["catch"](0);
-              return _context2.abrupt("return", {
-                ok: false,
-                error: _context2.t0.message
-              });
+              console.error("Error obteniendo comentarios:", _context2.t0);
+              throw _context2.t0;
 
-            case 9:
+            case 11:
             case "end":
               return _context2.stop();
           }
         }
-      }, null, null, [[0, 6]]);
+      }, null, null, [[0, 7]]);
     }
   }, {
     key: "deleteComment",
@@ -195,43 +194,66 @@ function () {
   }, {
     key: "isUserAuthenticated",
     value: function isUserAuthenticated() {
-      return _config.auth.currentUser !== null;
+      var user;
+      return regeneratorRuntime.async(function isUserAuthenticated$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              _context4.next = 3;
+              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
+
+            case 3:
+              user = _context4.sent;
+              return _context4.abrupt("return", user !== null);
+
+            case 7:
+              _context4.prev = 7;
+              _context4.t0 = _context4["catch"](0);
+              return _context4.abrupt("return", false);
+
+            case 10:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, null, null, [[0, 7]]);
     }
   }, {
     key: "isUserAdmin",
     value: function isUserAdmin() {
       var user, userRole;
-      return regeneratorRuntime.async(function isUserAdmin$(_context4) {
+      return regeneratorRuntime.async(function isUserAdmin$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
-              _context4.prev = 0;
+              _context5.prev = 0;
               user = _config.auth.currentUser;
 
               if (user) {
-                _context4.next = 4;
+                _context5.next = 4;
                 break;
               }
 
-              return _context4.abrupt("return", false);
+              return _context5.abrupt("return", false);
 
             case 4:
-              _context4.next = 6;
+              _context5.next = 6;
               return regeneratorRuntime.awrap(_Auth["default"].getUserRole(user.uid));
 
             case 6:
-              userRole = _context4.sent;
-              return _context4.abrupt("return", userRole === "Admin");
+              userRole = _context5.sent;
+              return _context5.abrupt("return", userRole === "Admin");
 
             case 10:
-              _context4.prev = 10;
-              _context4.t0 = _context4["catch"](0);
-              console.error("Error checking admin status:", _context4.t0);
-              return _context4.abrupt("return", false);
+              _context5.prev = 10;
+              _context5.t0 = _context5["catch"](0);
+              console.error("Error checking admin status:", _context5.t0);
+              return _context5.abrupt("return", false);
 
             case 14:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
       }, null, null, [[0, 10]]);
