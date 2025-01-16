@@ -72,6 +72,9 @@ export default function NavBarAdmin() {
             <Link href="/admin/solicitudes" passHref legacyBehavior>
               <Nav.Link>Solicitudes</Nav.Link>
             </Link>
+            <Link href="/blog" passHref legacyBehavior>
+              <Nav.Link>Blog</Nav.Link>
+            </Link>
           </Nav>
           <NotificationsPopover userType="admin" />
           <Form inline="true" onSubmit={handleSignout}>

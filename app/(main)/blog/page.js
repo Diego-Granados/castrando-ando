@@ -7,17 +7,21 @@ import { Row, Col, Button, Image, Modal } from "react-bootstrap";
 import Link from "next/link";
 
 import BlogController from "@/controllers/BlogController";
+import { toast } from "react-toastify";
 
 export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [selectedPost, setSelectedPost] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState(null);
+
   const MAX_CONTENT_LENGTH = 100; // Máximo de caracteres a mostrar
   const truncateText = (text) => {
 
@@ -33,7 +37,8 @@ export default function Blog() {
 
       try {
         await BlogController.getBlogs(setBlogPosts);
-        setIsAuthenticated(BlogController.isUserAuthenticated());
+        const adminStatus = await BlogController.isUserAdmin();
+        setIsAdmin(adminStatus);
       } catch (error) {
         console.error("Error cargando blogs:", error);
       } finally {
@@ -43,6 +48,31 @@ export default function Blog() {
     loadBlogs();
   }, []);
 
+  const handleDeleteClick = (e, blog) => {
+    e.stopPropagation(); // Evitar que se abra el modal del blog
+    setBlogToDelete(blog);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteBlog = async () => {
+    try {
+      const result = await BlogController.deleteBlog(blogToDelete.id);
+      if (result.ok) {
+        toast.success("Blog eliminado correctamente");
+        // Actualizar la lista de blogs
+        await BlogController.getBlogs(setBlogPosts);
+      } else {
+        toast.error(result.error || "Error al eliminar el blog");
+      }
+    } catch (error) {
+      console.error("Error eliminando blog:", error);
+      toast.error("Error al eliminar el blog");
+    } finally {
+      setShowDeleteModal(false);
+      setBlogToDelete(null);
+    }
+  };
+
   if (loading) {
     return <div>Cargando...</div>;
 
@@ -50,7 +80,7 @@ export default function Blog() {
   return (
     <main className="container">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Blog</h1>
-      {isAuthenticated && (
+      {isAdmin && (
         <div className="d-flex justify-content-end mb-4">
           <Link href="/blog/crear" passHref>
             <Button
@@ -102,6 +132,17 @@ export default function Blog() {
                   <p className="card-text text-center">
                     {truncateText(post.content)}
                   </p>
+                  {isAdmin && (
+                    <div className="text-end mt-2">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={(e) => handleDeleteClick(e, post)}
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Col>
@@ -145,6 +186,39 @@ export default function Blog() {
           </>
         )}
       </Modal>
+
+      {/* Modal de confirmación para eliminar */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => {
+          setShowDeleteModal(false);
+          setBlogToDelete(null);
+        }}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar el blog "{blogToDelete?.title}"?
+          Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setBlogToDelete(null);
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeleteBlog}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <style jsx global>{`
         .blog-card {
           transition: transform 0.2s ease-in-out;
