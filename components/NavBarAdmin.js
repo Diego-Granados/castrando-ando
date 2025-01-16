@@ -59,9 +59,6 @@ export default function NavBarAdmin() {
               <Link href="/admin/usuarios" passHref legacyBehavior>
                 <NavDropdown.Item>Actividad de usuarios</NavDropdown.Item>
               </Link>
-              <Link href="/admin/newsletter" passHref legacyBehavior>
-                <NavDropdown.Item>Boletín</NavDropdown.Item>
-              </Link>
               <Link href="/admin/volunteers" passHref legacyBehavior>
                 <NavDropdown.Item>Voluntarios</NavDropdown.Item>
               </Link>
@@ -76,6 +73,9 @@ export default function NavBarAdmin() {
               </Link>
               <Link href="/admin/contacto" passHref legacyBehavior>
                 <NavDropdown.Item>Contacto</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/newsletter" passHref legacyBehavior>
+                <NavDropdown.Item>Boletín</NavDropdown.Item>
               </Link>
             </NavDropdown>
 

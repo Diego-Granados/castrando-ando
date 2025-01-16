@@ -19,7 +19,15 @@ export default function RouteGuard({ children, requiredRole }) {
 
       if (!user || (requiredRole && role !== requiredRole)) {
         setAuthorized(false);
-        router.push("/userLogin");
+        if (requiredRole) {
+          if (role === "Admin") {
+            router.push("/adminlogin");
+          } else {
+            router.push("/userLogin");
+          }
+        } else {
+          router.push("/");
+        }
       } else {
         setAuthorized(true);
       }
