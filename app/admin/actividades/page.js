@@ -11,6 +11,8 @@ export default function AdminActividades() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState(null);
 
   useEffect(() => {
     const loadActivities = async () => {
@@ -108,12 +110,16 @@ export default function AdminActividades() {
     alert("Actividad actualizada exitosamente");
   };
 
-  const handleDelete = (activityId) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
-      setActivities(activities.filter(activity => activity.id !== activityId));
-      handleCloseModal();
-      alert("Actividad eliminada exitosamente");
-    }
+  const handleDeleteClick = (activity) => {
+    setActivityToDelete(activity);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setActivities(activities.filter(activity => activity.id !== activityToDelete.id));
+    setShowDeleteModal(false);
+    setShowModal(false);
+    alert("Actividad eliminada exitosamente");
   };
 
   const handleImageChange = (e) => {
@@ -196,7 +202,7 @@ export default function AdminActividades() {
                   </Button>
                   <Button
                     variant="outline-danger"
-                    onClick={() => handleDelete(activity.id)}
+                    onClick={() => handleDeleteClick(activity)}
                   >
                     <BsTrash />
                   </Button>
@@ -276,16 +282,14 @@ export default function AdminActividades() {
               )}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={handleCloseModal}>
-                Cerrar
-              </Button>
               <Button variant="primary" onClick={() => handleEdit(selectedActivity)}>
-                <BsPencil className="me-2" />
                 Editar
               </Button>
-              <Button variant="danger" onClick={() => handleDelete(selectedActivity.id)}>
-                <BsTrash className="me-2" />
+              <Button variant="danger" onClick={() => handleDeleteClick(selectedActivity)}>
                 Eliminar
+              </Button>
+              <Button variant="secondary" onClick={handleCloseModal}>
+                Cerrar
               </Button>
             </Modal.Footer>
           </>
@@ -473,6 +477,30 @@ export default function AdminActividades() {
           </>
         )}
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar esta actividad? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <style jsx global>{`
+        .modal-backdrop {
+          background-color: rgba(0, 0, 0, 0.5);
+        }
+      `}</style>
     </Container>
   );
 } 

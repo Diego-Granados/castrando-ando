@@ -24,6 +24,8 @@ export default function Adopcion() {
     estado: "",
     images: []
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [petToDelete, setPetToDelete] = useState(null);
 
   const mockPets = [
     {
@@ -171,6 +173,24 @@ export default function Adopcion() {
     try {
       const updatedPets = pets.filter(pet => pet.id !== selectedPet.id);
       setPets(updatedPets);
+      setShowModal(false);
+      alert("Publicación eliminada exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar la publicación");
+    }
+  };
+
+  const handleDeleteClick = (pet) => {
+    setPetToDelete(pet);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const updatedPets = pets.filter(pet => pet.id !== petToDelete.id);
+      setPets(updatedPets);
+      setShowDeleteModal(false);
       setShowModal(false);
       alert("Publicación eliminada exitosamente");
     } catch (error) {
@@ -452,7 +472,7 @@ export default function Adopcion() {
                     <Button variant="primary" onClick={() => setIsEditing(true)}>
                       Editar
                     </Button>
-                    <Button variant="danger" onClick={handleDeletePost}>
+                    <Button variant="danger" onClick={() => handleDeleteClick(selectedPet)}>
                       Eliminar
                     </Button>
                   </>
@@ -467,6 +487,24 @@ export default function Adopcion() {
             </Modal.Footer>
           </>
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar esta publicación? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       <style jsx global>{`

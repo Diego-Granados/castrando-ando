@@ -11,12 +11,10 @@ export default function AdminPerdidos() {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    estado: "",
-    descripcion: "",
-    contact: "",
-    location: "",
-    images: []
+    estado: ""
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
 
   useEffect(() => {
     loadPosts();
@@ -88,11 +86,7 @@ export default function AdminPerdidos() {
   const handlePostClick = (post) => {
     setSelectedPost(post);
     setEditForm({
-      estado: post.status,
-      descripcion: post.descripcion,
-      contact: post.contact,
-      location: post.location,
-      images: [...post.images]
+      estado: post.status
     });
     setShowModal(true);
   };
@@ -103,11 +97,7 @@ export default function AdminPerdidos() {
         if (post.id === selectedPost.id) {
           return {
             ...post,
-            status: editForm.estado,
-            descripcion: editForm.descripcion,
-            contact: editForm.contact,
-            location: editForm.location,
-            images: editForm.images
+            status: editForm.estado
           };
         }
         return post;
@@ -118,6 +108,23 @@ export default function AdminPerdidos() {
     } catch (error) {
       console.error("Error actualizando publicación:", error);
       alert("Error al actualizar la publicación");
+    }
+  };
+
+  const handleDeleteClick = (post) => {
+    setPostToDelete(post);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete.id));
+      setShowDeleteModal(false);
+      setShowModal(false);
+      alert("Publicación eliminada exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar la publicación");
     }
   };
 
@@ -239,48 +246,17 @@ export default function AdminPerdidos() {
                       ))}
                     </Form.Select>
                   </Form.Group>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label>Descripción</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      value={editForm.descripcion}
-                      onChange={(e) => setEditForm({...editForm, descripcion: e.target.value})}
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Contacto</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={editForm.contact}
-                      onChange={(e) => setEditForm({...editForm, contact: e.target.value})}
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ubicación</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={editForm.location}
-                      onChange={(e) => setEditForm({...editForm, location: e.target.value})}
-                    />
-                  </Form.Group>
-
-                  <div className="d-flex gap-2">
-                    <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                      Cancelar
-                    </Button>
-                    <Button variant="primary" onClick={handleEditSubmit}>
-                      Guardar cambios
-                    </Button>
-                  </div>
                 </Form>
               ) : (
                 <>
-                  <h5>Descripción</h5>
-                  <p>{selectedPost.descripcion}</p>
+                  <div className="mb-3">
+                    <h5>Estado</h5>
+                    {getStatusBadge(selectedPost.status)}
+                  </div>
+                  <div className="mb-3">
+                    <h5>Descripción</h5>
+                    <p>{selectedPost.descripcion}</p>
+                  </div>
                   
                   <Row className="mb-3">
                     <Col md={6}>
@@ -321,11 +297,11 @@ export default function AdminPerdidos() {
                       onClick={() => setIsEditing(true)}
                       className="flex-grow-1"
                     >
-                      Editar
+                      Cambiar Estado
                     </Button>
                     <Button
                       variant="danger"
-                      onClick={() => handleDeletePost(selectedPost.id)}
+                      onClick={() => handleDeleteClick(selectedPost)}
                       className="flex-grow-1"
                     >
                       Eliminar Publicación
@@ -334,9 +310,49 @@ export default function AdminPerdidos() {
                 </>
               )}
             </Modal.Body>
+            <Modal.Footer>
+              {isEditing ? (
+                <>
+                  <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                    Cancelar
+                  </Button>
+                  <Button variant="primary" onClick={handleEditSubmit}>
+                    Guardar cambios
+                  </Button>
+                </>
+              ) : (
+                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                  Cerrar
+                </Button>
+              )}
+            </Modal.Footer>
           </>
         )}
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar esta publicación? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <style jsx global>{`
+        .modal-backdrop {
+          background-color: rgba(0, 0, 0, 0.5);
+        }
+      `}</style>
     </Container>
   );
 } 

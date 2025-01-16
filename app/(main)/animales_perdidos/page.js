@@ -20,6 +20,8 @@ export default function AnimalesPerdidos() {
     location: "",
     images: []
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [petToDelete, setPetToDelete] = useState(null);
 
   // Sample data for testing
   const sampleData = [
@@ -215,6 +217,24 @@ export default function AnimalesPerdidos() {
     }
   };
 
+  const handleDeleteClick = (pet) => {
+    setPetToDelete(pet);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const updatedPosts = petPosts.filter(post => post.id !== petToDelete.id);
+      setPetPosts(updatedPosts);
+      setShowDeleteModal(false);
+      setShowModal(false);
+      alert("Publicación eliminada exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar la publicación");
+    }
+  };
+
   const PetDetailModal = ({ pet, show, onHide }) => {
     if (!pet) return null;
 
@@ -388,10 +408,7 @@ export default function AnimalesPerdidos() {
                   </Button>
                   <Button
                     variant="outline-danger"
-                    onClick={() => {
-                      LostPetController.delete(pet.id, pet.images);
-                      onHide();
-                    }}
+                    onClick={() => handleDeleteClick(pet)}
                   >
                     Eliminar
                   </Button>
@@ -491,8 +508,29 @@ export default function AnimalesPerdidos() {
       <PetDetailModal
         pet={selectedPet}
         show={showModal}
-        onHide={() => setShowModal(false)}
+        onHide={() => {
+          setShowModal(false);
+          setIsEditing(false);
+        }}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar esta publicación? Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <style jsx global>{`
         .hover-shadow:hover {

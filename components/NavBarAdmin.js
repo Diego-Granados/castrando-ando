@@ -80,7 +80,7 @@ export default function NavBarAdmin() {
             </NavDropdown>
 
             <NavDropdown title="Apoyo a animales" id="support-nav-dropdown">
-              <Link href="/admin/adopciones" passHref legacyBehavior>
+              <Link href="/admin/adopcion" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar adopciones</NavDropdown.Item>
               </Link>
               <Link href="/admin/perdidos" passHref legacyBehavior>
