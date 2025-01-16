@@ -52,7 +52,7 @@ export async function POST(request) {
     ctx.fillStyle = "#080808";
     ctx.font = `bold ${canvas.width * 0.032}px Arial`;
     ctx.fillText("PRECIOS", canvas.width / 2, y);
-    y += canvas.width * 0.035;
+    y += canvas.width * 0.04;
     ctx.font = `bold ${canvas.width * 0.032}px Arial`;
     pricesData.forEach(({ price, weight }) => {
       if (weight < 100) {
@@ -70,7 +70,7 @@ export async function POST(request) {
           y
         );
       }
-      y += canvas.width * 0.035;
+      y += canvas.width * 0.04;
     });
 
     // Draw special price
@@ -100,13 +100,15 @@ export async function POST(request) {
     y += canvas.width * 0.04;
     ctx.font = `bold ${canvas.width * 0.06}px Arial`;
     ctx.fillStyle = "#4fc53d";
-    const dateObj = new Date(date);
-    const formattedDate = dateObj.toLocaleDateString("es-ES", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    const dateObj = new Date(date + "T12:00:00Z");
+    const formattedDate = dateObj
+      .toLocaleDateString("es-ES", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+      .replace(/^\w/, (c) => c.toUpperCase());
     ctx.fillText(formattedDate, canvas.width / 2, y);
     // y += canvas.width * 0.055;
     // ctx.font = `bold ${canvas.width * 0.035}px Arial`;
@@ -127,12 +129,12 @@ export async function POST(request) {
     ctx.fillStyle = "#8c1a93";
     ctx.font = `bold ${canvas.width * 0.035}px Arial`;
     ctx.fillText("REQUISITOS", canvas.width / 2, y);
-    y += canvas.width * 0.035;
+    y += canvas.width * 0.04;
     requirements.forEach((req) => {
       const reqLines = wrapText(ctx, `*${req}`, textWidth);
       reqLines.forEach((line) => {
         ctx.fillText(line, canvas.width / 2, y);
-        y += canvas.width * 0.035;
+        y += canvas.width * 0.04;
       });
     });
 
@@ -148,6 +150,15 @@ export async function POST(request) {
       ctx.fillText(line, canvas.width / 2, y);
       y += canvas.width * 0.045;
     });
+
+    // Draw logo
+    const logoImage = await loadImage("./public/logo.jpg");
+    const logoWidth = canvas.width * 0.2; // 20% of canvas width
+    const logoHeight = (logoImage.height * logoWidth) / logoImage.width;
+    const logoX = (canvas.width - logoWidth) / 2;
+    const logoY = y;
+    ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+    y += logoHeight + canvas.width * 0.02; // Add some padding after logo
 
     // Convert canvas to buffer
     const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 });

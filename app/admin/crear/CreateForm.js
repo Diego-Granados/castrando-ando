@@ -199,7 +199,7 @@ function CreateForm() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "afiche.jpg";
+      a.download = `afiche-${formData.get("date")}.jpg`;
       document.body.appendChild(a);
       a.click();
 
