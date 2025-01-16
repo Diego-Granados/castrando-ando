@@ -6,13 +6,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
-var _CampaignComment = _interopRequireDefault(require("@/models/CampaignComment"));
+var _Message = _interopRequireDefault(require("@/models/Message"));
 
 var _config = require("@/lib/firebase/config");
 
-var _database = require("firebase/database");
-
-var _Auth = _interopRequireDefault(require("@/models/Auth"));
+var _AuthController = _interopRequireDefault(require("@/controllers/AuthController"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -22,18 +20,19 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var CampaignCommentController =
+var MessageController =
 /*#__PURE__*/
 function () {
-  function CampaignCommentController() {
-    _classCallCheck(this, CampaignCommentController);
+  function MessageController() {
+    _classCallCheck(this, MessageController);
   }
 
-  _createClass(CampaignCommentController, null, [{
-    key: "createComment",
-    value: function createComment(campaignId, content) {
-      var user, isAdmin, authorName, userData, result;
-      return regeneratorRuntime.async(function createComment$(_context) {
+  _createClass(MessageController, null, [{
+    key: "createMessage",
+    value: function createMessage(content) {
+      var _ref, user, role, authorName, userData, result;
+
+      return regeneratorRuntime.async(function createMessage$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
@@ -44,84 +43,90 @@ function () {
                 break;
               }
 
-              throw new Error("El comentario no puede estar vacío");
+              throw new Error("El mensaje no puede estar vacío");
 
             case 3:
               _context.next = 5;
-              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
+              return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
             case 5:
-              user = _context.sent;
-              _context.next = 8;
-              return regeneratorRuntime.awrap(this.isUserAdmin());
+              _ref = _context.sent;
+              user = _ref.user;
+              role = _ref.role;
 
-            case 8:
-              isAdmin = _context.sent;
-
-              if (!isAdmin) {
-                _context.next = 13;
+              if (user) {
+                _context.next = 10;
                 break;
               }
 
-              // Si es admin, usar el rol como nombre
+              throw new Error("Debes iniciar sesión para enviar mensajes");
+
+            case 10:
+              if (!(role === 'Admin')) {
+                _context.next = 14;
+                break;
+              }
+
+              // Si es admin, usar "Administrador" como nombre
               authorName = "Administrador";
-              _context.next = 19;
+              _context.next = 20;
               break;
 
-            case 13:
-              _context.next = 15;
-              return regeneratorRuntime.awrap(_Auth["default"].getUserData(user.uid));
+            case 14:
+              _context.next = 16;
+              return regeneratorRuntime.awrap(_AuthController["default"].getUserData(user.uid));
 
-            case 15:
+            case 16:
               userData = _context.sent;
 
               if (userData) {
-                _context.next = 18;
+                _context.next = 19;
                 break;
               }
 
-              throw new Error("Debes iniciar sesión para comentar");
-
-            case 18:
-              authorName = userData.name;
+              throw new Error("No se encontraron datos del usuario");
 
             case 19:
-              _context.next = 21;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].createComment(campaignId, content, authorName, user.uid));
+              authorName = userData.name;
 
-            case 21:
+            case 20:
+              _context.next = 22;
+              return regeneratorRuntime.awrap(_Message["default"].createMessage(content, authorName, user.uid));
+
+            case 22:
               result = _context.sent;
               return _context.abrupt("return", {
                 ok: true,
-                commentId: result.commentId
+                messageId: result.messageId
               });
 
-            case 25:
-              _context.prev = 25;
+            case 26:
+              _context.prev = 26;
               _context.t0 = _context["catch"](0);
+              console.error("Error en MessageController:", _context.t0);
               return _context.abrupt("return", {
                 ok: false,
                 error: _context.t0.message
               });
 
-            case 28:
+            case 30:
             case "end":
               return _context.stop();
           }
         }
-      }, null, this, [[0, 25]]);
+      }, null, null, [[0, 26]]);
     }
   }, {
-    key: "getComments",
-    value: function getComments(campaignId, callback) {
+    key: "getMessages",
+    value: function getMessages(setMessages) {
       var unsubscribe;
-      return regeneratorRuntime.async(function getComments$(_context2) {
+      return regeneratorRuntime.async(function getMessages$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.prev = 0;
               _context2.next = 3;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].getComments(campaignId, callback));
+              return regeneratorRuntime.awrap(_Message["default"].getMessages(setMessages));
 
             case 3:
               unsubscribe = _context2.sent;
@@ -130,7 +135,7 @@ function () {
             case 7:
               _context2.prev = 7;
               _context2.t0 = _context2["catch"](0);
-              console.error("Error obteniendo comentarios:", _context2.t0);
+              console.error("Error obteniendo mensajes:", _context2.t0);
               throw _context2.t0;
 
             case 11:
@@ -141,127 +146,120 @@ function () {
       }, null, null, [[0, 7]]);
     }
   }, {
-    key: "deleteComment",
-    value: function deleteComment(campaignId, commentId) {
-      var user, isAdmin;
-      return regeneratorRuntime.async(function deleteComment$(_context3) {
+    key: "deleteMessage",
+    value: function deleteMessage(messageId) {
+      var _ref2, user, role;
+
+      return regeneratorRuntime.async(function deleteMessage$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.prev = 0;
               _context3.next = 3;
-              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
+              return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
             case 3:
-              user = _context3.sent;
+              _ref2 = _context3.sent;
+              user = _ref2.user;
+              role = _ref2.role;
 
               if (user) {
-                _context3.next = 6;
+                _context3.next = 8;
                 break;
               }
 
               throw new Error("Usuario no autenticado");
 
-            case 6:
-              _context3.next = 8;
-              return regeneratorRuntime.awrap(this.isUserAdmin());
-
             case 8:
-              isAdmin = _context3.sent;
-              _context3.next = 11;
-              return regeneratorRuntime.awrap(_CampaignComment["default"].deleteComment(campaignId, commentId, user.uid, isAdmin));
+              _context3.next = 10;
+              return regeneratorRuntime.awrap(_Message["default"].deleteMessage(messageId, user, role));
 
-            case 11:
+            case 10:
               return _context3.abrupt("return", {
                 ok: true
               });
 
-            case 14:
-              _context3.prev = 14;
+            case 13:
+              _context3.prev = 13;
               _context3.t0 = _context3["catch"](0);
               return _context3.abrupt("return", {
                 ok: false,
                 error: _context3.t0.message
               });
 
-            case 17:
+            case 16:
             case "end":
               return _context3.stop();
           }
         }
-      }, null, this, [[0, 14]]);
+      }, null, null, [[0, 13]]);
     }
   }, {
     key: "isUserAuthenticated",
     value: function isUserAuthenticated() {
-      var user;
+      var _ref3, user;
+
       return regeneratorRuntime.async(function isUserAuthenticated$(_context4) {
         while (1) {
           switch (_context4.prev = _context4.next) {
             case 0:
               _context4.prev = 0;
               _context4.next = 3;
-              return regeneratorRuntime.awrap(_Auth["default"].getCurrentUser());
+              return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
             case 3:
-              user = _context4.sent;
+              _ref3 = _context4.sent;
+              user = _ref3.user;
               return _context4.abrupt("return", user !== null);
 
-            case 7:
-              _context4.prev = 7;
+            case 8:
+              _context4.prev = 8;
               _context4.t0 = _context4["catch"](0);
               return _context4.abrupt("return", false);
 
-            case 10:
+            case 11:
             case "end":
               return _context4.stop();
           }
         }
-      }, null, null, [[0, 7]]);
+      }, null, null, [[0, 8]]);
     }
   }, {
     key: "isUserAdmin",
     value: function isUserAdmin() {
-      var user, userRole;
+      var _ref4, user, role;
+
       return regeneratorRuntime.async(function isUserAdmin$(_context5) {
         while (1) {
           switch (_context5.prev = _context5.next) {
             case 0:
               _context5.prev = 0;
-              user = _config.auth.currentUser;
+              _context5.next = 3;
+              return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
-              if (user) {
-                _context5.next = 4;
-                break;
-              }
+            case 3:
+              _ref4 = _context5.sent;
+              user = _ref4.user;
+              role = _ref4.role;
+              return _context5.abrupt("return", role === "Admin");
 
-              return _context5.abrupt("return", false);
-
-            case 4:
-              _context5.next = 6;
-              return regeneratorRuntime.awrap(_Auth["default"].getUserRole(user.uid));
-
-            case 6:
-              userRole = _context5.sent;
-              return _context5.abrupt("return", userRole === "Admin");
-
-            case 10:
-              _context5.prev = 10;
+            case 9:
+              _context5.prev = 9;
               _context5.t0 = _context5["catch"](0);
               console.error("Error checking admin status:", _context5.t0);
               return _context5.abrupt("return", false);
 
-            case 14:
+            case 13:
             case "end":
               return _context5.stop();
           }
         }
-      }, null, null, [[0, 10]]);
+      }, null, null, [[0, 9]]);
     }
   }]);
 
-  return CampaignCommentController;
+  return MessageController;
 }();
 
-var _default = CampaignCommentController;
+var _default = MessageController;
 exports["default"] = _default;

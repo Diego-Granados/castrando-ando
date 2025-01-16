@@ -1,39 +1,40 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
-import { Form, Button } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Container, Form, Button } from "react-bootstrap";
 import MessageController from "@/controllers/MessageController";
+import { toast } from "react-toastify";
+import useSubscription from "@/hooks/useSubscription";
 import { auth } from "@/lib/firebase/config";
 
-export default function MessageWall() {
+export default function Mensajes() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const messagesEndRef = useRef(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Usar useSubscription para los mensajes
+  const { loading, error } = useSubscription(() => 
+    MessageController.getMessages(setMessages)
+  );
 
   useEffect(() => {
-    const loadMessages = async () => {
+    const checkAuth = async () => {
       try {
-        await MessageController.getMessages(setMessages);
-        setIsAuthenticated(MessageController.isUserAuthenticated());
-        setCurrentUserId(auth.currentUser?.uid || null);
+        const authStatus = await MessageController.isUserAuthenticated();
+        setIsAuthenticated(authStatus);
+        if (authStatus) {
+          const adminStatus = await MessageController.isUserAdmin();
+          setIsAdmin(adminStatus);
+        }
       } catch (error) {
-        console.error("Error cargando mensajes:", error);
+        console.error("Error verificando autenticación:", error);
       } finally {
-        setLoading(false);
+        setAuthChecking(false);
       }
     };
-    loadMessages();
+    checkAuth();
   }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,94 +44,102 @@ export default function MessageWall() {
       const result = await MessageController.createMessage(newMessage);
       if (result.ok) {
         setNewMessage("");
-        await MessageController.getMessages(setMessages);
       } else {
-        alert(result.error);
+        toast.error(result.error || "Error al enviar el mensaje");
       }
     } catch (error) {
       console.error("Error enviando mensaje:", error);
-      alert("Error al enviar el mensaje");
+      toast.error("Error al enviar el mensaje");
     }
   };
 
   const handleDelete = async (messageId) => {
     try {
       const result = await MessageController.deleteMessage(messageId);
-      if (result.ok) {
-        await MessageController.getMessages(setMessages);
-      } else {
-        alert(result.error);
+      if (!result.ok) {
+        toast.error(result.error || "Error al eliminar el mensaje");
       }
     } catch (error) {
       console.error("Error eliminando mensaje:", error);
-      alert("Error al eliminar el mensaje");
+      toast.error("Error al eliminar el mensaje");
     }
   };
 
-  if (loading) {
-    return <div className="text-center">Cargando mensajes...</div>;
+  if (loading || authChecking) {
+    return <Container className="py-4">Cargando mensajes...</Container>;
+  }
+
+  if (error) {
+    return <Container className="py-4">Error: {error.message}</Container>;
   }
 
   return (
-    <main className="container py-4">
-      <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
-        Mensajes de la comunidad
-      </h1>
-
-      <div className="card shadow-sm mb-4">
-        <div className="card-body" style={{ maxHeight: "600px", overflowY: "auto" }}>
-          {messages.length === 0 ? (
-            <p className="text-center">No hay mensajes aún</p>
-          ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`mb-3 p-3 border rounded ${
-                  isAuthenticated && message.authorId === currentUserId
-                    ? "ms-auto"
-                    : "me-auto"
-                }`}
-                style={{ maxWidth: "80%" }}
-              >
-                <div className="d-flex justify-content-between align-items-start">
-                  <strong>{message.author}</strong>
-                  <small className="text-muted">{message.createdAt}</small>
-                </div>
-                <p className="mb-1">{message.content}</p>
-                {isAuthenticated && message.authorId === currentUserId && (
-                  <Button
-                    variant="link"
-                    className="p-0 text-danger"
-                    onClick={() => handleDelete(message.id)}
+    <div className="d-flex flex-column min-vh-100">
+      <Container className="flex-grow-1 py-4">
+        <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Mensajes</h1>
+        
+        <div className="card shadow-sm mb-4">
+          <div className="card-body">
+            <div className="messages-container" style={{ 
+              maxHeight: "calc(100vh - 300px)", 
+              minHeight: "300px",
+              overflowY: "auto",
+              marginBottom: "1rem"
+            }}>
+              {messages.length === 0 ? (
+                <p className="text-center">No hay mensajes aún</p>
+              ) : (
+                messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`mb-3 p-3 border rounded ${
+                      isAuthenticated && message.authorId === auth.currentUser?.uid
+                        ? "ms-auto"
+                        : "me-auto"
+                    }`}
+                    style={{ maxWidth: "80%" }}
                   >
-                    🗑️
-                  </Button>
-                )}
-              </div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
+                    <div className="d-flex justify-content-between align-items-start">
+                      <strong>{message.author}</strong>
+                      <small className="text-muted">{message.createdAt}</small>
+                    </div>
+                    <p className="mb-1">{message.content}</p>
+                    {(isAdmin || (isAuthenticated && message.authorId === auth.currentUser?.uid)) && (
+                      <Button
+                        variant="link"
+                        className="p-0 text-danger"
+                        onClick={() => handleDelete(message.id)}
+                      >
+                        🗑️
+                      </Button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
 
-      {isAuthenticated ? (
-        <Form onSubmit={handleSubmit} className="d-flex gap-2">
-          <Form.Control
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe tu mensaje..."
-            className="flex-grow-1"
-          />
-          <Button type="submit" variant="primary">
-            Enviar
-          </Button>
-        </Form>
-      ) : (
-        <p className="text-center">
-          Debes iniciar sesión para enviar mensajes
-        </p>
-      )}
-    </main>
+            {isAuthenticated ? (
+              <Form onSubmit={handleSubmit} className="mt-3">
+                <Form.Group className="d-flex gap-2">
+                  <Form.Control
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Escribe tu mensaje..."
+                  />
+                  <Button type="submit" variant="primary">
+                    Enviar
+                  </Button>
+                </Form.Group>
+              </Form>
+            ) : (
+              <p className="text-center mt-3">
+                Debes iniciar sesión para enviar mensajes
+              </p>
+            )}
+          </div>
+        </div>
+      </Container>
+    </div>
   );
 } 

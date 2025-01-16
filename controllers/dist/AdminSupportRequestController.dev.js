@@ -85,6 +85,38 @@ function () {
         }
       }, null, null, [[0, 6]]);
     }
+  }, {
+    key: "updateRequestStatus",
+    value: function updateRequestStatus(requestId, newStatus) {
+      return regeneratorRuntime.async(function updateRequestStatus$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              _context3.prev = 0;
+              _context3.next = 3;
+              return regeneratorRuntime.awrap(_SupportRequest["default"].updateStatus(requestId, newStatus));
+
+            case 3:
+              return _context3.abrupt("return", {
+                ok: true
+              });
+
+            case 6:
+              _context3.prev = 6;
+              _context3.t0 = _context3["catch"](0);
+              console.error("Error updating request status:", _context3.t0);
+              return _context3.abrupt("return", {
+                ok: false,
+                error: _context3.t0.message
+              });
+
+            case 10:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, null, null, [[0, 6]]);
+    }
   }]);
 
   return AdminSupportRequestController;

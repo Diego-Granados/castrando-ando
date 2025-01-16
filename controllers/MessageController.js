@@ -1,54 +1,37 @@
+"use client";
 import Message from "@/models/Message";
-import { auth, db } from "@/lib/firebase/config";
-import { ref, get } from "firebase/database";
+import { auth } from "@/lib/firebase/config";
+import AuthController from "@/controllers/AuthController";
 
 class MessageController {
-  static async getCurrentUser() {
-    try {
-      const firebaseUser = auth.currentUser;
-      
-      if (!firebaseUser) {
-        throw new Error("No hay usuario autenticado");
-      }
-
-      const cedulaRef = ref(db, `uidToCedula/${firebaseUser.uid}`);
-      const cedulaSnapshot = await get(cedulaRef);
-      const cedula = cedulaSnapshot.val();
-
-      const userRef = ref(db, `users/${cedula}`);
-      const userSnapshot = await get(userRef);
-      const userData = userSnapshot.val();
-
-      if (!userData) {
-        throw new Error("No se encontraron datos del usuario");
-      }
-
-      return {
-        ...userData,
-        uid: firebaseUser.uid
-      };
-    } catch (error) {
-      console.error("Error obteniendo usuario actual:", error);
-      throw error;
-    }
-  }
-
   static async createMessage(content) {
     try {
       if (!content.trim()) {
         throw new Error("El mensaje no puede estar vacío");
       }
 
-      const currentUser = await this.getCurrentUser();
-      
-      if (!currentUser) {
+      const { user, role } = await AuthController.getCurrentUser();
+      if (!user) {
         throw new Error("Debes iniciar sesión para enviar mensajes");
+      }
+
+      let authorName;
+      if (role === 'Admin') {
+        // Si es admin, usar "Administrador" como nombre
+        authorName = "Administrador";
+      } else {
+        // Si es usuario normal, obtener sus datos
+        const userData = await AuthController.getUserData(user.uid);
+        if (!userData) {
+          throw new Error("No se encontraron datos del usuario");
+        }
+        authorName = userData.name;
       }
 
       const result = await Message.createMessage(
         content,
-        currentUser.name,
-        currentUser.uid
+        authorName,
+        user.uid
       );
       
       return { ok: true, messageId: result.messageId };
@@ -60,30 +43,46 @@ class MessageController {
 
   static async getMessages(setMessages) {
     try {
-      await Message.getMessages(setMessages);
-      return { ok: true };
+      // Ahora devolvemos la función de limpieza
+      const unsubscribe = await Message.getMessages(setMessages);
+      return unsubscribe;
     } catch (error) {
       console.error("Error obteniendo mensajes:", error);
-      return { ok: false, error: error.message };
+      throw error;
     }
   }
 
   static async deleteMessage(messageId) {
     try {
-      const currentUser = await this.getCurrentUser();
-      if (!currentUser) {
+      const { user, role } = await AuthController.getCurrentUser();
+      if (!user) {
         throw new Error("Usuario no autenticado");
       }
 
-      await Message.deleteMessage(messageId, currentUser.uid);
+      await Message.deleteMessage(messageId, user, role);
       return { ok: true };
     } catch (error) {
       return { ok: false, error: error.message };
     }
   }
 
-  static isUserAuthenticated() {
-    return auth.currentUser !== null;
+  static async isUserAuthenticated() {
+    try {
+      const { user } = await AuthController.getCurrentUser();
+      return user !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static async isUserAdmin() {
+    try {
+      const { user, role } = await AuthController.getCurrentUser();
+      return role === "Admin";
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
+    }
   }
 }
 

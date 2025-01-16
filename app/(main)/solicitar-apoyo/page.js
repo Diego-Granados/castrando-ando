@@ -40,7 +40,15 @@ export default function SolicitarApoyo() {
     setError("");
 
     try {
-      const result = await SupportRequestController.createRequest(formData);
+      const requestData = {
+        ...formData,
+        userId: auth.currentUser.uid,
+        date: new Date().toLocaleDateString(),
+        status: "Pendiente",
+        petType: "No especificado"
+      };
+
+      const result = await SupportRequestController.createRequest(requestData);
       if (result.ok) {
         setSuccess(true);
         setFormData({ title: "", description: "" });

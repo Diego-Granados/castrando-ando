@@ -1,55 +1,37 @@
+"use client";
 import CampaignComment from "@/models/CampaignComment";
-import { auth, db } from "@/lib/firebase/config";
-import { ref, get } from "firebase/database";
+import { auth } from "@/lib/firebase/config";
+import { ref, onValue } from "firebase/database";
+import Auth from "@/models/Auth";
 
 class CampaignCommentController {
-  static async getCurrentUser() {
-    try {
-      const firebaseUser = auth.currentUser;
-      
-      if (!firebaseUser) {
-        throw new Error("No hay usuario autenticado");
-      }
-
-      const cedulaRef = ref(db, `uidToCedula/${firebaseUser.uid}`);
-      const cedulaSnapshot = await get(cedulaRef);
-      const cedula = cedulaSnapshot.val();
-
-      const userRef = ref(db, `users/${cedula}`);
-      const userSnapshot = await get(userRef);
-      const userData = userSnapshot.val();
-
-      if (!userData) {
-        throw new Error("No se encontraron datos del usuario");
-      }
-
-      return {
-        ...userData,
-        uid: firebaseUser.uid
-      };
-    } catch (error) {
-      console.error("Error obteniendo usuario actual:", error);
-      throw error;
-    }
-  }
-
   static async createComment(campaignId, content) {
     try {
       if (!content.trim()) {
         throw new Error("El comentario no puede estar vacío");
       }
 
-      const currentUser = await this.getCurrentUser();
+      const user = await Auth.getCurrentUser();
+      const isAdmin = await this.isUserAdmin();
       
-      if (!currentUser) {
-        throw new Error("Debes iniciar sesión para comentar");
+      let authorName;
+      if (isAdmin) {
+        // Si es admin, usar el rol como nombre
+        authorName = "Administrador";
+      } else {
+        // Si es usuario normal, obtener sus datos
+        const userData = await Auth.getUserData(user.uid);
+        if (!userData) {
+          throw new Error("Debes iniciar sesión para comentar");
+        }
+        authorName = userData.name;
       }
 
       const result = await CampaignComment.createComment(
         campaignId,
         content,
-        currentUser.name,
-        currentUser.uid
+        authorName,
+        user.uid
       );
       
       return { ok: true, commentId: result.commentId };
@@ -58,31 +40,53 @@ class CampaignCommentController {
     }
   }
 
-  static async getComments(campaignId, setComments) {
+  static async getComments(campaignId, callback) {
     try {
-      await CampaignComment.getComments(campaignId, setComments);
-      return { ok: true };
+      // Devolvemos la función de limpieza
+      const unsubscribe = await CampaignComment.getComments(campaignId, callback);
+      return unsubscribe;
     } catch (error) {
-      return { ok: false, error: error.message };
+      console.error("Error obteniendo comentarios:", error);
+      throw error;
     }
   }
 
   static async deleteComment(campaignId, commentId) {
     try {
-      const currentUser = await this.getCurrentUser();
-      if (!currentUser) {
+      const user = await Auth.getCurrentUser();
+      if (!user) {
         throw new Error("Usuario no autenticado");
       }
 
-      await CampaignComment.deleteComment(campaignId, commentId, currentUser.uid);
+      const isAdmin = await this.isUserAdmin();
+      
+      await CampaignComment.deleteComment(campaignId, commentId, user.uid, isAdmin);
       return { ok: true };
     } catch (error) {
       return { ok: false, error: error.message };
     }
   }
 
-  static isUserAuthenticated() {
-    return auth.currentUser !== null;
+  static async isUserAuthenticated() {
+    try {
+      const user = await Auth.getCurrentUser();
+      return user !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static async isUserAdmin() {
+    try {
+      const user = auth.currentUser;
+      if (!user) return false;
+      
+      const userRole = await Auth.getUserRole(user.uid);
+      return userRole === "Admin";
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      return false;
+    }
   }
 }
 

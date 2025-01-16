@@ -1,5 +1,5 @@
 import { auth, db } from "@/lib/firebase/config";
-import { ref, set, get, remove, query, orderByChild } from "firebase/database";
+import { ref, set, get, remove, query, orderByChild, onValue } from "firebase/database";
 
 class Message {
   static async createMessage(content, author, authorId) {
@@ -25,34 +25,42 @@ class Message {
     }
   }
 
-  static async getMessages(setMessages) {
+  static async getMessages(callback) {
     try {
       const messagesRef = ref(db, 'messages');
-      const snapshot = await get(messagesRef);
-      if (snapshot.exists()) {
-        const messagesData = snapshot.val();
-        const messagesArray = Object.entries(messagesData).map(([id, message]) => ({
-          id,
-          ...message
-        })).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        setMessages(messagesArray);
-      } else {
-        setMessages([]);
-      }
+      // Usar onValue para escuchar cambios en tiempo real
+      const unsubscribe = onValue(messagesRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const messagesData = snapshot.val();
+          const messagesArray = Object.entries(messagesData).map(([id, message]) => ({
+            id,
+            ...message
+          })).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          callback(messagesArray);
+        } else {
+          callback([]);
+        }
+      });
+
+      // Devolver la función de limpieza
+      return unsubscribe;
     } catch (error) {
       console.error("Error obteniendo mensajes:", error);
       throw error;
     }
   }
 
-  static async deleteMessage(messageId, userId) {
+  static async deleteMessage(messageId, userId, role) {
     try {
       const messageRef = ref(db, `messages/${messageId}`);
       const snapshot = await get(messageRef);
       
       if (snapshot.exists()) {
         const messageData = snapshot.val();
-        if (messageData.authorId === userId) {
+        if (messageData.authorId === userId.uid) {
+          await remove(messageRef);
+          return { ok: true };
+        } else if (role === 'Admin') {
           await remove(messageRef);
           return { ok: true };
         } else {

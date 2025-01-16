@@ -3,18 +3,23 @@ import { auth, db } from "@/lib/firebase/config";
 import { ref, get, set, push, remove, query, orderByChild } from "firebase/database";
 
 class Blog {
-  static async createBlog(blogData) {
+  static async create(blogData) {
     try {
       const blogsRef = ref(db, "blogs");
       const newBlogRef = push(blogsRef);
       
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
       const newBlog = {
         title: blogData.title,
         content: blogData.content,
         imageUrl: blogData.imageUrl || "",
-        author: blogData.author,
-        authorId: blogData.authorId,
-        date: new Date().toLocaleDateString(),
+        author: user.displayName || "Administrador",
+        authorId: user.uid,
+        date: blogData.date || new Date().toLocaleDateString(),
         createdAt: new Date().toISOString()
       };
 
@@ -25,7 +30,7 @@ class Blog {
     }
   }
 
-  static async getBlogs(setBlogs) {
+  static async getAll(setBlogs) {
     try {
       const blogsRef = ref(db, "blogs");
       const snapshot = await get(blogsRef);
@@ -36,14 +41,11 @@ class Blog {
           const blogData = childSnapshot.val();
           blogsArray.push({
             id: childSnapshot.key,
-            title: blogData.title,
-            content: blogData.content,
-            imageUrl: blogData.imageUrl,
-            author: blogData.author,
-            date: blogData.date,
+            ...blogData
           });
         });
         
+        // Ordenar por fecha de creación, más reciente primero
         blogsArray.sort((a, b) => 
           new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
         );
@@ -54,6 +56,17 @@ class Blog {
       }
     } catch (error) {
       console.error("Error getting blogs:", error);
+      throw error;
+    }
+  }
+
+  static async delete(blogId) {
+    try {
+      const blogRef = ref(db, `blogs/${blogId}`);
+      await remove(blogRef);
+      return { ok: true };
+    } catch (error) {
+      console.error("Error deleting blog:", error);
       throw error;
     }
   }
