@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Button, Table, Modal, Alert } from "react-bootstrap";
-import { Pencil, Trash2 } from "lucide-react";
+import { MedalIcon, Pencil, Receipt, Trash2 } from "lucide-react";
 import VolunteerController from "@/controllers/VolunteerController";
 import styles from "./VolunteersPage.module.css";
+import { Check, StarBorder } from "@mui/icons-material";
 
 const VolunteersPage = () => {
   const [volunteers, setVolunteers] = useState([]);
@@ -53,6 +54,8 @@ const VolunteersPage = () => {
     }
   };
 
+  //TODO Implementar la función del boton estrella, que es enviar certificado. esto cuando se acepta la solicitud, agreagar un campo al editar que permita cambiar el estado, este debe ser un dropdown con las opciones, de enviado, confirmado, rechazado.
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
     const updatedVolunteer = { id, name, email, phone, comment };
@@ -73,25 +76,35 @@ const VolunteersPage = () => {
   return (
     <div className={styles.container}>
       <h1>Voluntarios</h1>
-      <Table striped bordered hover>
+      <Table striped bordered hover className={styles.table}>
         <thead>
           <tr>
-            <th>Nombre</th>
             <th>Cédula</th>
+            <th>Nombre</th>
             <th>Email</th>
             <th>Teléfono</th>
             <th>Comentario</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {volunteers.map((volunteer) => (
             <tr key={volunteer.id}>
-              <td>{volunteer.name}</td>
               <td>{volunteer.id}</td>
+              <td>{volunteer.name}</td>
               <td>{volunteer.email}</td>
               <td>{volunteer.phone}</td>
               <td>{volunteer.comment}</td>
+              <td>
+                <span
+                  className={`badge ${
+                    volunteer.status === "sent" ? "bg-primary" : "bg-secondary"
+                  }`}
+                >
+                  {volunteer.status === "sent" ? "enviado" : volunteer.status}
+                </span>
+              </td>
               <td>
                 <Button
                   variant="outline-primary"
@@ -106,6 +119,13 @@ const VolunteersPage = () => {
                   onClick={() => handleDelete(volunteer.id)}
                 >
                   <Trash2 size={16} />
+                </Button>
+                <Button
+                  variant="outline-success"
+                  className={styles.btn}
+                  onClick={() => handleDelete(volunteer.id)}
+                >
+                  <StarBorder size={16} />
                 </Button>
               </td>
             </tr>
