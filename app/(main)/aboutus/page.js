@@ -20,7 +20,7 @@ export default function AboutUs() {
         <img
           className="img-fluid col"
           style={{ maxHeight: "40vh", width: "auto" }}
-          src="https://scontent.fsjo6-1.fna.fbcdn.net/v/t1.6435-9/53892547_2233470650051358_366009317599477760_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=13d280&_nc_ohc=fUAsc4KTWV4Q7kNvgH6-6gM&_nc_ht=scontent.fsjo6-1.fna&_nc_gid=AuGJ4f1bv81ygkNFKr18Jwn&oh=00_AYDhQtMgjv2BbCuRRwfPSZRmF17RBAe9oDG_ofHCxN4aEg&oe=670D4ACC"
+          src="https://static.vecteezy.com/system/resources/thumbnails/005/857/332/small_2x/funny-portrait-of-cute-corgi-dog-outdoors-free-photo.jpg"
         ></img>
       </section>
       <section className="container row mt-5">
