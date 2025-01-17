@@ -53,6 +53,9 @@ export default function NavBarAdmin() {
             </NavDropdown>
 
             <NavDropdown title="Comunidad" id="community-nav-dropdown">
+              <Link href="/admin/actividades/crear" passHref legacyBehavior>
+                <NavDropdown.Item>Crear actividad</NavDropdown.Item>
+              </Link>
               <Link href="/admin/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar actividades</NavDropdown.Item>
               </Link>
@@ -97,10 +100,6 @@ export default function NavBarAdmin() {
               title="Recaudación de fondos"
               id="fundraising-nav-dropdown"
             >
-              <Link href="/admin/actividades/crear" passHref legacyBehavior>
-                <NavDropdown.Item>Crear actividad</NavDropdown.Item>
-              </Link>
-
               <Link href="/admin/sales" passHref legacyBehavior>
                 <NavDropdown.Item>Productos</NavDropdown.Item>
               </Link>
