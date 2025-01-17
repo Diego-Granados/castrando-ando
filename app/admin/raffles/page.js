@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Table } from "react-bootstrap";
-import { Pencil, Send, Trash2 } from "lucide-react";
 import styles from "./RafflesPage.module.css";
-import { Check } from "@mui/icons-material";
+import { Button, Table } from "react-bootstrap";
+import { Check } from "lucide-react";
 
 const RafflesPage = () => {
   const [raffles, setRaffles] = useState(
-    Array.from({ length: 1000 }, (_, i) => ({
+    Array.from({ length: 100 }, (_, i) => ({
       number: i,
       purchased: false,
       purchaser: null,
@@ -31,13 +30,12 @@ const RafflesPage = () => {
   return (
     <div className={styles.container}>
       <h1>Rifas</h1>
-      <table className={styles.table}>
+      <Table striped bordered hover className={styles.table}>
         <thead>
           <tr>
             <th>Número</th>
-            <th>Estado</th>
+            <th>Comprado</th>
             <th>Comprador</th>
-            <th>Cédula</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -45,9 +43,8 @@ const RafflesPage = () => {
           {raffles.map((raffle) => (
             <tr key={raffle.number}>
               <td>{raffle.number}</td>
-              <td>{raffle.purchased ? "Comprado" : "Disponible"}</td>
+              <td>{raffle.purchased ? "Sí" : "No"}</td>
               <td>{raffle.purchaser || "N/A"}</td>
-              <td>{raffle.purchaser ? "12345678" : "N/A"}</td>
               <td>
                 {!raffle.purchased && (
                   <Button
@@ -62,7 +59,7 @@ const RafflesPage = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
     </div>
   );
 };
