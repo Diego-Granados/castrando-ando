@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import RouteGuard from "@/components/RouteGuard";
 export default function CrearBlog() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -101,10 +100,6 @@ export default function CrearBlog() {
     setSelectedImage(null);
     setPreviewUrl("");
   };
-
-  if (loading) {
-    return <Container className="py-4">Verificando permisos...</Container>;
-  }
 
   return (
     <RouteGuard requiredRole={"Admin"}>
