@@ -5,18 +5,19 @@ import styles from "./AlliesPage.module.css";
 import AllyController from "@/controllers/AllyController";
 
 const AlliesPage = () => {
-  const [sponsors, setSponsors] = useState([]);
+  const [allies, setAllies] = useState([]);
 
   useEffect(() => {
-    const fetchSponsors = async () => {
+    const fetchAllies = async () => {
       try {
-        const fetchedSponsors = await AllyController.getAllies();
-        setSponsors(fetchedSponsors);
+        const fetchedAllies = await AllyController.getAllAllies();
+        console.log("Fetched allies:", fetchedAllies); // Add this line for debugging
+        setAllies(Object.values(fetchedAllies));
       } catch (error) {
-        console.error("Error fetching sponsors:", error);
+        console.error("Error fetching allies:", error);
       }
     };
-    fetchSponsors();
+    fetchAllies();
   }, []);
 
   const formatLink = (link) => {
@@ -30,21 +31,21 @@ const AlliesPage = () => {
     <div className={styles.container}>
       <h1>Nuestros Aliados</h1>
       <div className={styles["sponsors-list"]}>
-        {sponsors.map((sponsor, index) => (
+        {allies.map((ally, index) => (
           <div key={index} className={styles.sponsor}>
             <img
-              src={sponsor.image}
-              alt={`${sponsor.name} logo`}
+              src={ally.image}
+              alt={`${ally.name} logo`}
               className={styles.image}
             />
             <a
-              href={formatLink(sponsor.link)}
+              href={formatLink(ally.link)}
               target="_blank"
               rel="noopener noreferrer"
             >
-              {sponsor.name}
+              {ally.name}
             </a>
-            <p>{sponsor.description}</p>
+            <p>{ally.description}</p>
           </div>
         ))}
       </div>

@@ -1,72 +1,72 @@
-import { db } from "@/lib/firebase/config";
-import { ref, set, get, update, remove, push } from "firebase/database";
+import Ally from "@/models/Ally";
 
 class AllyController {
-  static async createAlly(allyData) {
-    try {
-      const alliesRef = ref(db, "allies");
-      const newAllyRef = push(alliesRef);
-      await set(newAllyRef, allyData);
-      return { id: newAllyRef.key, ...allyData };
-    } catch (error) {
-      console.error("Error creating ally:", error);
-      throw error;
-    }
+  static async getAllAllies() {
+    return await Ally.getAll();
   }
 
-  static async getAllyById(id) {
-    try {
-      const allyRef = ref(db, `allies/${id}`);
-      const snapshot = await get(allyRef);
-      if (snapshot.exists()) {
-        return { id, ...snapshot.val() };
-      } else {
-        throw new Error("No se ha encontrado ningún aliado con este ID.");
-      }
-    } catch (error) {
-      console.error("Error getting ally:", error);
-      throw error;
-    }
+  static async getAllyById(allyId) {
+    return await Ally.getById(allyId);
   }
 
-  static async getAllies() {
+  static async createOrUpdateAlly(allyData, file) {
     try {
-      const alliesRef = ref(db, "allies");
-      const snapshot = await get(alliesRef);
-      if (snapshot.exists()) {
-        const allies = [];
-        snapshot.forEach((childSnapshot) => {
-          allies.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      if (file) {
+        const formData = new FormData();
+        formData.append("files", file);
+        formData.append("path", "allies");
+
+        const response = await fetch("/api/storage/upload", {
+          method: "POST",
+          body: formData,
         });
-        return allies;
+
+        if (!response.ok) {
+          throw new Error(`Error uploading file: ${response.statusText}`);
+        }
+
+        const downloadURLs = await response.json();
+        allyData.image = downloadURLs[0];
+      }
+
+      if (allyData.id) {
+        const existingAlly = await Ally.getById(allyData.id);
+        if (existingAlly && existingAlly.image !== allyData.image) {
+          console.log("Deleting existing image:", existingAlly.image); // Debugging log
+          await fetch("/api/storage/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ urls: [existingAlly.image] }),
+          });
+        }
+        await Ally.updateAlly(allyData.id, allyData);
       } else {
-        return [];
+        allyData.id = Date.now().toString();
+        await Ally.createAlly(allyData);
       }
     } catch (error) {
-      console.error("Error getting allies:", error);
-      throw error;
+      throw new Error(`Error saving ally: ${error.message}`);
     }
   }
 
-  static async updateAlly(id, allyData) {
+  static async deleteAlly(allyId) {
     try {
-      const allyRef = ref(db, `allies/${id}`);
-      await update(allyRef, allyData);
-      return { id, ...allyData };
+      const ally = await Ally.getById(allyId);
+      if (ally && ally.image) {
+        console.log("Deleting ally image:", ally.image); // Debugging log
+        await fetch("/api/storage/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ urls: [ally.image] }),
+        });
+      }
+      return await Ally.deleteAlly(allyId);
     } catch (error) {
-      console.error("Error updating ally:", error);
-      throw error;
-    }
-  }
-
-  static async deleteAlly(id) {
-    try {
-      const allyRef = ref(db, `allies/${id}`);
-      await remove(allyRef);
-      return true;
-    } catch (error) {
-      console.error("Error deleting ally:", error);
-      throw error;
+      throw new Error(`Error deleting ally: ${error.message}`);
     }
   }
 }

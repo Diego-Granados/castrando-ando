@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import { useState, useEffect } from "react";
 import styles from "./AlliesPage.module.css";
-import { Button, Table, Modal, Alert } from "react-bootstrap";
+import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
 import { Pencil, Trash2 } from "lucide-react";
 import AllyController from "@/controllers/AllyController";
 
@@ -15,18 +16,30 @@ const AlliesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalError, setModalError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
     const fetchAllies = async () => {
       try {
-        const fetchedAllies = await AllyController.getAllies();
-        setAllies(fetchedAllies);
+        const fetchedAllies = await AllyController.getAllAllies();
+        setAllies(Object.values(fetchedAllies));
       } catch (error) {
         console.error("Error fetching allies:", error);
       }
     };
     fetchAllies();
   }, []);
+
+  const handleAdd = () => {
+    setId("");
+    setName("");
+    setImage("");
+    setLink("");
+    setDescription("");
+    setFile(null);
+    setIsEditing(false);
+    setShowModal(true);
+  };
 
   const handleEdit = (ally) => {
     setId(ally.id);
@@ -38,51 +51,49 @@ const AlliesPage = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "¿Estás seguro de que deseas eliminar este aliado?"
-    );
-    if (confirmDelete) {
-      try {
-        await AllyController.deleteAlly(id);
-        setAllies(allies.filter((ally) => ally.id !== id));
-      } catch (error) {
-        console.error("Error deleting ally:", error);
-      }
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    console.log("handleSave called"); // Debugging log
+    try {
+      const allyData = {
+        id: id || Date.now().toString(),
+        name,
+        image,
+        link,
+        description,
+      };
+      await AllyController.createOrUpdateAlly(allyData, file);
+      setShowModal(false);
+      const fetchedAllies = await AllyController.getAllAllies();
+      setAllies(Object.values(fetchedAllies));
+    } catch (error) {
+      setModalError(`Error saving ally: ${error.message}`);
+      console.error("Error saving ally:", error);
     }
   };
 
-  const handleModalSubmit = async (e) => {
-    e.preventDefault();
-    const allyData = { name, image, link, description };
+  const handleDelete = async (allyId) => {
     try {
-      if (isEditing) {
-        await AllyController.updateAlly(id, allyData);
-        setAllies(
-          allies.map((ally) => (ally.id === id ? { id, ...allyData } : ally))
-        );
-      } else {
-        const newAlly = await AllyController.createAlly(allyData);
-        setAllies([...allies, newAlly]);
-      }
-      setShowModal(false);
-      setIsEditing(false);
-      setId("");
-      setName("");
-      setImage("");
-      setLink("");
-      setDescription("");
+      await AllyController.deleteAlly(allyId);
+      const fetchedAllies = await AllyController.getAllAllies();
+      setAllies(Object.values(fetchedAllies));
     } catch (error) {
-      setModalError(error.message);
+      console.error("Error deleting ally:", error);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <h1>Aliados</h1>
-      <Button variant="primary" onClick={() => setShowModal(true)}>
-        Agregar Aliado
-      </Button>
+    <div>
+      <div className="d-flex flex-column align-items-start mb-4 ms-5">
+        <h1>Nuestros Aliados</h1>
+        <Button className={styles.btn} onClick={handleAdd}>
+          Agregar Aliado
+        </Button>
+      </div>
       <Table striped bordered hover className={styles.table}>
         <thead>
           <tr>
@@ -138,64 +149,51 @@ const AlliesPage = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <form onSubmit={handleModalSubmit}>
-            {modalError && <Alert variant="danger">{modalError}</Alert>}
-            <div className="mb-3">
-              <label htmlFor="name" className="form-label">
-                Nombre
-              </label>
-              <input
+          {modalError && <Alert variant="danger">{modalError}</Alert>}
+          <Form onSubmit={handleSave}>
+            <Form.Group controlId="name" className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
                 type="text"
-                className="form-control"
-                id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="image" className="form-label">
-                Imagen
-              </label>
-              <input
+            </Form.Group>
+            <Form.Group controlId="image" className="mb-3">
+              <Form.Label>Imagen</Form.Label>
+              <Form.Control type="file" onChange={handleFileChange} />
+              {image && !file && (
+                <img
+                  src={image}
+                  alt="Current"
+                  className={`${styles.image} mt-2`}
+                />
+              )}
+            </Form.Group>
+            <Form.Group controlId="link" className="mb-3">
+              <Form.Label>Enlace</Form.Label>
+              <Form.Control
                 type="text"
-                className="form-control"
-                id="image"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="link" className="form-label">
-                Enlace
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="link"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 required
               />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="description" className="form-label">
-                Descripción
-              </label>
-              <textarea
-                className="form-control"
-                id="description"
-                rows="3"
+            </Form.Group>
+            <Form.Group controlId="description" className="mb-3">
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-              ></textarea>
-            </div>
-            <Button type="submit" variant="primary">
+              />
+            </Form.Group>
+            <Button type="submit" variant="primary" className={styles.btn}>
               {isEditing ? "Guardar cambios" : "Agregar"}
             </Button>
-          </form>
+          </Form>
         </Modal.Body>
       </Modal>
     </div>
