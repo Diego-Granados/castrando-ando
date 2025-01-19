@@ -83,13 +83,12 @@ const VolunteersPage = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Voluntarios</h1>
-      <p>
-        Bienvenidos. Aquí puedes enviar tu información para ser parte del
-        voluntariado de Castrando Ando.
-      </p>
-
-      <section style={{ padding: "20px" }}>
+      <section className={styles.section}>
+        <h1>Voluntariado</h1>
+        <p>
+          Aquí puedes enviar tu solicitud para ser parte del voluntariado de
+          Castrando Ando.
+        </p>
         <h2>Formulario de solicitud</h2>
         {submitted ? (
           <p>
@@ -97,7 +96,7 @@ const VolunteersPage = () => {
             contigo.
           </p>
         ) : (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className={styles.form}>
             {error && <Alert variant="danger">{error}</Alert>}
             <div className="mb-3">
               <label htmlFor="name" className="form-label">
@@ -180,12 +179,12 @@ const VolunteersPage = () => {
         )}
       </section>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Ingresar cédula</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <form onSubmit={handleModalSubmit}>
+          <form onSubmit={handleModalSubmit} className={styles.modalForm}>
             {modalError && <Alert variant="danger">{modalError}</Alert>}
             <div className="mb-3">
               <label htmlFor="modalId" className="form-label">
