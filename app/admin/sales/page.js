@@ -1,135 +1,143 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./SalesPage.module.css";
-import { Button, Table } from "react-bootstrap";
-import { Cross, Pencil, Send, Trash2 } from "lucide-react";
-import Modal from "@/components/Modal";
-import { AddBox, AdUnits } from "@mui/icons-material";
+import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
+import { Pencil, Trash2, Plus, Minus } from "lucide-react";
+import SalesController from "@/controllers/SalesController";
 
 const SalesPage = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Producto de Mascota 1",
-      image: "/placeholder.png",
-      price: "₡5000",
-      contact: "contacto1@example.com",
-      available: 10,
-    },
-    {
-      id: 2,
-      name: "Producto de Mascota 2",
-      image: "/placeholder.png",
-      price: "₡7000",
-      contact: "contacto2@example.com",
-      available: 5,
-    },
-    {
-      id: 3,
-      name: "Producto de Mascota 3",
-      image: "/placeholder.png",
-      price: "₡6000",
-      contact: "contacto3@example.com",
-      available: 8,
-    },
-    {
-      id: 4,
-      name: "Joyería y Accesorio 1",
-      image: "/placeholder.png",
-      price: "₡15000",
-      contact: "contacto4@example.com",
-      available: 3,
-    },
-    {
-      id: 5,
-      name: "Joyería y Accesorio 2",
-      image: "/placeholder.png",
-      price: "₡20000",
-      contact: "contacto5@example.com",
-      available: 7,
-    },
-    {
-      id: 6,
-      name: "Joyería y Accesorio 3",
-      image: "/placeholder.png",
-      price: "₡18000",
-      contact: "contacto6@example.com",
-      available: 2,
-    },
-    {
-      id: 7,
-      name: "Alimento 1",
-      image: "/placeholder.png",
-      price: "₡3000",
-      contact: "3534",
-      available: 15,
-    },
-  ]);
-
+  const [products, setProducts] = useState([]);
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [image, setImage] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("mascotas");
+  const [quantity, setQuantity] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    image: "",
-    price: "",
-    contact: "",
-    available: "",
-  });
+  const [modalError, setModalError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [file, setFile] = useState(null);
 
-  const handleAddProduct = () => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const fetchedProducts = await SalesController.getAllProducts();
+        console.log("Fetched products:", fetchedProducts); // Debugging log
+        setProducts(Object.values(fetchedProducts));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleAdd = () => {
+    setId("");
+    setName("");
+    setImage("");
+    setPrice("");
+    setDescription("");
+    setCategory("mascotas");
+    setQuantity(0);
+    setFile(null);
+    setIsEditing(false);
     setShowModal(true);
   };
 
-  const handleSaveProduct = () => {
-    setProducts([
-      ...products,
-      {
-        ...newProduct,
-        id: products.length + 1,
-        image: "/images/placeholder.png",
-      },
-    ]);
-    setShowModal(false);
-    setNewProduct({
-      name: "",
-      image: "",
-      price: "",
-      contact: "",
-      available: "",
-    });
+  const handleEdit = (product) => {
+    setId(product.id);
+    setName(product.name);
+    setImage(product.image);
+    setPrice(product.price);
+    setDescription(product.description);
+    setCategory(product.category);
+    setQuantity(product.quantity);
+    setIsEditing(true);
+    setShowModal(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: value });
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
   };
 
-  const handleDelete = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
+  const handleSave = async (e) => {
+    e.preventDefault();
+    console.log("handleSave called"); // Debugging log
+    try {
+      const productData = {
+        id: id || Date.now().toString(),
+        name,
+        image,
+        price,
+        description,
+        category,
+        quantity,
+      };
+      await SalesController.createOrUpdateProduct(productData, file);
+      setShowModal(false);
+      const fetchedProducts = await SalesController.getAllProducts();
+      setProducts(Object.values(fetchedProducts));
+    } catch (error) {
+      setModalError(`Error saving product: ${error.message}`);
+      console.error("Error saving product:", error);
+    }
   };
 
-  const handleEdit = (id) => {
-    // Aquí puedes agregar la lógica para editar un producto
-    console.log(`Editar producto con id: ${id}`);
+  const handleDelete = async (productId) => {
+    try {
+      await SalesController.deleteProduct(productId);
+      const fetchedProducts = await SalesController.getAllProducts();
+      setProducts(Object.values(fetchedProducts));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
+
+  const handleIncreaseQuantity = async (productId) => {
+    try {
+      const product = products.find((p) => p.id === productId);
+      if (product) {
+        product.quantity += 1;
+        await SalesController.createOrUpdateProduct(product);
+        setProducts([...products]);
+      }
+    } catch (error) {
+      console.error("Error increasing quantity:", error);
+    }
+  };
+
+  const handleDecreaseQuantity = async (productId) => {
+    try {
+      const product = products.find((p) => p.id === productId);
+      if (product && product.quantity > 0) {
+        product.quantity -= 1;
+        await SalesController.createOrUpdateProduct(product);
+        setProducts([...products]);
+      }
+    } catch (error) {
+      console.error("Error decreasing quantity:", error);
+    }
   };
 
   return (
     <div className={styles.container}>
-      <h1>Productos en Venta</h1>
-      <button
-        className={`${styles.btn} ${styles.btnPrimary}`}
-        onClick={handleAddProduct}
-      >
-        Agregar Producto
-      </button>
-      <table className={styles.table}>
+      <div className="d-flex flex-column align-items-start mb-4 ms-5">
+        <h1>Productos en Venta</h1>
+        <Button className={styles.btn} onClick={handleAdd}>
+          Agregar Producto
+        </Button>
+      </div>
+      <Table striped bordered hover className={styles.table}>
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Imagen</th>
             <th>Precio</th>
-            <th>Contacto</th>
-            <th>Disponibles</th>
+            <th>Descripción</th>
+            <th>Categoría</th>
+            <th>Cantidad</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -144,87 +152,120 @@ const SalesPage = () => {
                   className={styles.productImage}
                 />
               </td>
-              <td>{product.price}</td>
-              <td>{product.contact}</td>
-              <td>{product.available}</td>
+              <td>¢{product.price}</td>
+              <td>{product.description}</td>
+              <td>{product.category}</td>
+              <td>{product.quantity}</td>
               <td>
                 <Button
                   variant="outline-primary"
                   className={styles.btn}
-                  onClick={() => handleEdit(volunteer.id)}
+                  onClick={() => handleEdit(product)}
                 >
                   <Pencil size={16} />
                 </Button>
                 <Button
                   variant="outline-danger"
                   className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
+                  onClick={() => handleDelete(product.id)}
                 >
                   <Trash2 size={16} />
                 </Button>
-
                 <Button
-                  variant="outline-success"
+                  variant="outline"
                   className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
+                  onClick={() => handleIncreaseQuantity(product.id)}
                 >
-                  <Cross size={16} />
+                  <Plus size={16} />
+                </Button>
+                <Button
+                  variant="outline"
+                  className={styles.btn}
+                  onClick={() => handleDecreaseQuantity(product.id)}
+                >
+                  <Minus size={16} />
                 </Button>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
 
-      {showModal && (
-        <Modal
-          title="Agregar Nuevo Producto"
-          onClose={() => setShowModal(false)}
-        >
-          <div className={styles.formGroup}>
-            <label>Nombre:</label>
-            <input
-              type="text"
-              name="name"
-              value={newProduct.name}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Precio:</label>
-            <input
-              type="text"
-              name="price"
-              value={newProduct.price}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Contacto:</label>
-            <input
-              type="text"
-              name="contact"
-              value={newProduct.contact}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Disponibles:</label>
-            <input
-              type="number"
-              name="available"
-              value={newProduct.available}
-              onChange={handleChange}
-            />
-          </div>
-          <button
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={handleSaveProduct}
-          >
-            Guardar
-          </button>
-        </Modal>
-      )}
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isEditing ? "Editar Producto" : "Agregar Producto"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {modalError && <Alert variant="danger">{modalError}</Alert>}
+          <Form onSubmit={handleSave}>
+            <Form.Group controlId="name" className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="image" className="mb-3">
+              <Form.Label>Imagen</Form.Label>
+              <Form.Control type="file" onChange={handleFileChange} />
+              {image && !file && (
+                <img
+                  src={image}
+                  alt="Current"
+                  className={`${styles.productImage} mt-2`}
+                />
+              )}
+            </Form.Group>
+            <Form.Group controlId="price" className="mb-3">
+              <Form.Label>Precio</Form.Label>
+              <Form.Control
+                type="text"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="description" className="mb-3">
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="category" className="mb-3">
+              <Form.Label>Categoría</Form.Label>
+              <Form.Control
+                as="select"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+              >
+                <option value="mascotas">Mascotas</option>
+                <option value="joyeria y otros">Joyería y Otros</option>
+              </Form.Control>
+            </Form.Group>
+            <Form.Group controlId="quantity" className="mb-3">
+              <Form.Label>Cantidad</Form.Label>
+              <Form.Control
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Button type="submit" variant="primary" className={styles.btn}>
+              {isEditing ? "Guardar cambios" : "Agregar"}
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

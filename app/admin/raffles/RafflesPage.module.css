@@ -5,22 +5,40 @@
     padding: 20px;
 }
 
-.table {
-    width: auto;
-    margin: 20px auto;
+.raffle {
+    margin-bottom: 20px;
 }
 
-.table th,
-.table td {
-    text-align: center;
-    vertical-align: middle;
-}
+.header {
+    display: flex;
+    justify-content: space-between;
+    width: max-content;
+    width: 400px;
+    margin-bottom: 20px;
+
+.table {
+        width: 100%;
+        max-width: 1200px;
+        /* Maximum width for larger screens */
+        min-width: 600px;
+        /* Minimum width for smaller screens */
+        margin: 20px auto;
+        overflow-x: auto;
+        /* Enable horizontal scrolling if needed */
+    }
+
+    .table th,
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+    }
 
 .btn {
     padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 5px; /* Add margin between buttons */
+    margin-right: 5px;
+    margin-left: 5px; /* Add margin between buttons */
 }
 
 .btn-primary {

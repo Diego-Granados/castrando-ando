@@ -8,10 +8,14 @@
     margin-top: 20px;
 }
 
-.table th, .table td {
+.table th,
+.table td {
     border: 1px solid #ddd;
     padding: 8px;
-    text-align: left;
+    text-align: center;
+    /* Center text in table cells */
+    vertical-align: middle;
+    /* Center content vertically */
 }
 
 .table th {
@@ -35,9 +39,7 @@
     padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 5px; /* Add margin between buttons */
 }
-
 .btn-primary {
     background-color: #007bff;
     color: white;
