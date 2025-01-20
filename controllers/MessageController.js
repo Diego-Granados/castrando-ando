@@ -1,6 +1,5 @@
 "use client";
 import Message from "@/models/Message";
-import { auth } from "@/lib/firebase/config";
 import AuthController from "@/controllers/AuthController";
 
 class MessageController {
@@ -16,7 +15,7 @@ class MessageController {
       }
 
       let authorName;
-      if (role === 'Admin') {
+      if (role === "Admin") {
         // Si es admin, usar "Administrador" como nombre
         authorName = "Administrador";
       } else {
@@ -28,12 +27,8 @@ class MessageController {
         authorName = userData.name;
       }
 
-      const result = await Message.createMessage(
-        content,
-        authorName,
-        user.uid
-      );
-      
+      const result = await Message.createMessage(content, authorName, user.uid);
+
       return { ok: true, messageId: result.messageId };
     } catch (error) {
       console.error("Error en MessageController:", error);
@@ -86,4 +81,4 @@ class MessageController {
   }
 }
 
-export default MessageController; 
+export default MessageController;

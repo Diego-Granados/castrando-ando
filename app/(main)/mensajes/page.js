@@ -4,7 +4,7 @@ import { Container, Form, Button } from "react-bootstrap";
 import MessageController from "@/controllers/MessageController";
 import { toast } from "react-toastify";
 import useSubscription from "@/hooks/useSubscription";
-import { auth } from "@/lib/firebase/config";
+import AuthController from "@/controllers/AuthController";
 
 export default function Mensajes() {
   const [messages, setMessages] = useState([]);
@@ -12,29 +12,38 @@ export default function Mensajes() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
-
-  // Usar useSubscription para los mensajes
-  const { loading, error } = useSubscription(() => 
-    MessageController.getMessages(setMessages)
-  );
+  const [userUid, setUserUid] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authStatus = await MessageController.isUserAuthenticated();
-        setIsAuthenticated(authStatus);
-        if (authStatus) {
-          const adminStatus = await MessageController.isUserAdmin();
-          setIsAdmin(adminStatus);
-        }
-      } catch (error) {
-        console.error("Error verificando autenticación:", error);
-      } finally {
-        setAuthChecking(false);
-      }
-    };
     checkAuth();
   }, []);
+
+  async function checkAuth() {
+    try {
+      const { user, role } = await AuthController.getCurrentUser();
+
+      if (!user) {
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+        setUserUid(user.uid);
+      }
+      if (role === "Admin") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error verificando autenticación:", error);
+    } finally {
+      setAuthChecking(false);
+    }
+  }
+
+  // Usar useSubscription para los mensajes
+  const { loading, error } = useSubscription(() =>
+    MessageController.getMessages(setMessages)
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,16 +85,21 @@ export default function Mensajes() {
   return (
     <div className="d-flex flex-column min-vh-100">
       <Container className="flex-grow-1 py-4">
-        <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Mensajes</h1>
-        
+        <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
+          Mensajes
+        </h1>
+
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <div className="messages-container" style={{ 
-              maxHeight: "calc(100vh - 300px)", 
-              minHeight: "300px",
-              overflowY: "auto",
-              marginBottom: "1rem"
-            }}>
+            <div
+              className="messages-container"
+              style={{
+                maxHeight: "calc(100vh - 300px)",
+                minHeight: "300px",
+                overflowY: "auto",
+                marginBottom: "1rem",
+              }}
+            >
               {messages.length === 0 ? (
                 <p className="text-center">No hay mensajes aún</p>
               ) : (
@@ -93,7 +107,7 @@ export default function Mensajes() {
                   <div
                     key={message.id}
                     className={`mb-3 p-3 border rounded ${
-                      isAuthenticated && message.authorId === auth.currentUser?.uid
+                      isAuthenticated && message.authorId === userUid
                         ? "ms-auto"
                         : "me-auto"
                     }`}
@@ -104,7 +118,8 @@ export default function Mensajes() {
                       <small className="text-muted">{message.createdAt}</small>
                     </div>
                     <p className="mb-1">{message.content}</p>
-                    {(isAdmin || (isAuthenticated && message.authorId === auth.currentUser?.uid)) && (
+                    {(isAdmin ||
+                      (isAuthenticated && message.authorId === userUid)) && (
                       <Button
                         variant="link"
                         className="p-0 text-danger"
@@ -142,4 +157,4 @@ export default function Mensajes() {
       </Container>
     </div>
   );
-} 
+}
