@@ -12,7 +12,7 @@ import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 import Medicine from "@/models/Medicine";
 import Table from "react-bootstrap/Table";
-import CampaignForum from "@/app/(main)/campaign/mensajes/CampaignForum";
+import CampaignForum from "@/components/CampaignForum";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -67,13 +67,20 @@ export default function Campaign() {
     setCalculatingInventory(true);
     try {
       const medicines = await Medicine.getAllOnce();
-      const totalWeight = await CampaignController.calculateMedicineNeeds(campaignId, medicines);
+      const totalWeight = await CampaignController.calculateMedicineNeeds(
+        campaignId,
+        medicines
+      );
       let totals = [];
       for (const medicine of medicines) {
         totals.push({
           name: medicine.name,
-          total: Math.ceil(medicine.amount * (Math.floor(totalWeight / medicine.weightMultiplier)) * medicine.daysOfTreatment),
-          unit: medicine.unit
+          total: Math.ceil(
+            medicine.amount *
+              Math.floor(totalWeight / medicine.weightMultiplier) *
+              medicine.daysOfTreatment
+          ),
+          unit: medicine.unit,
         });
       }
       setInventoryEstimate(totals);
@@ -125,7 +132,9 @@ export default function Campaign() {
                           ₡{price.price}{" "}
                           {price.weight != "100"
                             ? `hasta ${price.weight}`
-                            : `más de ${campaign.pricesData[index - 1].weight}`}{" "}
+                            : `más de ${
+                                campaign.pricesData[index - 1].weight
+                              }`}{" "}
                           kg
                         </li>
                       ))}
@@ -169,7 +178,9 @@ export default function Campaign() {
                         onClick={handleCalculateInventory}
                         disabled={calculatingInventory}
                       >
-                        {calculatingInventory ? 'Calculando...' : 'Calcular estimación de inventario'}
+                        {calculatingInventory
+                          ? "Calculando..."
+                          : "Calcular estimación de inventario"}
                       </Button>
                     </div>
                   </div>
@@ -242,7 +253,11 @@ export default function Campaign() {
                 </Button>
               </Modal.Footer>
             </Modal>
-            <Modal show={showInventory} onHide={() => setShowInventory(false)} centered>
+            <Modal
+              show={showInventory}
+              onHide={() => setShowInventory(false)}
+              centered
+            >
               <Modal.Header closeButton>
                 <Modal.Title>Estimación de Inventario Necesario</Modal.Title>
               </Modal.Header>
@@ -271,7 +286,10 @@ export default function Campaign() {
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowInventory(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowInventory(false)}
+                >
                   Cerrar
                 </Button>
               </Modal.Footer>

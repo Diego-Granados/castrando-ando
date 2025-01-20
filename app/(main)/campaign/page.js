@@ -10,7 +10,7 @@ import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 import CampaignCommentController from "@/controllers/CampaignCommentController";
 import { auth } from "@/lib/firebase/config";
-import CampaignForum from "./mensajes/CampaignForum";
+import CampaignForum from "@/components/CampaignForum";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -76,7 +76,9 @@ export default function Campaign() {
                         ₡{price.price}{" "}
                         {price.weight != "100"
                           ? `hasta ${price.weight}`
-                          : `más de ${campaign.pricesData[index - 1].weight}`}{" "}
+                          : `más de ${
+                              campaign.pricesData[index - 1].weight
+                            }`}{" "}
                         kg
                       </li>
                     ))}
@@ -84,8 +86,8 @@ export default function Campaign() {
                   <p>
                     <strong>
                       Cargo adicional en casos especiales de ₡
-                      {campaign.priceSpecial} (preñez, celo, piometra, perros XL,
-                      entre otros)
+                      {campaign.priceSpecial} (preñez, celo, piometra, perros
+                      XL, entre otros)
                     </strong>
                   </p>
                   {active && (
