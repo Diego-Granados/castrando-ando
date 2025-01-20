@@ -152,7 +152,9 @@ export async function POST(request) {
     });
 
     // Draw logo
-    const logoImage = await loadImage("./public/logo.jpg");
+    const logoImage = await loadImage(
+      path.join(process.cwd(), "public", "logo.jpg")
+    );
     const logoWidth = canvas.width * 0.2; // 20% of canvas width
     const logoHeight = (logoImage.height * logoWidth) / logoImage.width;
     const logoX = (canvas.width - logoWidth) / 2;
