@@ -1,51 +1,199 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-}
-
-.raffle {
-    margin-bottom: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.raffleHeader {
     display: flex;
     justify-content: space-between;
-    width: max-content;
-    width: 400px;
-    margin-bottom: 20px;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 3rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.raffleInfo {
+    flex: 1;
+    padding-right: 2rem;
+}
+
+.raffleInfo h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.raffleInfo p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.raffleInfo p strong {
+    color: #333;
+}
+
+.raffleImageContainer {
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.raffleImage {
+    width: 50%;
+    height: 50%;
+    border-radius: 8px;
+    object-fit: cover;
+}
 
 .table {
-        width: 100%;
-        max-width: 1200px;
-        /* Maximum width for larger screens */
-        min-width: 600px;
-        /* Minimum width for smaller screens */
-        margin: 20px auto;
-        overflow-x: auto;
-        /* Enable horizontal scrolling if needed */
-    }
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin-top: 2rem;
+}
 
-    .table th,
-    .table td {
-        text-align: center;
-        vertical-align: middle;
-    }
+.table th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+}
+
+.editButton {
+    margin-top: 1.5rem;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
 
 .btn {
-    padding: 5px 10px;
-    border-radius: 4px;
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.comprobante {
+    max-width: 50px;
     cursor: pointer;
-    margin-right: 5px;
-    margin-left: 5px; /* Add margin between buttons */
+    transition: transform 0.2s;
+    border-radius: 4px;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
+.comprobante:hover {
+    transform: scale(1.1);
 }
 
-.btn-primary:hover {
-    background-color: #0056b3;
+.currentImage {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.thumbnailImage {
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+.imageButton {
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+/* Modal styles */
+:global(.modal-content) {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+:global(.modal-header) {
+    border-bottom: 1px solid #eee;
+    padding: 1.5rem;
+}
+
+:global(.modal-body) {
+    padding: 1.5rem;
+}
+
+:global(.modal-footer) {
+    border-top: 1px solid #eee;
+    padding: 1.5rem;
+}
+
+.raffleTitle {
+    margin-bottom: 1.5rem;
+}
+
+.raffleTitle h2 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: #333;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.modalImageContainer {
+    margin-top: 1rem;
+    text-align: center;
+    max-height: 200px;
+    overflow: hidden;
+}
+
+.modalImage {
+    max-width: 50%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }

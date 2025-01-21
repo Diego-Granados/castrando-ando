@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
-import { Check, Trophy, Trash2 } from "lucide-react";
+import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
 
@@ -12,16 +12,32 @@ const RafflesPage = () => {
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [raffleName, setRaffleName] = useState("");
+  const [raffleDescription, setRaffleDescription] = useState("");
+  const [rafflePrice, setRafflePrice] = useState("");
+  const [raffleDate, setRaffleDate] = useState("");
+  const [raffleImage, setRaffleImage] = useState(null);
   const [winningNumber, setWinningNumber] = useState("");
   const [selectedNumber, setSelectedNumber] = useState(null);
+  const fileInputRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState(null);
 
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
         const fetchedRaffles = await RaffleController.getAllRaffles();
-        setRaffles(Object.values(fetchedRaffles));
+        const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+          ([id, raffle]) => ({
+            id,
+            ...raffle,
+          })
+        );
+        setRaffles(rafflesArray);
       } catch (error) {
         console.error("Error fetching raffles:", error);
+        setRaffles([]);
       }
     };
     fetchRaffles();
@@ -29,15 +45,46 @@ const RafflesPage = () => {
 
   const handleApprove = async () => {
     try {
-      await RaffleController.approvePurchase(
+      await RaffleController.updateNumber(
         selectedRaffle.id,
-        selectedNumber.number
+        selectedPurchase.number,
+        {
+          ...selectedPurchase,
+          status: "approved",
+          approved: true,
+        }
       );
+
       const fetchedRaffles = await RaffleController.getAllRaffles();
       setRaffles(Object.values(fetchedRaffles));
-      setShowApproveModal(false);
+      setShowImageModal(false);
     } catch (error) {
       console.error("Error approving purchase:", error);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      await RaffleController.updateNumber(
+        selectedRaffle.id,
+        selectedPurchase.number,
+        {
+          number: selectedPurchase.number,
+          buyer: "",
+          id: "",
+          phone: "",
+          receipt: "",
+          status: "available",
+          purchased: false,
+          approved: false,
+        }
+      );
+
+      const fetchedRaffles = await RaffleController.getAllRaffles();
+      setRaffles(Object.values(fetchedRaffles));
+      setShowImageModal(false);
+    } catch (error) {
+      console.error("Error rejecting purchase:", error);
     }
   };
 
@@ -70,6 +117,7 @@ const RafflesPage = () => {
       }
       await RaffleController.updateRaffle(selectedRaffle.id, {
         status: "finished",
+        winner: winningNumber,
       });
       const fetchedRaffles = await RaffleController.getAllRaffles();
       setRaffles(Object.values(fetchedRaffles));
@@ -81,25 +129,60 @@ const RafflesPage = () => {
   };
 
   const handleCreateRaffle = async () => {
-    const newRaffle = {
-      id: Date.now().toString(),
-      name: raffleName,
-      status: "active",
-      numbers: Array.from({ length: 100 }, (_, number) => ({
-        number,
-        purchased: false,
-        purchaser: null,
-        image: null,
-      })),
-    };
+    if (!raffleName || !raffleDescription || !rafflePrice || !raffleDate) {
+      alert("Por favor complete todos los campos.");
+      return;
+    }
+
     try {
-      await RaffleController.createOrUpdateRaffle(newRaffle);
+      const raffleData = {
+        name: raffleName,
+        description: raffleDescription,
+        price: parseInt(rafflePrice),
+        date: raffleDate,
+        status: selectedRaffle?.status || "active",
+        numbers: selectedRaffle?.numbers || {},
+      };
+
+      if (raffleImage) {
+        raffleData.image = raffleImage;
+      } else if (selectedRaffle) {
+        raffleData.image = selectedRaffle.image;
+      }
+
+      if (selectedRaffle) {
+        await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
+        console.log("Raffle updated with data:", raffleData);
+      } else {
+        await RaffleController.createRaffle(raffleData);
+        console.log("Raffle created with data:", raffleData);
+      }
+
       const fetchedRaffles = await RaffleController.getAllRaffles();
-      setRaffles(Object.values(fetchedRaffles));
+      const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+        ([id, raffle]) => ({
+          id,
+          ...raffle,
+        })
+      );
+      setRaffles(rafflesArray);
+
       setShowCreateModal(false);
       setRaffleName("");
+      setRaffleDescription("");
+      setRafflePrice("");
+      setRaffleDate("");
+      setRaffleImage(null);
+      setSelectedRaffle(null);
+
+      alert(
+        selectedRaffle
+          ? "Rifa actualizada exitosamente"
+          : "Rifa creada exitosamente"
+      );
     } catch (error) {
-      console.error("Error creating raffle:", error);
+      console.error("Error creating/updating raffle:", error);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -113,62 +196,263 @@ const RafflesPage = () => {
     setShowApproveModal(true);
   };
 
+  const handleFileInputClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setRaffleImage(file);
+    }
+  };
+
+  const resetForm = () => {
+    setRaffleName("");
+    setRaffleDescription("");
+    setRafflePrice("");
+    setRaffleDate("");
+    setRaffleImage(null);
+    setSelectedRaffle(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowCreateModal(false);
+    resetForm();
+  };
+
+  const handleCreateClick = () => {
+    resetForm();
+    setShowCreateModal(true);
+  };
+
+  const handleDeleteRaffle = async () => {
+    try {
+      if (!selectedRaffle?.id) {
+        throw new Error("No hay rifa seleccionada");
+      }
+
+      if (
+        !confirm(
+          "¿Está seguro que desea eliminar esta rifa? Esta acción no se puede deshacer."
+        )
+      ) {
+        return;
+      }
+
+      await RaffleController.deleteRaffle(selectedRaffle.id);
+
+      const fetchedRaffles = await RaffleController.getAllRaffles();
+      setRaffles(Object.values(fetchedRaffles || {}));
+
+      setSelectedRaffle(null);
+      setShowDeleteModal(false);
+
+      alert("Rifa eliminada exitosamente");
+    } catch (error) {
+      console.error("Error deleting raffle:", error);
+      alert(error.message);
+    }
+  };
+
+  const handleEditClick = (raffle) => {
+    setSelectedRaffle(raffle);
+    setRaffleName(raffle.name);
+    setRaffleDescription(raffle.description);
+    setRafflePrice(raffle.price);
+    setRaffleDate(raffle.date);
+    setRaffleImage(null);
+    setShowUpdateModal(true);
+  };
+
+  const handleUpdateRaffle = async () => {
+    if (!raffleName || !raffleDescription || !rafflePrice || !raffleDate) {
+      alert("Por favor complete todos los campos.");
+      return;
+    }
+
+    try {
+      const raffleData = {
+        name: raffleName,
+        description: raffleDescription,
+        price: parseInt(rafflePrice),
+        date: raffleDate,
+        image: raffleImage,
+        status: selectedRaffle.status,
+        numbers: selectedRaffle.numbers,
+      };
+
+      await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
+
+      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+        ([id, raffle]) => ({
+          id,
+          ...raffle,
+        })
+      );
+      setRaffles(rafflesArray);
+
+      setShowUpdateModal(false);
+      setRaffleName("");
+      setRaffleDescription("");
+      setRafflePrice("");
+      setRaffleDate("");
+      setRaffleImage(null);
+      setSelectedRaffle(null);
+
+      alert("Rifa actualizada exitosamente");
+    } catch (error) {
+      console.error("Error updating raffle:", error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleShowImageModal = (numberData) => {
+    setSelectedPurchase(numberData);
+    setShowImageModal(true);
+  };
+
   return (
     <div className={styles.container}>
-      <h1>Rifas</h1>
-      <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-        Crear Nueva Rifa
-      </Button>
-      <Dropdown onSelect={handleSelectRaffle}>
-        <Dropdown.Toggle variant="success" id="dropdown-basic">
-          Seleccionar Rifa
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          {raffles.map((raffle) => (
-            <Dropdown.Item key={raffle.id} eventKey={raffle.id}>
-              {raffle.name}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
-      {selectedRaffle && (
+      <div className={styles.header}>
+        <h1>Administración de Rifas</h1>
+        <div className={styles.buttonContainer}>
+          <Button variant="primary" size="lg" onClick={handleCreateClick}>
+            Crear Nueva Rifa
+          </Button>
+          <Dropdown onSelect={handleSelectRaffle}>
+            <Dropdown.Toggle variant="success" id="dropdown-basic" size="lg">
+              Seleccionar Rifa
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {raffles.map((raffle) => (
+                <Dropdown.Item key={raffle.id} eventKey={raffle.id}>
+                  {raffle.name}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </div>
+
+      {selectedRaffle ? (
         <div className={styles.raffle}>
-          <h2>
-            {selectedRaffle.name} (
-            {selectedRaffle.status === "active" ? "Activa" : "Finalizada"})
-          </h2>
+          <div className={styles.raffleHeader}>
+            <div className={styles.raffleInfo}>
+              <div className={styles.raffleTitle}>
+                <div>
+                  <h2>
+                    {selectedRaffle.name}
+                    <span
+                      className={`badge ${
+                        selectedRaffle.status === "active"
+                          ? "bg-success"
+                          : "bg-secondary"
+                      } ms-2`}
+                    >
+                      {selectedRaffle.status === "active"
+                        ? "Activa"
+                        : "Finalizada"}
+                    </span>
+                  </h2>
+                </div>
+              </div>
+              <p>
+                <strong>Descripción:</strong> {selectedRaffle.description}
+              </p>
+              <p>
+                <strong>Precio:</strong> ₡{selectedRaffle.price}
+              </p>
+              <p>
+                <strong>Fecha:</strong> {selectedRaffle.date}
+              </p>
+              <div className={styles.actionButtons}>
+                <Button
+                  variant="outline-primary"
+                  className={styles.actionButton}
+                  onClick={() => handleEditClick(selectedRaffle)}
+                >
+                  <Pencil size={16} /> Editar
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  className={styles.actionButton}
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <Trash2 size={16} /> Eliminar
+                </Button>
+              </div>
+            </div>
+            {selectedRaffle.image && (
+              <div className={styles.raffleImageContainer}>
+                <img
+                  src={selectedRaffle.image}
+                  alt={selectedRaffle.name}
+                  className={styles.raffleImage}
+                />
+              </div>
+            )}
+          </div>
+
+          {selectedRaffle.status === "finished" && (
+            <div className="alert alert-info">
+              <Trophy size={20} className="me-2" />
+              Número Ganador: {selectedRaffle.winner}
+            </div>
+          )}
           <Table striped bordered hover className={styles.table}>
             <thead>
               <tr>
                 <th>Número</th>
-                <th>Comprado</th>
+                <th>Estado</th>
                 <th>Comprador</th>
+                <th>Cédula</th>
+                <th>Teléfono</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 100 }, (_, number) => (
-                <tr key={number}>
-                  <td>{number}</td>
-                  <td>
-                    {selectedRaffle.numbers[number]?.purchased ? "Sí" : "No"}
-                  </td>
-                  <td>{selectedRaffle.numbers[number]?.purchaser || "N/A"}</td>
-                  <td>
-                    {selectedRaffle.numbers[number]?.purchased && (
-                      <Button
-                        variant="outline-success"
-                        className={styles.btn}
-                        onClick={() =>
-                          handleShowApproveModal(selectedRaffle.numbers[number])
-                        }
-                      >
-                        <Check size={16} />
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {Array.from({ length: 100 }, (_, i) => {
+                const number = i;
+                const data = selectedRaffle.numbers[number] || {
+                  number,
+                  buyer: "",
+                  id: "",
+                  phone: "",
+                  receipt: "",
+                  status: "available",
+                  purchased: false,
+                  approved: false,
+                };
+
+                return (
+                  <tr key={number}>
+                    <td>{number}</td>
+                    <td>
+                      {data.status === "approved"
+                        ? "Aprobado"
+                        : data.status === "pending"
+                        ? "Pendiente"
+                        : "Disponible"}
+                    </td>
+                    <td>{data.buyer || "N/A"}</td>
+                    <td>{data.id || "N/A"}</td>
+                    <td>{data.phone || "N/A"}</td>
+                    <td>
+                      {data.purchased && !data.approved && (
+                        <Button
+                          variant="outline-primary"
+                          className={styles.btn}
+                          onClick={() => handleShowImageModal(data)}
+                        >
+                          <Check size={16} />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
           {selectedRaffle.status === "active" && (
@@ -181,14 +465,18 @@ const RafflesPage = () => {
             </Button>
           )}
         </div>
+      ) : (
+        <div className="text-center text-muted mt-5">
+          <h3>Seleccione una rifa para ver sus detalles</h3>
+        </div>
       )}
 
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
+      <Modal show={showCreateModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Crear Nueva Rifa</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group controlId="raffleName">
+          <Form.Group controlId="raffleName" className={styles.formGroup}>
             <Form.Label>Nombre de la Rifa</Form.Label>
             <Form.Control
               type="text"
@@ -197,13 +485,76 @@ const RafflesPage = () => {
               required
             />
           </Form.Group>
+          <Form.Group
+            controlId="raffleDescription"
+            className={styles.formGroup}
+          >
+            <Form.Label>Descripción</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={raffleDescription}
+              onChange={(e) => setRaffleDescription(e.target.value)}
+              required
+            />
+          </Form.Group>
+          <Form.Group controlId="rafflePrice" className={styles.formGroup}>
+            <Form.Label>Precio de los Números</Form.Label>
+            <Form.Control
+              type="number"
+              value={rafflePrice}
+              onChange={(e) => setRafflePrice(e.target.value)}
+              required
+            />
+          </Form.Group>
+          <Form.Group controlId="raffleDate" className={styles.formGroup}>
+            <Form.Label>Fecha de la Rifa</Form.Label>
+            <Form.Control
+              type="date"
+              value={raffleDate}
+              onChange={(e) => setRaffleDate(e.target.value)}
+              required
+            />
+          </Form.Group>
+          <Form.Group controlId="raffleImage" className={styles.formGroup}>
+            <Form.Label>Imagen</Form.Label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              ref={fileInputRef}
+              style={{ display: "none" }}
+            />
+            <Button
+              variant="secondary"
+              onClick={handleFileInputClick}
+              className={styles.imageButton}
+            >
+              Adjuntar Imagen
+            </Button>
+            {raffleImage && (
+              <p className={styles.tabbed}>
+                Imagen adjuntada: {raffleImage.name}
+              </p>
+            )}
+            {selectedRaffle && selectedRaffle.image && !raffleImage && (
+              <div className={styles.currentImage}>
+                <p>Imagen actual:</p>
+                <img
+                  src={selectedRaffle.image}
+                  alt="Current"
+                  className={styles.thumbnailImage}
+                />
+              </div>
+            )}
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+          <Button variant="secondary" onClick={handleCloseModal}>
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleCreateRaffle}>
-            Crear
+            Crear Rifa
           </Button>
         </Modal.Footer>
       </Modal>
@@ -239,14 +590,33 @@ const RafflesPage = () => {
         </Modal.Header>
         <Modal.Body>
           {selectedNumber && (
-            <>
-              <img
-                src={selectedNumber.image}
-                alt="Comprobante"
-                className={styles.proofImage}
-              />
-              <p>Comprador: {selectedNumber.purchaser}</p>
-            </>
+            <div className={styles.approveModalBody}>
+              <p>
+                <strong>Número:</strong> {selectedNumber.number}
+              </p>
+              <p>
+                <strong>Comprador:</strong> {selectedNumber.purchaser}
+              </p>
+              <p>
+                <strong>Cédula:</strong> {selectedNumber.cedula}
+              </p>
+              <p>
+                <strong>Teléfono:</strong> {selectedNumber.phone}
+              </p>
+              {selectedNumber.image && (
+                <div>
+                  <p>
+                    <strong>Comprobante:</strong>
+                  </p>
+                  <img
+                    src={selectedNumber.image}
+                    alt="Comprobante"
+                    className={styles.proofImage}
+                    style={{ maxWidth: "100%" }}
+                  />
+                </div>
+              )}
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -260,6 +630,138 @@ const RafflesPage = () => {
             <Trash2 size={16} /> Borrar
           </Button>
           <Button variant="primary" onClick={handleApprove}>
+            Aprobar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            ¿Está seguro que desea eliminar la rifa "{selectedRaffle?.name}"?
+          </p>
+          <p className="text-danger">Esta acción no se puede deshacer.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeleteRaffle}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Actualizar Rifa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                value={raffleName}
+                onChange={(e) => setRaffleName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                value={raffleDescription}
+                onChange={(e) => setRaffleDescription(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Precio</Form.Label>
+              <Form.Control
+                type="number"
+                value={rafflePrice}
+                onChange={(e) => setRafflePrice(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Fecha</Form.Label>
+              <Form.Control
+                type="date"
+                value={raffleDate}
+                onChange={(e) => setRaffleDate(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Imagen</Form.Label>
+              <Form.Control
+                type="file"
+                onChange={(e) => setRaffleImage(e.target.files[0])}
+              />
+              {selectedRaffle?.image && (
+                <div className={styles.modalImageContainer}>
+                  <img
+                    src={selectedRaffle.image}
+                    alt="Current"
+                    className={styles.modalImage}
+                  />
+                </div>
+              )}
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleUpdateRaffle}>
+            Actualizar Rifa
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showImageModal} onHide={() => setShowImageModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Verificar Comprobante</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedPurchase && (
+            <div className={styles.modalContent}>
+              <div className={styles.purchaseInfo}>
+                <p>
+                  <strong>Número:</strong> {selectedPurchase.number}
+                </p>
+                <p>
+                  <strong>Comprador:</strong> {selectedPurchase.buyer}
+                </p>
+                <p>
+                  <strong>Cédula:</strong> {selectedPurchase.id}
+                </p>
+                <p>
+                  <strong>Teléfono:</strong> {selectedPurchase.phone}
+                </p>
+              </div>
+              {selectedPurchase.receipt && (
+                <div className={styles.receiptImage}>
+                  <img
+                    src={selectedPurchase.receipt}
+                    alt="Comprobante"
+                    className={styles.modalImage}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowImageModal(false)}>
+            Cerrar
+          </Button>
+          <Button variant="danger" onClick={handleReject}>
+            Rechazar
+          </Button>
+          <Button variant="success" onClick={handleApprove}>
             Aprobar
           </Button>
         </Modal.Footer>
