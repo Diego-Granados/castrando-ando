@@ -135,58 +135,9 @@ export default function AdminActividades() {
     }
   };
 
-  const handleViewParticipants = async (activityId) => {
-    try {
-      const mockParticipants = [
-        {
-          cedula: "123456789",
-          email: "juan.perez@email.com",
-          registrationDate: "2024-03-14T10:30:00Z",
-          pets: [
-            {
-              id: "1",
-              nombre: "Rocky",
-              especie: "Perro",
-              raza: "Golden Retriever",
-            },
-            {
-              id: "2",
-              nombre: "Luna",
-              especie: "Gato",
-              raza: "Siamés",
-            },
-          ],
-        },
-        {
-          cedula: "987654321",
-          email: "maria.garcia@email.com",
-          registrationDate: "2024-03-14T11:15:00Z",
-          pets: [
-            {
-              id: "3",
-              nombre: "Max",
-              especie: "Perro",
-              raza: "Bulldog",
-            },
-          ],
-        },
-        {
-          cedula: "456789123",
-          email: "carlos.rodriguez@email.com",
-          registrationDate: "2024-03-14T14:20:00Z",
-          pets: [],
-        },
-      ];
-
-      setSelectedActivityParticipants(mockParticipants);
-      setShowParticipantsModal(true);
-    } catch (error) {
-      console.error("Error:", error);
-      setAlert({
-        type: "danger",
-        message: "Error al cargar los participantes",
-      });
-    }
+  const handleViewParticipants = (activity) => {
+    setSelectedActivity(activity);
+    setShowParticipantsModal(true);
   };
 
   if (loading) {
@@ -238,14 +189,14 @@ export default function AdminActividades() {
                 <div className="mt-auto d-flex gap-2">
                   <Button
                     variant="outline-primary"
-                    onClick={() => handleActivityClick({ ...activity, id })}
+                    onClick={() => handleActivityClick(activity)}
                     className="flex-grow-1"
                   >
                     Ver detalles
                   </Button>
                   <Button
                     variant="outline-danger"
-                    onClick={() => handleDeleteClick({ ...activity, id })}
+                    onClick={() => handleDeleteClick(activity)}
                   >
                     <BsTrash />
                   </Button>
@@ -331,7 +282,7 @@ export default function AdminActividades() {
             <Modal.Footer>
               <Button
                 variant="info"
-                onClick={() => handleViewParticipants(selectedActivity.id)}
+                onClick={() => handleViewParticipants(selectedActivity)}
               >
                 Ver Participantes
               </Button>
@@ -622,56 +573,48 @@ export default function AdminActividades() {
         size="lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Participantes Registrados</Modal.Title>
+          <Modal.Title>
+            Participantes Registrados - {selectedActivity?.title}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Table striped bordered hover>
+          <Table striped bordered hover responsive>
             <thead>
               <tr>
-                <th>Cédula</th>
-                <th>Correo Electrónico</th>
-                <th>Mascotas</th>
-                <th>Fecha de Registro</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
               </tr>
             </thead>
             <tbody>
-              {selectedActivityParticipants.map((participant, index) => (
-                <tr key={index}>
-                  <td>{participant.cedula}</td>
-                  <td>{participant.email}</td>
-                  <td>
-                    {participant.pets?.length > 0 ? (
-                      <div>
-                        <span className="badge bg-info mb-2">
-                          {participant.pets.length} mascota(s)
-                        </span>
-                        <ul className="list-unstyled mb-0">
-                          {participant.pets.map((pet, idx) => (
-                            <li key={idx} className="small">
-                              • {pet.nombre} ({pet.especie} - {pet.raza})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <span className="text-muted">Sin mascotas</span>
-                    )}
-                  </td>
-                  <td>
-                    {new Date(
-                      participant.registrationDate + "T08:00:00Z"
-                    ).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-              {selectedActivityParticipants.length === 0 && (
+              {selectedActivity?.registeredUsers ? (
+                Object.values(selectedActivity.registeredUsers).map(
+                  (user, index) => (
+                    <tr key={index}>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.phone || "No disponible"}</td>
+                    </tr>
+                  )
+                )
+              ) : (
                 <tr>
-                  <td colSpan="5" className="text-center">
+                  <td colSpan="4" className="text-center">
                     No hay participantes registrados
                   </td>
                 </tr>
               )}
             </tbody>
+            {selectedActivity?.registeredUsers && (
+              <tfoot>
+                <tr>
+                  <td colSpan="4" className="text-end">
+                    <strong>Total de participantes:</strong>{" "}
+                    {Object.keys(selectedActivity.registeredUsers).length}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
           </Table>
         </Modal.Body>
         <Modal.Footer>

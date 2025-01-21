@@ -572,7 +572,7 @@ class EmailSender {
         `¡Hola, ${name}! Su cita para la campaña ${campaign} para la fecha ${date} a la hora ${hour} fue reservada con éxito.`
       )}
       ${EmailSender.formatBodyContent(
-        `Recuerde estar al menos 10 minutos antes de la cita y cumplir con los requisitos para esta cita. Cualquier consulta adicional al correo: ${CONTACT_EMAIL} o al número: ${CONTACT_NUMBER}.`
+        `Recuerde estar al menos 10 minutos antes de la cita y cumplir con los requisitos. Cualquier consulta adicional al correo: ${CONTACT_EMAIL} o al número: ${CONTACT_NUMBER}.`
       )}
       `;
       const additionalContent = `
@@ -749,6 +749,92 @@ class EmailSender {
       return { ok: true };
     } catch (error) {
       console.error("Error sending newsletter email:", error);
+      return { ok: false };
+    }
+  }
+
+  static async sendActivityRegistrationEmail(email, name, activity) {
+    const smtpEmail = new SendSmtpEmail();
+    const dateFormat = new Intl.DateTimeFormat("es-CR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const date = dateFormat.format(new Date(activity.date + "T12:00:00Z"));
+
+    try {
+      smtpEmail.subject = `¡${name}, su inscripción a la actividad ${activity.title} ha sido registrada!`;
+      smtpEmail.to = [
+        {
+          email: email,
+          name: name,
+        },
+      ];
+
+      const title = "Registro a actividad";
+      const subtitle = `¡${name}, su inscripción a la actividad ${activity.title} ha sido registrada!`;
+      const content = `
+      ${EmailSender.formatBodyContent(
+        `¡Hola, ${name}! Su inscripción a la actividad ${activity.title} para la fecha ${date} a la hora ${activity.hour} fue registrada con éxito.`
+      )}
+      ${EmailSender.formatBodyContent(
+        `Le deseamos un excelente día en la actividad en ${activity.location}.`
+      )}
+      ${EmailSender.formatBodyContent(
+        `Recuerde cumplir con los requisitos para esta actividad: ${activity.requirements}`
+      )}
+      `;
+
+      smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
+        title,
+        subtitle,
+        content
+      );
+      smtpEmail.sender = SENDER;
+      const result = await apiInstance.sendTransacEmail(smtpEmail);
+      return { ok: true };
+    } catch (error) {
+      console.error(error);
+      return { ok: false };
+    }
+  }
+
+  static async sendActivityDeregistrationEmail(email, name, activity) {
+    const smtpEmail = new SendSmtpEmail();
+    const dateFormat = new Intl.DateTimeFormat("es-CR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const date = dateFormat.format(new Date(activity.date + "T12:00:00Z"));
+
+    try {
+      smtpEmail.subject = `¡${name}, su inscripción a la actividad ${activity.title} ha sido cancelada!`;
+      smtpEmail.to = [
+        {
+          email: email,
+          name: name,
+        },
+      ];
+
+      const title = "Desinscripción a actividad";
+      const subtitle = `¡${name}, su inscripción a la actividad ${activity.title} ha sido cancelada!`;
+      const content = `
+      ${EmailSender.formatBodyContent(
+        `¡Hola, ${name}! Su inscripción a la actividad ${activity.title} para la fecha ${date} a la hora ${activity.hour} fue cancelada con éxito.`
+      )}
+      `;
+
+      smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
+        title,
+        subtitle,
+        content
+      );
+      smtpEmail.sender = SENDER;
+      const result = await apiInstance.sendTransacEmail(smtpEmail);
+      return { ok: true };
+    } catch (error) {
+      console.error(error);
       return { ok: false };
     }
   }

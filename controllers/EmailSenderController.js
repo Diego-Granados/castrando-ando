@@ -41,3 +41,15 @@ export async function sendReply(msg, mail, name, adminReply) {
 export async function sendNewsletterEmail(content, email, subject) {
   return await EmailSender.sendNewsletterEmail(content, email, subject);
 }
+
+export async function sendActivityRegistrationEmail(email, name, activity) {
+  return await EmailSender.sendActivityRegistrationEmail(email, name, activity);
+}
+
+export async function sendActivityDeregistrationEmail(email, name, activity) {
+  return await EmailSender.sendActivityDeregistrationEmail(
+    email,
+    name,
+    activity
+  );
+}

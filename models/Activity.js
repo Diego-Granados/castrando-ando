@@ -1,6 +1,15 @@
 "use client";
 import { db } from "@/lib/firebase/config";
-import { ref, get, set, child, update, push, onValue } from "firebase/database";
+import {
+  ref,
+  get,
+  set,
+  child,
+  update,
+  push,
+  onValue,
+  increment,
+} from "firebase/database";
 
 class Activity {
   static async create(activityData) {
@@ -110,6 +119,38 @@ class Activity {
       return true;
     } catch (error) {
       console.error("Error deleting activity:", error);
+      throw error;
+    }
+  }
+
+  static async registerUser(activityId, user, limited) {
+    try {
+      const updates = {};
+      updates[`activities/${activityId}/registeredUsers/${user.id}`] = user;
+      if (limited) {
+        updates[`activities/${activityId}/available`] = increment(-1);
+      }
+      updates[`users/${user.id}/activities/${activityId}`] = true;
+      await update(ref(db), updates);
+      return true;
+    } catch (error) {
+      console.error("Error registering user:", error);
+      throw error;
+    }
+  }
+
+  static async deregisterUser(activityId, user, limited) {
+    try {
+      const updates = {};
+      updates[`activities/${activityId}/registeredUsers/${user.id}`] = null;
+      if (limited) {
+        updates[`activities/${activityId}/available`] = increment(1);
+      }
+      updates[`users/${user.id}/activities/${activityId}`] = null;
+      await update(ref(db), updates);
+      return true;
+    } catch (error) {
+      console.error("Error deregistering user:", error);
       throw error;
     }
   }

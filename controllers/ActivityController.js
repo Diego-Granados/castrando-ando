@@ -1,5 +1,9 @@
 "use client";
 import Activity from "@/models/Activity";
+import {
+  sendActivityRegistrationEmail,
+  sendActivityDeregistrationEmail,
+} from "@/controllers/EmailSenderController";
 
 class ActivityController {
   static async createActivity(activityData) {
@@ -219,6 +223,40 @@ class ActivityController {
       return {
         ok: false,
         error: error.message || "Error al eliminar la actividad",
+      };
+    }
+  }
+
+  static async registerUser(activity, user, limited) {
+    try {
+      const success = await Activity.registerUser(activity.id, user, limited);
+      const emailResponse = await sendActivityRegistrationEmail(
+        user.email,
+        user.name,
+        activity
+      );
+      return { ok: true, emailResponse };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error.message || "Error al registrar el usuario",
+      };
+    }
+  }
+
+  static async deregisterUser(activity, user, limited) {
+    try {
+      const success = await Activity.deregisterUser(activity.id, user, limited);
+      const emailResponse = await sendActivityDeregistrationEmail(
+        user.email,
+        user.name,
+        activity
+      );
+      return { ok: true, emailResponse };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error.message || "Error al cancelar la inscripción",
       };
     }
   }
