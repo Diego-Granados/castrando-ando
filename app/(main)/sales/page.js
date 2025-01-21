@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./SalesPage.module.css";
 import Modal from "@/components/Modal";
 import SalesController from "@/controllers/SalesController";
+import { ShoppingBag, Phone, Mail } from "lucide-react";
 
 const SalesPage = () => {
   const [showContact, setShowContact] = useState(false);
@@ -40,84 +41,104 @@ const SalesPage = () => {
     setSelectedProduct(null);
   };
 
+  const ProductCard = ({ product }) => (
+    <div className={styles.productCard}>
+      <div className={styles.imageWrapper}>
+        <img
+          src={product.image}
+          alt={product.name}
+          className={styles.productImage}
+        />
+      </div>
+      <div className={styles.productInfo}>
+        <h3 className={styles.productName}>{product.name}</h3>
+        <p className={styles.productDescription}>{product.description}</p>
+        <div className={styles.productMeta}>
+          <span className={styles.price}>¢{product.price}</span>
+          <span className={styles.stock}>
+            {product.quantity > 0
+              ? `${product.quantity} disponibles`
+              : "Agotado"}
+          </span>
+        </div>
+        <button
+          className={styles.buyButton}
+          onClick={() => handleConsultClick(product)}
+          disabled={product.quantity === 0}
+        >
+          <ShoppingBag size={18} />
+          {product.quantity > 0 ? "Adquirir" : "Agotado"}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
-      <h1>Ventas de productos</h1>
-      <p>
-        Bienvenidos, en esta sección se pueden encontrar los productos
-        disponibles a la venta.
-      </p>
+      <div className={styles.header}>
+        <h1>Catálogo de Productos</h1>
+        <p className={styles.subtitle}>
+          Explora nuestra selección de productos. Todas las ganancias son
+          destinadas a apoyar nuestra causa.
+        </p>
+      </div>
 
-      <section className={styles.category}>
-        <h2>Productos de Mascotas</h2>
-        <div className={styles.catalog}>
+      <section className={styles.categorySection}>
+        <h2>Productos para Mascotas</h2>
+        <div className={styles.productsGrid}>
           {petProducts.length > 0 ? (
             petProducts.map((product, index) => (
-              <div key={index} className={styles.product}>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className={styles.productImage}
-                />
-                <h3>{product.name}</h3>
-                <p>
-                  Precio: ¢{product.price} &nbsp; Disponibles:{" "}
-                  {product.quantity}
-                </p>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleConsultClick(product)}
-                >
-                  Adquirir
-                </button>
-              </div>
+              <ProductCard key={index} product={product} />
             ))
           ) : (
-            <p>No hay artículos disponibles en esta categoría.</p>
+            <p className={styles.emptyMessage}>
+              No hay artículos disponibles en esta categoría.
+            </p>
           )}
         </div>
       </section>
 
-      <section className={styles.category}>
+      <section className={styles.categorySection}>
         <h2>Joyería y Accesorios</h2>
-        <div className={styles.catalog}>
+        <div className={styles.productsGrid}>
           {jewelryProducts.length > 0 ? (
             jewelryProducts.map((product, index) => (
-              <div key={index} className={styles.product}>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className={styles.productImage}
-                />
-                <h3>{product.name}</h3>
-                <p>
-                  Precio: ¢{product.price} &nbsp; Disponibles:{" "}
-                  {product.quantity}
-                </p>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleConsultClick(product)}
-                >
-                  Adquirir
-                </button>
-              </div>
+              <ProductCard key={index} product={product} />
             ))
           ) : (
-            <p>No hay artículos disponibles en esta categoría.</p>
+            <p className={styles.emptyMessage}>
+              No hay artículos disponibles en esta categoría.
+            </p>
           )}
         </div>
       </section>
 
       {showContact && (
         <Modal title="Información de Contacto" onClose={handleCloseModal}>
-          <p>
-            Para consultar sobre {selectedProduct.name}, por favor contacte al
-            vendedor:
-          </p>
-          <p>Teléfono: 8888-8888</p>
-          <p>Email: vendedor@example.com</p>
-          <div className={styles.buttons}>
-            <button className="btn btn-secondary" onClick={handleCloseModal}>
+          <div className={styles.modalContent}>
+            <div className={styles.selectedProduct}>
+              <img
+                src={selectedProduct.image}
+                alt={selectedProduct.name}
+                className={styles.modalImage}
+              />
+              <div className={styles.productDetails}>
+                <h3>{selectedProduct.name}</h3>
+                <p className={styles.modalPrice}>¢{selectedProduct.price}</p>
+              </div>
+            </div>
+            <div className={styles.contactInfo}>
+              <p>Para adquirir este producto, contáctenos:</p>
+              <div className={styles.contactMethod}>
+                <Phone size={20} />
+                <span>8888-8888</span>
+              </div>
+              <div className={styles.contactMethod}>
+                <Mail size={20} />
+                <span>vendedor@example.com</span>
+              </div>
+            </div>
+            <button className={styles.closeButton} onClick={handleCloseModal}>
               Cerrar
             </button>
           </div>

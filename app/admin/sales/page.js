@@ -99,9 +99,20 @@ const SalesPage = () => {
     try {
       const product = products.find((p) => p.id === productId);
       if (product) {
-        product.quantity += 1;
-        await SalesController.createOrUpdateProduct(product);
-        setProducts([...products]);
+        const updatedQuantity = parseInt(product.quantity) + 1;
+        const updatedProduct = {
+          ...product,
+          quantity: updatedQuantity,
+        };
+
+        await SalesController.createOrUpdateProduct(updatedProduct);
+
+        // Actualizar el estado local
+        setProducts(
+          products.map((p) =>
+            p.id === productId ? { ...p, quantity: updatedQuantity } : p
+          )
+        );
       }
     } catch (error) {
       console.error("Error increasing quantity:", error);
@@ -112,9 +123,20 @@ const SalesPage = () => {
     try {
       const product = products.find((p) => p.id === productId);
       if (product && product.quantity > 0) {
-        product.quantity -= 1;
-        await SalesController.createOrUpdateProduct(product);
-        setProducts([...products]);
+        const updatedQuantity = parseInt(product.quantity) - 1;
+        const updatedProduct = {
+          ...product,
+          quantity: updatedQuantity,
+        };
+
+        await SalesController.createOrUpdateProduct(updatedProduct);
+
+        // Actualizar el estado local
+        setProducts(
+          products.map((p) =>
+            p.id === productId ? { ...p, quantity: updatedQuantity } : p
+          )
+        );
       }
     } catch (error) {
       console.error("Error decreasing quantity:", error);
@@ -123,73 +145,87 @@ const SalesPage = () => {
 
   return (
     <div className={styles.container}>
-      <div className="d-flex flex-column align-items-start mb-4 ms-5">
-        <h1>Productos en Venta</h1>
-        <Button className={styles.btn} onClick={handleAdd}>
-          Agregar Producto
+      <div className={styles.header}>
+        <h1>Gestión de Productos</h1>
+        <p className={styles.subtitle}>
+          Administra los productos disponibles para la venta
+        </p>
+        <Button className={styles.addButton} onClick={handleAdd}>
+          <Plus size={20} className={styles.buttonIcon} /> Agregar Producto
         </Button>
       </div>
-      <Table striped bordered hover className={styles.table}>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Imagen</th>
-            <th>Precio</th>
-            <th>Descripción</th>
-            <th>Categoría</th>
-            <th>Cantidad</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td>{product.name}</td>
-              <td>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className={styles.productImage}
-                />
-              </td>
-              <td>¢{product.price}</td>
-              <td>{product.description}</td>
-              <td>{product.category}</td>
-              <td>{product.quantity}</td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  className={styles.btn}
-                  onClick={() => handleEdit(product)}
-                >
-                  <Pencil size={16} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  className={styles.btn}
-                  onClick={() => handleDelete(product.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-                <Button
-                  variant="outline"
-                  className={styles.btn}
-                  onClick={() => handleIncreaseQuantity(product.id)}
-                >
-                  <Plus size={16} />
-                </Button>
-                <Button
-                  variant="outline"
-                  className={styles.btn}
-                  onClick={() => handleDecreaseQuantity(product.id)}
-                >
-                  <Minus size={16} />
-                </Button>
-              </td>
+
+      <div className={styles.tableWrapper}>
+        <Table hover className={styles.table}>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Imagen</th>
+              <th>Precio</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Cantidad</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id}>
+                <td>{product.name}</td>
+                <td className={styles.imageCell}>
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className={styles.tableImage}
+                  />
+                </td>
+                <td className={styles.priceCell}>¢{product.price}</td>
+                <td className={styles.descriptionCell}>
+                  {product.description}
+                </td>
+                <td>{product.category}</td>
+                <td className={styles.quantityCell}>
+                  <div className={styles.quantityControls}>
+                    <Button
+                      variant="outline"
+                      className={styles.quantityButton}
+                      onClick={() => handleDecreaseQuantity(product.id)}
+                    >
+                      <Minus size={16} />
+                    </Button>
+                    <span className={styles.quantity}>{product.quantity}</span>
+                    <Button
+                      variant="outline"
+                      className={styles.quantityButton}
+                      onClick={() => handleIncreaseQuantity(product.id)}
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                </td>
+                <td className={styles.actions}>
+                  <Button
+                    variant="outline-primary"
+                    className={styles.actionButton}
+                    onClick={() => handleEdit(product)}
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    className={styles.actionButton}
+                    onClick={() => handleDelete(product.id)}
+                    title="Eliminar"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>

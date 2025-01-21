@@ -1,5 +1,5 @@
 import Raffle from "@/models/Raffle";
-import { ref, set } from "firebase/database";
+import { ref, set, update } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 
 class RaffleController {
@@ -63,6 +63,8 @@ class RaffleController {
         status: "active",
         numbers: numbers,
         createdAt: Date.now(),
+        winner: "",
+        winnerName: "",
       };
 
       const raffleRef = ref(db, "raffles/" + Date.now());
@@ -201,9 +203,17 @@ class RaffleController {
         return { winner: false };
       }
 
+      // Update the raffle with winner information
+      const raffleRef = ref(db, `raffles/${raffleId}`);
+      await update(raffleRef, {
+        status: "finished",
+        winner: winningNumber,
+        winnerName: winningData.buyer,
+      });
+
       return {
         winner: true,
-        purchaser: winningData.purchaser,
+        purchaser: winningData.buyer,
       };
     } catch (error) {
       throw new Error(`Error announcing winner: ${error.message}`);
@@ -308,13 +318,19 @@ class RaffleController {
         numberData,
       });
 
+      // Obtener la rifa actual primero
+      const currentRaffle = await this.getRaffleById(raffleId);
+      if (!currentRaffle) {
+        throw new Error("Raffle not found");
+      }
+
       // Preparar los datos de actualización
       const updateData = {
+        ...currentRaffle.numbers[number], // Mantener datos existentes
         number: parseInt(number),
         buyer: numberData.buyer || "",
         id: numberData.id || "",
         phone: numberData.phone || "",
-        receipt: numberData.receipt || "",
         status: numberData.status || "available",
         purchased: numberData.purchased || false,
         approved: numberData.approved || false,
@@ -339,9 +355,9 @@ class RaffleController {
         updateData.receipt = downloadURLs[0];
       }
 
-      // Actualizar en Firebase
+      // Actualizar solo el número específico en Firebase
       const numberRef = ref(db, `raffles/${raffleId}/numbers/${number}`);
-      await set(numberRef, updateData);
+      await update(numberRef, updateData);
 
       console.log("Number updated successfully");
       return updateData;

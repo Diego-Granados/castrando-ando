@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "./AlliesPage.module.css";
 import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import AllyController from "@/controllers/AllyController";
 
 const AlliesPage = () => {
@@ -87,71 +87,79 @@ const AlliesPage = () => {
   };
 
   return (
-    <div>
-      <div className="d-flex flex-column align-items-start mb-4 ms-5">
-        <h1>Nuestros Aliados</h1>
-        <Button className={styles.btn} onClick={handleAdd}>
-          Agregar Aliado
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1>Gestión de Aliados</h1>
+        <p className={styles.subtitle}>
+          Administra los aliados de la organización
+        </p>
+        <Button className={styles.addButton} onClick={handleAdd}>
+          <Plus size={20} className={styles.buttonIcon} /> Agregar Aliado
         </Button>
       </div>
-      <Table striped bordered hover className={styles.table}>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Imagen</th>
-            <th>Enlace</th>
-            <th>Descripción</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {allies.map((ally) => (
-            <tr key={ally.id}>
-              <td>{ally.name}</td>
-              <td>
-                <img
-                  src={ally.image}
-                  alt={ally.name}
-                  className={styles.image}
-                />
-              </td>
-              <td>
-                <a href={ally.link} target="_blank" rel="noopener noreferrer">
-                  {ally.link}
-                </a>
-              </td>
-              <td>{ally.description}</td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  className={styles.btn}
-                  onClick={() => handleEdit(ally)}
-                >
-                  <Pencil size={16} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  className={styles.btn}
-                  onClick={() => handleDelete(ally.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
+      <div className={styles.tableWrapper}>
+        <Table hover className={styles.table}>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Imagen</th>
+              <th>Enlace</th>
+              <th>Descripción</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allies.map((ally) => (
+              <tr key={ally.id}>
+                <td>{ally.name}</td>
+                <td className={styles.imageCell}>
+                  <img
+                    src={ally.image}
+                    alt={ally.name}
+                    className={styles.tableImage}
+                  />
+                </td>
+                <td className={styles.linkCell}>
+                  <a href={ally.link} target="_blank" rel="noopener noreferrer">
+                    {ally.link}
+                  </a>
+                </td>
+                <td className={styles.descriptionCell}>{ally.description}</td>
+                <td className={styles.actions}>
+                  <Button
+                    variant="outline-primary"
+                    className={styles.actionButton}
+                    onClick={() => handleEdit(ally)}
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    className={styles.actionButton}
+                    onClick={() => handleDelete(ally.id)}
+                    title="Eliminar"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className={styles.modalHeader}>
           <Modal.Title>
             {isEditing ? "Editar Aliado" : "Agregar Aliado"}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className={styles.modalBody}>
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           <Form onSubmit={handleSave}>
-            <Form.Group controlId="name" className="mb-3">
+            <Form.Group controlId="name" className={styles.formGroup}>
               <Form.Label>Nombre</Form.Label>
               <Form.Control
                 type="text"
@@ -160,18 +168,26 @@ const AlliesPage = () => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="image" className="mb-3">
+            <Form.Group controlId="image" className={styles.formGroup}>
               <Form.Label>Imagen</Form.Label>
-              <Form.Control type="file" onChange={handleFileChange} />
-              {image && !file && (
-                <img
-                  src={image}
-                  alt="Current"
-                  className={`${styles.image} mt-2`}
+              <div className={styles.imageUpload}>
+                <Form.Control
+                  type="file"
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
                 />
-              )}
+                {image && !file && (
+                  <div className={styles.currentImage}>
+                    <img
+                      src={image}
+                      alt="Current"
+                      className={styles.previewImage}
+                    />
+                  </div>
+                )}
+              </div>
             </Form.Group>
-            <Form.Group controlId="link" className="mb-3">
+            <Form.Group controlId="link" className={styles.formGroup}>
               <Form.Label>Enlace</Form.Label>
               <Form.Control
                 type="text"
@@ -180,7 +196,7 @@ const AlliesPage = () => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="description" className="mb-3">
+            <Form.Group controlId="description" className={styles.formGroup}>
               <Form.Label>Descripción</Form.Label>
               <Form.Control
                 as="textarea"
@@ -190,9 +206,14 @@ const AlliesPage = () => {
                 required
               />
             </Form.Group>
-            <Button type="submit" variant="primary" className={styles.btn}>
-              {isEditing ? "Guardar cambios" : "Agregar"}
-            </Button>
+            <div className={styles.modalFooter}>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="primary">
+                {isEditing ? "Guardar cambios" : "Agregar"}
+              </Button>
+            </div>
           </Form>
         </Modal.Body>
       </Modal>

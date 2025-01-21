@@ -48,6 +48,10 @@ const FundsPage = () => {
   };
 
   const handleNumberClick = (number, numberData) => {
+    if (selectedRaffle.status === "finished") {
+      return; // Don't do anything if raffle is finished
+    }
+
     if (numberData.status === "available") {
       setSelectedNumber(number);
       setShowModal(true);
@@ -89,12 +93,31 @@ const FundsPage = () => {
         numberData
       );
 
-      // Refresh raffle data
-      const updatedRaffle = await RaffleController.getRaffleById(
-        selectedRaffle.id
+      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+        ([id, raffle]) => ({
+          id,
+          ...raffle,
+        })
       );
-      setSelectedRaffle(updatedRaffle);
-      handleModalClose();
+
+      setRaffles(rafflesArray);
+
+      const updatedSelectedRaffle = rafflesArray.find(
+        (raffle) => raffle.id === selectedRaffle.id
+      );
+      setSelectedRaffle(updatedSelectedRaffle);
+
+      setShowModal(false);
+      setSelectedNumber(null);
+      setFormData({
+        buyer: "",
+        id: "",
+        phone: "",
+        receipt: null,
+      });
+
+      alert("Número reservado exitosamente");
     } catch (error) {
       console.error("Error reserving number:", error);
       alert("Error al reservar el número: " + error.message);
@@ -121,24 +144,53 @@ const FundsPage = () => {
 
       {selectedRaffle && (
         <div className={styles.raffleInfo}>
-          <h2>Información de la Rifa</h2>
-          <p>
-            <strong>Nombre:</strong> {selectedRaffle.name}
-          </p>
-          <p>
-            <strong>Descripción:</strong> {selectedRaffle.description}
-          </p>
-          <p>
-            <strong>Precio:</strong> ${selectedRaffle.price}
-          </p>
-          <p>
-            <strong>Fecha:</strong>{" "}
-            {new Date(selectedRaffle.date).toLocaleDateString()}
-          </p>
+          <div className={styles.raffleContent}>
+            <div className={styles.raffleDetails}>
+              <h2>Información de la Rifa</h2>
+              <p>
+                <strong>Nombre:</strong> {selectedRaffle.name}
+              </p>
+              <p>
+                <strong>Descripción:</strong> {selectedRaffle.description}
+              </p>
+              <p>
+                <strong>Precio:</strong> ¢{selectedRaffle.price}.00
+              </p>
+              <p>
+                <strong>Fecha:</strong>{" "}
+                {new Date(selectedRaffle.date).toLocaleDateString()}
+              </p>
+            </div>
 
-          <button onClick={handleBuyClick} className={styles.buyButton}>
-            Ver Números
-          </button>
+            {selectedRaffle.image && (
+              <div className={styles.prizeContainer}>
+                <h3>Premio</h3>
+                <div className={styles.imageContainer}>
+                  <img
+                    src={selectedRaffle.image}
+                    alt={selectedRaffle.name}
+                    className={styles.raffleImage}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {selectedRaffle.status === "finished" ? (
+            <div className={styles.winnerInfo}>
+              <h3>¡Rifa Finalizada!</h3>
+              <p>
+                <strong>Número Ganador:</strong> {selectedRaffle.winner}
+              </p>
+              <p>
+                <strong>Ganador:</strong> {selectedRaffle.winnerName}
+              </p>
+            </div>
+          ) : (
+            <button onClick={handleBuyClick} className={styles.buyButton}>
+              Ver Números
+            </button>
+          )}
 
           {showNumbers && (
             <div className={styles.numbersGrid}>
@@ -150,6 +202,12 @@ const FundsPage = () => {
                       numberData
                     )}`}
                     onClick={() => handleNumberClick(number, numberData)}
+                    style={{
+                      cursor:
+                        selectedRaffle.status === "finished"
+                          ? "default"
+                          : "pointer",
+                    }}
                   >
                     {number}
                   </div>

@@ -75,116 +75,117 @@ const VolunteersPage = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Voluntarios</h1>
-      <Table striped bordered hover className={styles.table}>
-        <thead>
-          <tr>
-            <th>Cédula</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Comentario</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {volunteers.map((volunteer) => (
-            <tr key={volunteer.id}>
-              <td>{volunteer.id}</td>
-              <td>{volunteer.name}</td>
-              <td>{volunteer.email}</td>
-              <td>{volunteer.phone}</td>
-              <td>{volunteer.comment}</td>
-              <td>
-                <span
-                  className={`badge ${
-                    volunteer.status === "sent" ? "bg-primary" : "bg-secondary"
-                  }`}
-                >
-                  {volunteer.status === "sent" ? "enviado" : volunteer.status}
-                </span>
-              </td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  className={styles.btn}
-                  onClick={() => handleEdit(volunteer)}
-                >
-                  <Pencil size={16} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-                <Button
-                  variant="outline-success"
-                  className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
-                >
-                  <StarBorder size={16} />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className={styles.header}>
+        <h1>Gestión de Voluntarios</h1>
+        <p className={styles.subtitle}>
+          Administra las solicitudes de voluntariado
+        </p>
+      </div>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
+      <div className={styles.tableWrapper}>
+        <Table hover className={styles.table}>
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Comentario</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {volunteers.map((volunteer) => (
+              <tr key={volunteer.id}>
+                <td>{volunteer.id}</td>
+                <td>{volunteer.name}</td>
+                <td>{volunteer.email}</td>
+                <td>{volunteer.phone}</td>
+                <td className={styles.commentCell}>{volunteer.comment}</td>
+                <td>
+                  <span
+                    className={`${styles.status} ${
+                      volunteer.status === "sent"
+                        ? styles.statusSent
+                        : styles.statusPending
+                    }`}
+                  >
+                    {volunteer.status === "sent" ? "Enviado" : "Pendiente"}
+                  </span>
+                </td>
+                <td className={styles.actions}>
+                  <Button
+                    variant="outline-primary"
+                    className={styles.actionButton}
+                    onClick={() => handleEdit(volunteer)}
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    className={styles.actionButton}
+                    onClick={() => handleDelete(volunteer.id)}
+                    title="Eliminar"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-success"
+                    className={styles.actionButton}
+                    onClick={() => handleDelete(volunteer.id)}
+                    title="Certificado"
+                  >
+                    <StarBorder />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className={styles.modalHeader}>
           <Modal.Title>Editar Voluntario</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className={styles.modalBody}>
           <form onSubmit={handleModalSubmit}>
             {modalError && <Alert variant="danger">{modalError}</Alert>}
-            <div className="mb-3">
-              <label htmlFor="name" className="form-label">
-                Nombre
-              </label>
+            <div className={styles.formGroup}>
+              <label htmlFor="name">Nombre</label>
               <input
                 type="text"
-                className="form-control"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
+            <div className={styles.formGroup}>
+              <label htmlFor="email">Email</label>
               <input
                 type="email"
-                className="form-control"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            <div className="mb-3">
-              <label htmlFor="phone" className="form-label">
-                Teléfono
-              </label>
+            <div className={styles.formGroup}>
+              <label htmlFor="phone">Teléfono</label>
               <input
                 type="tel"
-                className="form-control"
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </div>
-            <div className="mb-3">
-              <label htmlFor="comment" className="form-label">
-                Comentario
-              </label>
+            <div className={styles.formGroup}>
+              <label htmlFor="comment">Comentario</label>
               <textarea
-                className="form-control"
                 id="comment"
                 rows="3"
                 value={comment}
@@ -192,9 +193,14 @@ const VolunteersPage = () => {
                 required
               ></textarea>
             </div>
-            <Button type="submit" variant="primary">
-              Guardar cambios
-            </Button>
+            <div className={styles.modalFooter}>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="primary">
+                Guardar cambios
+              </Button>
+            </div>
           </form>
         </Modal.Body>
       </Modal>

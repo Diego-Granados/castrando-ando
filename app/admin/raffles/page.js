@@ -55,8 +55,25 @@ const RafflesPage = () => {
         }
       );
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
-      setRaffles(Object.values(fetchedRaffles));
+      // Update local state immediately
+      const updatedRaffles = raffles.map((raffle) => {
+        if (raffle.id === selectedRaffle.id) {
+          const updatedNumbers = { ...raffle.numbers };
+          updatedNumbers[selectedPurchase.number] = {
+            ...updatedNumbers[selectedPurchase.number],
+            status: "approved",
+            approved: true,
+          };
+          return {
+            ...raffle,
+            numbers: updatedNumbers,
+          };
+        }
+        return raffle;
+      });
+
+      setRaffles(updatedRaffles);
+      setSelectedRaffle(updatedRaffles.find((r) => r.id === selectedRaffle.id));
       setShowImageModal(false);
     } catch (error) {
       console.error("Error approving purchase:", error);
@@ -74,15 +91,74 @@ const RafflesPage = () => {
           id: "",
           phone: "",
           receipt: "",
-          status: "available",
+          status: "rejected",
           purchased: false,
           approved: false,
         }
       );
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
-      setRaffles(Object.values(fetchedRaffles));
+      // Actualizar el estado local inmediatamente
+      const updatedRaffles = raffles.map((raffle) => {
+        if (raffle.id === selectedRaffle.id) {
+          const updatedNumbers = { ...raffle.numbers };
+          updatedNumbers[selectedPurchase.number] = {
+            ...updatedNumbers[selectedPurchase.number],
+            buyer: "",
+            id: "",
+            phone: "",
+            receipt: "",
+            status: "rejected",
+            purchased: false,
+            approved: false,
+          };
+          return {
+            ...raffle,
+            numbers: updatedNumbers,
+          };
+        }
+        return raffle;
+      });
+
+      setRaffles(updatedRaffles);
+      setSelectedRaffle(updatedRaffles.find((r) => r.id === selectedRaffle.id));
       setShowImageModal(false);
+
+      // Después de 2 segundos, actualizar a "available"
+      setTimeout(async () => {
+        const finalUpdate = raffles.map((raffle) => {
+          if (raffle.id === selectedRaffle.id) {
+            const updatedNumbers = { ...raffle.numbers };
+            updatedNumbers[selectedPurchase.number] = {
+              ...updatedNumbers[selectedPurchase.number],
+              status: "available",
+            };
+            return {
+              ...raffle,
+              numbers: updatedNumbers,
+            };
+          }
+          return raffle;
+        });
+
+        setRaffles(finalUpdate);
+        setSelectedRaffle(finalUpdate.find((r) => r.id === selectedRaffle.id));
+
+        // Actualizar en la base de datos
+        await RaffleController.updateNumber(
+          selectedRaffle.id,
+          selectedPurchase.number,
+          {
+            number: selectedPurchase.number,
+            buyer: "",
+            id: "",
+            phone: "",
+            receipt: "",
+            status: "available",
+            purchased: false,
+            approved: false,
+          }
+        );
+      }, 2000);
     } catch (error) {
       console.error("Error rejecting purchase:", error);
     }
@@ -104,27 +180,44 @@ const RafflesPage = () => {
 
   const handleAnnounceWinner = async () => {
     try {
+      if (!winningNumber) {
+        alert("Por favor ingrese un número ganador");
+        return;
+      }
+
       const result = await RaffleController.announceWinner(
         selectedRaffle.id,
-        parseInt(winningNumber, 10)
+        winningNumber
       );
+
       if (result.winner) {
+        // Update the local state with winner information
+        const updatedRaffle = {
+          ...selectedRaffle,
+          status: "finished",
+          winner: winningNumber,
+          winnerName: result.purchaser,
+        };
+
+        setRaffles(
+          raffles.map((raffle) =>
+            raffle.id === selectedRaffle.id ? updatedRaffle : raffle
+          )
+        );
+        setSelectedRaffle(updatedRaffle);
+
         alert(
           `El ganador es el número ${winningNumber}, comprado por ${result.purchaser}`
         );
       } else {
         alert(`Nadie compró el número ${winningNumber}`);
       }
-      await RaffleController.updateRaffle(selectedRaffle.id, {
-        status: "finished",
-        winner: winningNumber,
-      });
-      const fetchedRaffles = await RaffleController.getAllRaffles();
-      setRaffles(Object.values(fetchedRaffles));
+
       setShowWinnerModal(false);
       setWinningNumber("");
     } catch (error) {
       console.error("Error announcing winner:", error);
+      alert("Error al anunciar el ganador");
     }
   };
 
@@ -142,6 +235,8 @@ const RafflesPage = () => {
         date: raffleDate,
         status: selectedRaffle?.status || "active",
         numbers: selectedRaffle?.numbers || {},
+        winner: "",
+        winnerName: "",
       };
 
       if (raffleImage) {
@@ -280,6 +375,8 @@ const RafflesPage = () => {
         image: raffleImage,
         status: selectedRaffle.status,
         numbers: selectedRaffle.numbers,
+        winner: "",
+        winnerName: "",
       };
 
       await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
@@ -398,7 +495,9 @@ const RafflesPage = () => {
           {selectedRaffle.status === "finished" && (
             <div className="alert alert-info">
               <Trophy size={20} className="me-2" />
-              Número Ganador: {selectedRaffle.winner}
+              Número Ganador: {selectedRaffle.winner || "No establecido"}
+              {selectedRaffle.winnerName &&
+                ` - Ganador: ${selectedRaffle.winnerName}`}
             </div>
           )}
           <Table striped bordered hover className={styles.table}>
@@ -434,13 +533,15 @@ const RafflesPage = () => {
                         ? "Aprobado"
                         : data.status === "pending"
                         ? "Pendiente"
+                        : data.status === "rejected"
+                        ? "Rechazado"
                         : "Disponible"}
                     </td>
                     <td>{data.buyer || "N/A"}</td>
                     <td>{data.id || "N/A"}</td>
                     <td>{data.phone || "N/A"}</td>
                     <td>
-                      {data.purchased && !data.approved && (
+                      {data.purchased && (
                         <Button
                           variant="outline-primary"
                           className={styles.btn}
