@@ -127,7 +127,7 @@ export default function SolicitarApoyo() {
       </h1>
 
       <div className="d-flex justify-content-end align-items-center mb-4">
-        <Link href="/solicitarApoyo/crear" passHref>
+        <Link href="/admin/solicitarApoyo/crear" passHref>
           <Button 
             variant="success" 
             className="rounded-pill"

@@ -1,9 +1,16 @@
 "use client";
 import SupportRequest from "@/models/SupportRequest";
+import AuthController from "@/controllers/AuthController";
 
 class SupportRequestController {
   static async createRequest(requestData) {
     try {
+      // Obtener el usuario y rol actual
+      const { user, role } = await AuthController.getCurrentUser();
+      if (!user) {
+        return { ok: false, error: "Usuario no autenticado" };
+      }
+
       // Subir imagen a Cloudinary si existe
       let imageUrl = "";
       if (requestData.selectedImage) {
@@ -29,10 +36,32 @@ class SupportRequestController {
         imageUrl = data.secure_url;
       }
 
+      // Si es admin, usar datos predeterminados
+      if (role === "Admin") {
+        const result = await SupportRequest.createRequest({
+          title: requestData.title,
+          description: requestData.description,
+          imageUrl,
+          userId: "admin",
+          userName: "Administrador",
+          status: "Pendiente",
+          date: new Date().toLocaleDateString(),
+        });
+        return { ok: true, id: result.id };
+      }
+
+      // Si es usuario normal, obtener sus datos
+      const userData = await AuthController.getUserData(user.uid);
+      if (!userData) {
+        return { ok: false, error: "No se encontraron datos del usuario" };
+      }
+
       const result = await SupportRequest.createRequest({
         title: requestData.title,
         description: requestData.description,
         imageUrl,
+        userId: user.uid,
+        userName: userData.name || "Usuario",
         status: "Pendiente",
         date: new Date().toLocaleDateString(),
       });

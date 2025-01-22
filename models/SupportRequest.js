@@ -9,14 +9,14 @@ class SupportRequest {
       const newRequestRef = push(requestsRef);
 
       const newRequest = {
-        title: requestData.title,
-        description: requestData.description,
+        title: requestData.title || "",
+        description: requestData.description || "",
         imageUrl: requestData.imageUrl || "",
-        userId: requestData.userId,
-        userName: requestData.userName,
         status: requestData.status || "Pendiente",
         date: requestData.date || new Date().toLocaleDateString(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        userId: requestData.userId || "admin",
+        userName: requestData.userName || "Administrador"
       };
 
       await set(newRequestRef, newRequest);

@@ -41,14 +41,14 @@ function () {
               requestsRef = (0, _database.ref)(_config.db, "supportRequests");
               newRequestRef = (0, _database.push)(requestsRef);
               newRequest = {
-                title: requestData.title,
-                description: requestData.description,
+                title: requestData.title || "",
+                description: requestData.description || "",
                 imageUrl: requestData.imageUrl || "",
-                userId: requestData.userId,
-                userName: requestData.userName,
                 status: requestData.status || "Pendiente",
                 date: requestData.date || new Date().toLocaleDateString(),
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                userId: requestData.userId || "admin",
+                userName: requestData.userName || "Administrador"
               };
               _context.next = 6;
               return regeneratorRuntime.awrap((0, _database.set)(newRequestRef, newRequest));
