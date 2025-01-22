@@ -53,7 +53,7 @@ export default function CrearBlog() {
 
       if (result.ok) {
         toast.success("Blog creado exitosamente");
-        router.push("/blog");
+        router.push("/admin/blog");
       } else {
         toast.error(result.error || "Error al crear el blog");
       }

@@ -59,6 +59,9 @@ export default function NavBarAdmin() {
               <Link href="/admin/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar actividades</NavDropdown.Item>
               </Link>
+              <Link href="/admin/blog" passHref legacyBehavior>
+                <NavDropdown.Item>Blog</NavDropdown.Item>
+              </Link>
               <Link href="/admin/usuarios" passHref legacyBehavior>
                 <NavDropdown.Item>Actividad de usuarios</NavDropdown.Item>
               </Link>

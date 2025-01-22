@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { Row, Col, Button, Image, Modal } from "react-bootstrap";
+import Link from "next/link";
 import BlogController from "@/controllers/BlogController";
-import CommentController from "@/controllers/CommentController";
 import { toast } from "react-toastify";
+import CommentController from "@/controllers/CommentController";
 
 export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
@@ -12,6 +13,7 @@ export default function Blog() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +30,9 @@ export default function Blog() {
   };
 
   useEffect(() => {
+
     const loadBlogs = async () => {
+
       try {
         await BlogController.getBlogs(setBlogPosts);
         const adminStatus = await BlogController.isUserAdmin();
@@ -42,6 +46,7 @@ export default function Blog() {
     loadBlogs();
   }, []);
 
+  // Cargar usuario actual
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
@@ -58,12 +63,31 @@ export default function Blog() {
   }, []);
 
   const handleDeleteClick = (e, blog) => {
-    e.stopPropagation(); 
+    e.stopPropagation(); // Evitar que se abra el modal del blog
     setBlogToDelete(blog);
     setShowDeleteModal(true);
   };
 
-  // Cargar comentarios cuando se abre un post
+  const handleDeleteBlog = async () => {
+    try {
+      const result = await BlogController.deleteBlog(blogToDelete.id);
+      if (result.ok) {
+        toast.success("Blog eliminado correctamente");
+        // Actualizar la lista de blogs
+        await BlogController.getBlogs(setBlogPosts);
+      } else {
+        toast.error(result.error || "Error al eliminar el blog");
+      }
+    } catch (error) {
+      console.error("Error eliminando blog:", error);
+      toast.error("Error al eliminar el blog");
+    } finally {
+      setShowDeleteModal(false);
+      setBlogToDelete(null);
+    }
+  };
+
+  // Cargar comentarios cuando se selecciona un post
   useEffect(() => {
     if (selectedPost) {
       loadComments();
@@ -77,43 +101,55 @@ export default function Blog() {
     if (result.ok) {
       setComments(result.comments);
     } else {
-      toast.error(result.error);
+      toast.error('Error al cargar los comentarios');
     }
   };
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim() || !currentUser) return;
+    if (!newComment.trim()) return;
     
     setIsLoading(true);
-    const result = await CommentController.createComment({
-      entityType: 'blog',
-      entityId: selectedPost.id,
-      content: newComment.trim()
-    });
+    try {
+      const result = await CommentController.createComment({
+        entityType: 'blog',
+        entityId: selectedPost.id,
+        content: newComment.trim(),
+        author: 'Admin', // Forzamos el nombre como Admin
+        authorId: 'admin' // ID fijo para admin
+      });
 
-    if (result.ok) {
-      setNewComment('');
-      await loadComments();
-      toast.success('Comentario publicado');
-    } else {
-      toast.error(result.error || 'Error al publicar el comentario');
+      if (result.ok) {
+        setNewComment('');
+        await loadComments();
+        toast.success('Comentario publicado');
+      } else {
+        toast.error('Error al publicar el comentario');
+      }
+    } catch (error) {
+      toast.error('Error al publicar el comentario');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleDeleteComment = async (commentId) => {
-    const result = await CommentController.deleteComment(
-      'blog',
-      selectedPost.id,
-      commentId
-    );
+    try {
+      const result = await CommentController.deleteComment(
+        'blog',
+        selectedPost.id,
+        commentId,
+        true // Indicamos que es una eliminación desde admin
+      );
 
-    if (result.ok) {
-      await loadComments();
-      toast.success('Comentario eliminado');
-    } else {
-      toast.error(result.error);
+      if (result.ok) {
+        await loadComments();
+        toast.success('Comentario eliminado');
+      } else {
+        toast.error(result.error || 'Error al eliminar el comentario');
+      }
+    } catch (error) {
+      toast.error('Error al eliminar el comentario');
     }
   };
 
@@ -124,6 +160,19 @@ export default function Blog() {
   return (
     <main className="container">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Blog</h1>
+      {isAdmin && (
+        <div className="d-flex justify-content-end mb-4">
+          <Link href="/admin/blog/crear" passHref>
+            <Button
+              variant="primary"
+              className="rounded-pill"
+              style={{ padding: "10px 20px" }}
+            >
+              CREAR BLOG
+            </Button>
+          </Link>
+        </div>
+      )}
       {blogPosts.length === 0 ? (
         <div className="text-center">
           <h2>No hay blogs publicados aún</h2>
@@ -213,30 +262,23 @@ export default function Blog() {
               <div className="comments-section mt-4">
                 <h4>Comentarios</h4>
                 
-                {isLoadingUser ? (
-                  <p>Cargando...</p>
-                ) : currentUser ? (
-                  <form onSubmit={handleSubmitComment} className="mb-4">
-                    <textarea
-                      className="form-control mb-2"
-                      rows="3"
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Escribe un comentario..."
-                      disabled={isLoading}
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={isLoading || !newComment.trim()}
-                    >
-                      {isLoading ? 'Publicando...' : 'Publicar comentario'}
-                    </Button>
-                  </form>
-                ) : (
-                  <p className="alert alert-info">
-                    Debes iniciar sesión para comentar
-                  </p>
-                )}
+                {/* Formulario de comentario */}
+                <form onSubmit={handleSubmitComment} className="mb-4">
+                  <textarea
+                    className="form-control mb-2"
+                    rows="3"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Escribe un comentario..."
+                    disabled={isLoading}
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading || !newComment.trim()}
+                  >
+                    {isLoading ? 'Publicando...' : 'Publicar comentario'}
+                  </Button>
+                </form>
 
                 {/* Lista de comentarios */}
                 <div className="comments-list">
@@ -261,17 +303,15 @@ export default function Blog() {
                         </small>
                       </div>
                       <p className="mt-2 mb-1">{comment.content}</p>
-                      {currentUser && currentUser.uid === comment.authorId && (
-                        <div className="comment-actions mt-2">
-                          <Button
-                            variant="link"
-                            className="text-danger p-0"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                      )}
+                      <div className="comment-actions mt-2">
+                        <Button
+                          variant="link"
+                          className="text-danger p-0"
+                          onClick={() => handleDeleteComment(comment.id)}
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -295,6 +335,13 @@ export default function Blog() {
         }}
         centered
       >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar el blog "{blogToDelete?.title}"?
+          Esta acción no se puede deshacer.
+        </Modal.Body>
         <Modal.Footer>
           <Button
             variant="secondary"
@@ -304,6 +351,9 @@ export default function Blog() {
             }}
           >
             Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeleteBlog}>
+            Eliminar
           </Button>
         </Modal.Footer>
       </Modal>
@@ -316,17 +366,17 @@ export default function Blog() {
           transform: translateY(-5px);
         }
         .comment-item {
-          border: 1px solid #dee2e6;
+          background-color: #f8f9fa;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          border-radius: 4px;
+        }
+        .comment-actions {
+          margin-top: 0.5rem;
         }
         .comments-section {
           border-top: 1px solid #dee2e6;
           padding-top: 1.5rem;
-        }
-        .comment-actions {
-          opacity: 0.7;
-        }
-        .comment-actions:hover {
-          opacity: 1;
         }
       `}</style>
     </main>

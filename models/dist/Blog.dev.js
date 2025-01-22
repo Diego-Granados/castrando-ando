@@ -32,7 +32,7 @@ function () {
   _createClass(Blog, null, [{
     key: "create",
     value: function create(blogData) {
-      var blogsRef, newBlogRef, user, newBlog;
+      var blogsRef, newBlogRef, newBlog;
       return regeneratorRuntime.async(function create$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -40,44 +40,35 @@ function () {
               _context.prev = 0;
               blogsRef = (0, _database.ref)(_config.db, "blogs");
               newBlogRef = (0, _database.push)(blogsRef);
-              user = _config.auth.currentUser;
-
-              if (user) {
-                _context.next = 6;
-                break;
-              }
-
-              throw new Error("Usuario no autenticado");
-
-            case 6:
               newBlog = {
                 title: blogData.title,
                 content: blogData.content,
                 imageUrl: blogData.imageUrl || "",
-                author: user.displayName || "Administrador",
-                authorId: user.uid,
+                author: blogData.author || "Admin",
+                authorId: blogData.authorId,
                 date: blogData.date || new Date().toLocaleDateString(),
-                createdAt: new Date().toISOString()
+                createdAt: blogData.createdAt || new Date().toISOString()
               };
-              _context.next = 9;
+              _context.next = 6;
               return regeneratorRuntime.awrap((0, _database.set)(newBlogRef, newBlog));
 
-            case 9:
+            case 6:
               return _context.abrupt("return", {
                 id: newBlogRef.key
               });
 
-            case 12:
-              _context.prev = 12;
+            case 9:
+              _context.prev = 9;
               _context.t0 = _context["catch"](0);
+              console.error("Error creating blog:", _context.t0);
               throw _context.t0;
 
-            case 15:
+            case 13:
             case "end":
               return _context.stop();
           }
         }
-      }, null, null, [[0, 12]]);
+      }, null, null, [[0, 9]]);
     }
   }, {
     key: "getAll",
@@ -102,8 +93,7 @@ function () {
                   blogsArray.push(_objectSpread({
                     id: childSnapshot.key
                   }, blogData));
-                }); // Ordenar por fecha de creación, más reciente primero
-
+                });
                 blogsArray.sort(function (a, b) {
                   return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
                 });
@@ -131,33 +121,85 @@ function () {
   }, {
     key: "delete",
     value: function _delete(blogId) {
-      var blogRef;
+      var blogRef, snapshot, blogData;
       return regeneratorRuntime.async(function _delete$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
-              _context3.prev = 0;
-              blogRef = (0, _database.ref)(_config.db, "blogs/".concat(blogId));
-              _context3.next = 4;
+              if (blogId) {
+                _context3.next = 2;
+                break;
+              }
+
+              throw new Error("ID del blog requerido");
+
+            case 2:
+              _context3.prev = 2;
+              // Obtener referencia al blog
+              blogRef = (0, _database.ref)(_config.db, "blogs/".concat(blogId)); // Verificar si existe el blog y obtener sus datos
+
+              _context3.next = 6;
+              return regeneratorRuntime.awrap((0, _database.get)(blogRef));
+
+            case 6:
+              snapshot = _context3.sent;
+
+              if (snapshot.exists()) {
+                _context3.next = 9;
+                break;
+              }
+
+              throw new Error("El blog no existe");
+
+            case 9:
+              // Obtener datos del blog para la imagen
+              blogData = snapshot.val(); // Si hay una imagen, eliminarla de Cloudinary
+
+              if (!blogData.imageUrl) {
+                _context3.next = 19;
+                break;
+              }
+
+              _context3.prev = 11;
+              _context3.next = 14;
+              return regeneratorRuntime.awrap(fetch('/api/storage/delete', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  urls: [blogData.imageUrl]
+                })
+              }));
+
+            case 14:
+              _context3.next = 19;
+              break;
+
+            case 16:
+              _context3.prev = 16;
+              _context3.t0 = _context3["catch"](11);
+              console.error("Error al eliminar imagen:", _context3.t0); // Continuamos con la eliminación aunque falle la imagen
+
+            case 19:
+              _context3.next = 21;
               return regeneratorRuntime.awrap((0, _database.remove)(blogRef));
 
-            case 4:
-              return _context3.abrupt("return", {
-                ok: true
-              });
+            case 21:
+              return _context3.abrupt("return", true);
 
-            case 7:
-              _context3.prev = 7;
-              _context3.t0 = _context3["catch"](0);
-              console.error("Error deleting blog:", _context3.t0);
-              throw _context3.t0;
+            case 24:
+              _context3.prev = 24;
+              _context3.t1 = _context3["catch"](2);
+              console.error("Error en delete:", _context3.t1);
+              throw _context3.t1;
 
-            case 11:
+            case 28:
             case "end":
               return _context3.stop();
           }
         }
-      }, null, null, [[0, 7]]);
+      }, null, null, [[2, 24], [11, 16]]);
     }
   }]);
 

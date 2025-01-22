@@ -1,27 +1,28 @@
 "use client";
 import Blog from "@/models/Blog";
-import Auth from "@/models/Auth";
-import { auth } from "@/lib/firebase/config";
+import Comment from "@/models/Comment";
+import AuthController from "@/controllers/AuthController";
 
 class BlogController {
   static async createBlog(blogData) {
     try {
-      const user = auth.currentUser;
-      if (!user) {
-        return { ok: false, error: "Usuario no autenticado" };
-      }
-
-      // Verificar si es admin
-      const isAdmin = await this.isUserAdmin();
-      if (!isAdmin) {
+      const { user, role } = await AuthController.getCurrentUser();
+      if (!user || role !== "Admin") {
         return { ok: false, error: "No tienes permisos para crear blogs" };
       }
 
-      const result = await Blog.create(blogData);
+      const enrichedBlogData = {
+        ...blogData,
+        author: "Admin",
+        authorId: user.uid,
+        createdAt: new Date().toISOString()
+      };
+
+      const result = await Blog.create(enrichedBlogData);
       return { ok: true, id: result.id };
     } catch (error) {
       console.error("Error creating blog:", error);
-      return { ok: false, error: error.message };
+      return { ok: false, error: "Error al crear el blog" };
     }
   }
 
@@ -36,36 +37,31 @@ class BlogController {
 
   static async deleteBlog(blogId) {
     try {
-      const user = auth.currentUser;
-      if (!user) {
-        return { ok: false, error: "Usuario no autenticado" };
-      }
-
-      // Verificar si es admin
-      const isAdmin = await this.isUserAdmin();
-      if (!isAdmin) {
+      const { user, role } = await AuthController.getCurrentUser();
+      if (!user || role !== "Admin") {
         return { ok: false, error: "No tienes permisos para eliminar blogs" };
       }
 
+      // Primero eliminamos los comentarios asociados al blog
+      await Comment.deleteAllFromEntity('blog', blogId);
+      
+      // Luego eliminamos el blog
       await Blog.delete(blogId);
       return { ok: true };
     } catch (error) {
       console.error("Error deleting blog:", error);
-      return { ok: false, error: error.message };
+      return { ok: false, error: "Error al eliminar el blog" };
     }
   }
 
-  static isUserAuthenticated() {
-    return auth.currentUser !== null;
+  static async isUserAuthenticated() {
+    return AuthController.isUserAuthenticated();
   }
 
   static async isUserAdmin() {
     try {
-      const user = auth.currentUser;
-      if (!user) return false;
-
-      const userRole = await Auth.getUserRole(user.uid);
-      return userRole === "Admin";
+      const { role } = await AuthController.getCurrentUser();
+      return role === "Admin";
     } catch (error) {
       console.error("Error checking admin status:", error);
       return false;
