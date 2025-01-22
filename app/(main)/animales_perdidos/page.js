@@ -155,7 +155,7 @@ export default function AnimalesPerdidos() {
   }
 
   return (
-    <Container className="min-vh-100 d-flex flex-column py-4">
+    <Container>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 style={{ color: "#2055A5" }}>Animales Perdidos</h1>
         {isAuthenticated && (
@@ -178,66 +178,64 @@ export default function AnimalesPerdidos() {
         )}
       </div>
 
-      <div className="flex-grow-1">
-        {Object.values(petPosts).length === 0 ? (
-          <div className="text-center">
-            <h2>No hay mascotas reportadas</h2>
-          </div>
-        ) : (
-          <Row className="g-4">
-            {Object.values(petPosts).map((post) => (
-              <Col key={post.id} xs={12} md={6} lg={4}>
-                <Card 
-                  className="shadow-sm hover-shadow h-100" 
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handlePetClick(post)}
-                >
-                  <Card.Body>
-                    <Row>
-                      <Col xs={12}>
-                        {post.photos && post.photos.length > 0 && (
-                          <img
-                            src={post.photos[0]}
-                            alt="Mascota"
-                            className="img-fluid rounded w-100 mb-3"
-                            style={{ 
-                              height: "200px", 
-                              objectFit: "cover" 
-                            }}
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/placeholder-pet.jpg";
-                            }}
-                          />
-                        )}
-                      </Col>
-                      <Col xs={12}>
-                        <div className="d-flex align-items-center mb-2">
-                          {getStatusBadge(post.status)}
-                          <span className="ms-2 text-muted">{post.tipoAnimal}</span>
-                        </div>
-                        <div className="mb-2 d-flex align-items-center">
-                          <BsCalendar className="me-2" />
-                          <small className="text-muted">
-                            {formatDateTime(post.date || post.createdAt)}
-                          </small>
-                        </div>
-                        <p className="card-text">
-                          {post.descripcion.substring(0, 100)}
-                          {post.descripcion.length > 100 ? "..." : ""}
-                        </p>
-                        <p className="card-text">
-                          <BsGeoAlt className="me-2" />
-                          <small className="text-muted">{post.location}</small>
-                        </p>
-                      </Col>
-                    </Row>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
-      </div>
+      {Object.values(petPosts).length === 0 ? (
+        <div className="text-center">
+          <h2>No hay mascotas reportadas</h2>
+        </div>
+      ) : (
+        <Row className="g-4">
+          {Object.values(petPosts).map((post) => (
+            <Col key={post.id} xs={12} md={6} lg={4}>
+              <Card 
+                className="shadow-sm hover-shadow h-100" 
+                style={{ cursor: "pointer" }}
+                onClick={() => handlePetClick(post)}
+              >
+                <Card.Body>
+                  <Row>
+                    <Col xs={12}>
+                      {post.photos && post.photos.length > 0 && (
+                        <img
+                          src={post.photos[0]}
+                          alt="Mascota"
+                          className="img-fluid rounded w-100 mb-3"
+                          style={{ 
+                            height: "200px", 
+                            objectFit: "cover" 
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.src = "/images/placeholder-pet.jpg";
+                          }}
+                        />
+                      )}
+                    </Col>
+                    <Col xs={12}>
+                      <div className="d-flex align-items-center mb-2">
+                        {getStatusBadge(post.status)}
+                        <span className="ms-2 text-muted">{post.tipoAnimal}</span>
+                      </div>
+                      <div className="mb-2 d-flex align-items-center">
+                        <BsCalendar className="me-2" />
+                        <small className="text-muted">
+                          {formatDateTime(post.date || post.createdAt)}
+                        </small>
+                      </div>
+                      <p className="card-text">
+                        {post.descripcion.substring(0, 100)}
+                        {post.descripcion.length > 100 ? "..." : ""}
+                      </p>
+                      <p className="card-text">
+                        <BsGeoAlt className="me-2" />
+                        <small className="text-muted">{post.location}</small>
+                      </p>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       {/* Pet Detail Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
