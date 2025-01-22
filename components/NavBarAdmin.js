@@ -91,8 +91,8 @@ export default function NavBarAdmin() {
                   Administrar mascotas perdidas
                 </NavDropdown.Item>
               </Link>
-              <Link href="/admin/solicitudes" passHref legacyBehavior>
-                <NavDropdown.Item>Solicitudes</NavDropdown.Item>
+              <Link href="/admin/solicitarApoyo" passHref legacyBehavior>
+                <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
               </Link>
             </NavDropdown>
 

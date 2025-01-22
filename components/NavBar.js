@@ -111,7 +111,7 @@ function NavBar() {
               <Link href="/adopcion" passHref legacyBehavior>
                 <NavDropdown.Item>Adopción</NavDropdown.Item>
               </Link>
-              <Link href="/solicitar-apoyo" passHref legacyBehavior>
+              <Link href="/solicitarApoyo" passHref legacyBehavior>
                 <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
               </Link>
             </NavDropdown>
