@@ -115,8 +115,6 @@ export default function AdoptionsPage() {
   };
 
   const handleStateChange = async () => {
-    console.log(selectedAdoption);
-    console.log(pendingStateChange);
     try {
       const result = await AdoptionController.updateAdoptionStatus(selectedAdoption.id, pendingStateChange);
 
