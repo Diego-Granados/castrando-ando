@@ -37,6 +37,7 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
   // Add useEffect to update formData when initialData changes
   useEffect(() => {
     if (initialData) {
+      console.log(initialData);
       setFormData({
         nombre: initialData.nombre ?? "",
         edad: initialData.edad ?? "",
@@ -104,7 +105,7 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
 
     // Create preview URLs for new files
     const newFiles = files.map(file => ({
-      file,
+      file: file,  // Store the actual File object
       preview: URL.createObjectURL(file),
       isNew: true
     }));
@@ -125,8 +126,6 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
     });
   };
 
-
-
   // Clean up object URLs when component unmounts
   useEffect(() => {
     return () => {
@@ -144,36 +143,29 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
 
     setLoading(true);
     try {
-      const formDataObj = new FormData(e.target);
-      const submissionData = {
-        nombre: formDataObj.get("nombre"),
-        edad: formDataObj.get("edad"),
-        tipoAnimal: formDataObj.get("tipoAnimal"),
-        peso: formDataObj.get("peso"),
-        descripcion: formDataObj.get("descripcion"),
-        contact: formDataObj.get("contact"),
-        location: formDataObj.get("location"),
-        estado: "Buscando Hogar"
-      };
-
-      // Handle photo uploads first if there are files
+      // Handle photo uploads if there are files
+      let photoUrls = [];
       if (selectedFiles.length > 0) {
         try {
-          const path = `adoptions/adoption-${Date.now()}`; // Add a timestamp
+          const path = `adoptions/adoption-${Date.now()}`;
           const fileData = new FormData();
           fileData.append("path", path);
-
-          // Append each file individually
-          for (let i = 0; i < selectedFiles.length; i++) {
-            fileData.append("files", selectedFiles[i]);
+          
+          // Append all files - treating them all as new
+          for (let fileObj of selectedFiles) {
+            fileData.append("files", fileObj.file);
           }
 
           const response = await fetch("/api/storage/upload", {
             method: "POST",
             body: fileData,
           });
-          const downloadURLs = await response.json();
-          submissionData.photos = downloadURLs;
+
+          if (!response.ok) {
+            throw new Error("Error uploading images");
+          }
+
+          photoUrls = await response.json();
           toast.success("¡Fotos subidas con éxito!");
         } catch (error) {
           console.error("Error uploading images:", error);
@@ -183,33 +175,82 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
         }
       }
 
-      // If editing, include existing photos that weren't removed
-      if (isEditing && initialData?.photos) {
-        submissionData.existingPhotos = initialData.photos;
-      }
+      // Prepare submission data
+      const formDataObj = new FormData(e.target);
+      const submissionData = {
+        nombre: formDataObj.get("nombre"),
+        edad: formDataObj.get("edad"),
+        tipoAnimal: formDataObj.get("tipoAnimal"),
+        peso: formDataObj.get("peso"),
+        descripcion: formDataObj.get("descripcion"),
+        contact: formDataObj.get("contact"),
+        location: formDataObj.get("location"),
+        estado: "Buscando Hogar",
+        photos: photoUrls
+      };
 
+      // Submit to backend
       try {
         const result = await AdoptionController.createAdoption(submissionData);
-        console.log(result);
         if (result && result.success) {
           toast.success(result.message || "Operación exitosa");
-          router.push('/adopcion');
+          router.push(isAdmin ? '/admin/adopcion' : '/adopcion');
         } else {
           throw new Error(result?.message || "Error en la operación");
         }
       } catch (error) {
         console.error("Error in submission:", error);
-        toast.error(error.message || (isEditing ? 
-          'Error al actualizar la publicación' : 
-          'Error al crear la publicación'
-        ));
+        toast.error(error.message || 'Error al crear la publicación');
       }
     } catch (error) {
       console.error("Error in form handling:", error);
-      toast.error(isEditing ? 
-        'Error al actualizar la publicación' : 
-        'Error al crear la publicación'
-      );
+      toast.error('Error al crear la publicación');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateAdoption = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+
+    setLoading(true);
+    const formData = new FormData(e.target);
+    const updateData = {
+      nombre: formData.get("nombre"),
+      edad: formData.get("edad"),
+      tipoAnimal: formData.get("tipoAnimal"),
+      peso: formData.get("peso"),
+      descripcion: formData.get("descripcion"),
+      contact: formData.get("contact"),
+      location: formData.get("location"),
+      estado: "Buscando Hogar",
+      id: initialData.id
+    };
+
+    try {
+      const result = await AdoptionController.updateAdoption(initialData.id, updateData);
+
+      if (result && result.success) {
+        toast.success(result.message || "¡Publicación actualizada con éxito!", {
+          position: "top-center",
+          autoClose: 5000,
+          toastId: "update-adoption",
+          onClose: () => {
+            setLoading(false);
+            router.push(isAdmin ? '/admin/adopcion' : '/adopcion');
+          },
+        });
+      } else {
+        throw new Error(result?.message || "Error al actualizar la publicación");
+      }
+    } catch (error) {
+      console.error("Error updating adoption:", error);
+      toast.error("Error al actualizar la publicación", {
+        position: "top-center",
+        autoClose: 8000,
+        toastId: "update-adoption",
+      });
     } finally {
       setLoading(false);
     }
@@ -251,7 +292,7 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
               {alertInfo.message}
             </Alert>
           )}
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={isEditing ? handleUpdateAdoption : handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Nombre de la Mascota</Form.Label>
               <Form.Control
@@ -354,19 +395,27 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
 
             <Form.Group controlId="photos" className="mb-3">
               <Form.Label>Fotos (máximo 3)</Form.Label>
-              <Form.Control
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-                ref={fileInputRef}
-                disabled={selectedFiles.length >= 3}
-              />
-              <Form.Text className="text-muted">
-                Puede subir hasta 3 fotos. {3 - selectedFiles.length} espacios disponibles.
-                <br />
-                Formatos aceptados: JPG, PNG, GIF
-              </Form.Text>
+              {!isEditing ? (
+                <>
+                  <Form.Control
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                    disabled={selectedFiles.length >= 3}
+                  />
+                  <Form.Text className="text-muted">
+                    Puede subir hasta 3 fotos. {3 - selectedFiles.length} espacios disponibles.
+                    <br />
+                    Formatos aceptados: JPG, PNG, GIF
+                  </Form.Text>
+                </>
+              ) : (
+                <div className="text-muted">
+                  Las fotos no se pueden modificar después de crear la publicación.
+                </div>
+              )}
             </Form.Group>
 
             {selectedFiles.length > 0 && (
@@ -380,15 +429,17 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
                         alt={file.name || `Imagen ${index + 1}`}
                         style={imagePreviewStyle}
                       />
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        className="position-absolute top-0 end-0 m-1"
-                        onClick={() => handleRemoveFile(index)}
-                        style={{ padding: '2px 6px' }}
-                      >
-                        ×
-                      </Button>
+                      {!isEditing && (
+                        <Button 
+                          variant="danger" 
+                          size="sm"
+                          className="position-absolute top-0 end-0 m-1"
+                          onClick={() => handleRemoveFile(index)}
+                          style={{ padding: '2px 6px' }}
+                        >
+                          ×
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>

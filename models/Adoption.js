@@ -124,24 +124,12 @@ class Adoption {
 
   static async update(adoptionId, updates) {
     try {
-      const updatesPath = {};
-      
-      // Handle photos separately to avoid undefined values
-      const { photos, ...otherUpdates } = updates;
-      
-      // Add other updates
-      Object.keys(otherUpdates).forEach(key => {
-        if (otherUpdates[key] !== undefined) {
-          updatesPath[`/adoptions/${adoptionId}/${key}`] = otherUpdates[key];
-        }
-      });
-
-      // Add photos only if they exist
-      if (photos && photos.length > 0) {
-        updatesPath[`/adoptions/${adoptionId}/photos`] = photos;
+      // First check if adoption exists
+      const snapshot = await get(ref(db, `adoptions/${adoptionId}`));
+      if (!snapshot.exists()) {
+        return NextResponse.error("No data available");
       }
-
-      await update(ref(db), updatesPath);
+      await update(ref(db), updates);
     } catch (error) {
       console.error("Error updating adoption:", error);
       throw new Error("Failed to update adoption");

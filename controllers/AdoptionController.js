@@ -58,60 +58,27 @@ class AdoptionController {
     }
   }
 
-  static async updateAdoption(formData) {
+  static async updateAdoption(adoptionId, formData) {
+    console.log(formData);
+    console.log(adoptionId);
     try {
-      const { user, role } = await AdoptionController.verifyRole();
-      const adoption = await Adoption.getByIdOnce(formData.adoptionId);
-      
-      if (adoption.userId !== user.uid && role !== "Admin") {
-        throw new Error("No autorizado para editar esta publicación");
-      }
+      await AdoptionController.verifyRole();
+    } catch (error) {
+      return NextResponse.error("User not authenticated", { status: 401 });
+    }
 
-      // Handle new image uploads if any
-      let photoUrls = [...(formData.existingPhotos || [])];
-      
-      if (formData.photos?.length > 0) {
-        try {
-          const path = `adoptions/adoption-${formData.adoptionId}-${Date.now()}`;
-          const fileData = new FormData();
-          fileData.append("path", path);
+    try {
+      const updates = {};
+      updates[`/adoptions/${adoptionId}/nombre`] = formData.nombre;
+      updates[`/adoptions/${adoptionId}/edad`] = formData.edad;
+      updates[`/adoptions/${adoptionId}/tipoAnimal`] = formData.tipoAnimal;
+      updates[`/adoptions/${adoptionId}/peso`] = formData.peso;
+      updates[`/adoptions/${adoptionId}/descripcion`] = formData.descripcion;
+      updates[`/adoptions/${adoptionId}/contact`] = formData.contact;
+      updates[`/adoptions/${adoptionId}/location`] = formData.location;
+      updates[`/adoptions/${adoptionId}/estado`] = formData.estado;
 
-          formData.photos.forEach(file => {
-            fileData.append("files", file);
-          });
-
-          const uploadResponse = await fetch("/api/storage/upload", {
-            method: "POST",
-            body: fileData,
-          });
-
-          if (!uploadResponse.ok) {
-            throw new Error("Error al subir las imágenes");
-          }
-
-          const uploadResult = await uploadResponse.json();
-          const newUrls = uploadResult.urls || [uploadResult.url];
-          photoUrls = [...photoUrls, ...newUrls];
-          
-        } catch (error) {
-          console.error("Error uploading images:", error);
-          throw new Error("Error al subir las imágenes");
-        }
-      }
-
-      const updates = {
-        nombre: formData.nombre,
-        edad: formData.edad,
-        tipoAnimal: formData.tipoAnimal,
-        peso: formData.peso,
-        descripcion: formData.descripcion,
-        contact: formData.contact,
-        location: formData.location,
-        estado: formData.estado,
-        photos: photoUrls
-      };
-
-      await Adoption.update(formData.adoptionId, updates);
+      await Adoption.update(adoptionId, updates);
       return { success: true, message: "Publicación actualizada exitosamente" };
     } catch (error) {
       console.error("Error updating adoption:", error);
@@ -154,19 +121,19 @@ class AdoptionController {
 
   static async updateAdoptionStatus(adoptionId, estado) {
     try {
-      const { user, role } = await AdoptionController.verifyRole();
-      const adoption = await Adoption.getByIdOnce(adoptionId);
-      
-      // Verify if user is owner or admin
-      if (adoption.userId !== user.uid && role !== "Admin") {
-        throw new Error("Unauthorized to update this adoption status");
+        await AdoptionController.verifyRole();
+      } catch (error) {
+        return NextResponse.error("User not authenticated", { status: 401 });
       }
-
-      await Adoption.update(adoptionId, { estado });
-      return { success: true, message: "Estado actualizado exitosamente" };
+    try {
+        const updates = {};
+        updates[`/adoptions/${adoptionId}/estado`] = estado;
+  
+        await Adoption.update(adoptionId, updates);
+        return { success: true, message: "Estado actualizado exitosamente" };
     } catch (error) {
-      console.error("Error updating status:", error);
-      throw error;
+        console.error("Error updating status:", error);
+        throw error;
     }
   }
 }

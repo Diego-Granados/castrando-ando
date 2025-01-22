@@ -28,10 +28,20 @@ export default function AdoptionsPage() {
 
     const initialize = async () => {
       try {
-        const { user } = await AuthController.getCurrentUser();
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-        console.log(user);
+        // Try to get current user but don't fail if not authenticated
+        let user = null;
+        try {
+          const authData = await AuthController.getCurrentUser();
+          user = authData.user;
+          setIsAuthenticated(true);
+          setCurrentUser(user);
+        } catch (error) {
+          // User is not authenticated - this is fine
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
+
+        // Get adoptions regardless of authentication status
         unsubscribe = await AdoptionController.getAllAdoptions((adoptionsData) => {
           if (showMyPosts && user) {
             const filtered = Object.fromEntries(
@@ -44,9 +54,7 @@ export default function AdoptionsPage() {
           setLoading(false);
         });
       } catch (error) {
-        console.error("Error initializing:", error);
-        setIsAuthenticated(false);
-        setCurrentUser(null);
+        console.error("Error loading adoptions:", error);
         setError(error.message);
         setLoading(false);
       }
@@ -64,29 +72,6 @@ export default function AdoptionsPage() {
     setShowModal(true);
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 3) {
-      alert("Máximo 3 imágenes permitidas");
-      return;
-    }
-    
-    const mockImageUrls = files.map((_, index) => 
-      `https://example.com/mock-image-${index + 1}.jpg`
-    );
-    
-    setSelectedAdoption(prev => ({
-      ...prev,
-      photos: mockImageUrls
-    }));
-  };
-
-  const handleRemoveImage = (indexToRemove) => {
-    setSelectedAdoption(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, index) => index !== indexToRemove)
-    }));
-  };
 
   const handleDeleteClick = (adoption) => {
     setAdoptionToDelete(adoption);
@@ -130,30 +115,31 @@ export default function AdoptionsPage() {
   };
 
   const handleStateChange = async () => {
+    console.log(selectedAdoption);
+    console.log(pendingStateChange);
     try {
-      if (!pendingStateChange || !selectedAdoption) return;
-      
-      await AdoptionController.updateAdoptionStatus(
-        selectedAdoption.id, 
-        pendingStateChange
-      );
+      const result = await AdoptionController.updateAdoptionStatus(selectedAdoption.id, pendingStateChange);
 
-      // Update local state
-      setAdoptions(prev => ({
-        ...prev,
-        [selectedAdoption.id]: {
-          ...prev[selectedAdoption.id],
+      if (result.success) {
+        setAdoptions(prev => ({
+          ...prev,
+          [selectedAdoption.id]: {
+            ...prev[selectedAdoption.id],
+            estado: pendingStateChange
+          }
+        }));
+
+        // Update selected adoption state
+        setSelectedAdoption(prev => ({
+          ...prev,
           estado: pendingStateChange
-        }
-      }));
+        }));
 
-      setSelectedAdoption(prev => ({
-        ...prev,
-        estado: pendingStateChange
-      }));
-
-      setPendingStateChange(null);
-      toast.success('Estado actualizado exitosamente');
+        setPendingStateChange(null);
+        toast.success('Estado actualizado exitosamente');
+      } else {
+        throw new Error('Error al actualizar el estado');
+      }
     } catch (error) {
       console.error("Error al actualizar estado:", error);
       toast.error('Error al actualizar el estado');
@@ -185,19 +171,24 @@ export default function AdoptionsPage() {
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 style={{ color: "#2055A5" }}>Mascotas en Adopción</h1>
-        <div className="d-flex gap-3">
-          {isAuthenticated && (
+        {isAuthenticated && (
+          <div className="d-flex gap-3">
             <Button 
               variant="outline-primary"
               onClick={() => setShowMyPosts(!showMyPosts)}
             >
               {showMyPosts ? "Ver todas" : "Ver mis publicaciones"}
             </Button>
-          )}
-          <Link href="/adopcion/crear">
-            <Button variant="primary">Publicar en Adopción</Button>
+            <Link href="/adopcion/crear">
+              <Button variant="primary">Publicar en Adopción</Button>
+            </Link>
+          </div>
+        )}
+        {!isAuthenticated && (
+          <Link href="/userLogin">
+            <Button variant="primary">Iniciar sesión para publicar</Button>
           </Link>
-        </div>
+        )}
       </div>
 
       <Row xs={1} md={2} lg={3} className="g-4">
@@ -267,34 +258,9 @@ export default function AdoptionsPage() {
               
               <div className="mb-3">
                 <h5>Estado de Adopción</h5>
-                <div className="d-flex align-items-center gap-2">
-                  <Badge bg={getStatusBadgeVariant(selectedAdoption.estado)}>
-                    {selectedAdoption.estado}
-                  </Badge>
-                  {(currentUser?.uid === selectedAdoption.userId || currentUser?.role === 'Admin') && (
-                    <>
-                      <Form.Select
-                        value={pendingStateChange || selectedAdoption.estado}
-                        onChange={(e) => setPendingStateChange(e.target.value)}
-                        style={{ width: 'auto' }}
-                        size="sm"
-                      >
-                        <option value="Buscando Hogar">Buscando Hogar</option>
-                        <option value="En proceso">En proceso</option>
-                        <option value="Adoptado">Adoptado</option>
-                      </Form.Select>
-                      {pendingStateChange && pendingStateChange !== selectedAdoption.estado && (
-                        <Button 
-                          variant="outline-primary" 
-                          size="sm"
-                          onClick={handleStateChange}
-                        >
-                          Confirmar Cambio
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
+                <Badge bg={getStatusBadgeVariant(selectedAdoption.estado)}>
+                  {selectedAdoption.estado}
+                </Badge>
               </div>
               <div className="mb-3">
                 <h5>Descripción</h5>
@@ -338,8 +304,32 @@ export default function AdoptionsPage() {
               </div>
             </Modal.Body>
             <Modal.Footer>
-              {(currentUser?.isAdmin || (currentUser && selectedAdoption.userId === currentUser.uid)) && (
+              {isAuthenticated && (currentUser?.isAdmin || selectedAdoption.userId === currentUser.uid) && (
                 <>
+                  <div className="d-flex align-items-center gap-2 me-auto">
+                    <small className="text-muted">Editar Estado:</small>
+                    <div className="d-flex align-items-center gap-2">
+                      <Form.Select
+                        value={pendingStateChange || selectedAdoption.estado}
+                        onChange={(e) => setPendingStateChange(e.target.value)}
+                        style={{ width: 'auto' }}
+                        size="sm"
+                      >
+                        <option value="Buscando Hogar">Buscando Hogar</option>
+                        <option value="En proceso">En proceso</option>
+                        <option value="Adoptado">Adoptado</option>
+                      </Form.Select>
+                      {pendingStateChange && pendingStateChange !== selectedAdoption.estado && (
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm"
+                          onClick={handleStateChange}
+                        >
+                          Confirmar Cambio
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   <Link href={`/adopcion/editar/${selectedAdoption.id}`} passHref>
                     <Button variant="primary">
                       Editar
@@ -364,37 +354,39 @@ export default function AdoptionsPage() {
         )}
       </Modal>
 
-      <Modal 
-        show={showDeleteModal} 
-        onHide={() => setShowDeleteModal(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar Eliminación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="text-center">
-            <h4>¿Está seguro que desea eliminar esta publicación?</h4>
-            <p className="text-muted">
-              Esta acción no se puede deshacer.
-            </p>
-          </div>
-        </Modal.Body>
-        <Modal.Footer className="justify-content-center">
-          <Button 
-            variant="secondary" 
-            onClick={() => setShowDeleteModal(false)}
-          >
-            Cancelar
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={handleConfirmDelete}
-          >
-            Eliminar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {isAuthenticated && (
+        <Modal 
+          show={showDeleteModal} 
+          onHide={() => setShowDeleteModal(false)}
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Confirmar Eliminación</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="text-center">
+              <h4>¿Está seguro que desea eliminar esta publicación?</h4>
+              <p className="text-muted">
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+          </Modal.Body>
+          <Modal.Footer className="justify-content-center">
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleConfirmDelete}
+            >
+              Eliminar
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
 
       <style jsx global>{`
         .hover-shadow:hover {

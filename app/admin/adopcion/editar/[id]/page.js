@@ -36,7 +36,7 @@ export default function EditAdoptionPage() {
 
         // Verify ownership
         if (adoptionData.userId !== user.uid && role !== 'Admin') {
-          router.push('/adopcion');
+          router.push('/admin/adopcion');
           return;
         }
 
