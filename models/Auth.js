@@ -7,7 +7,7 @@ import {
   signOut,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { ref, get, child, set } from "firebase/database";
+import { ref, get, child, set, update } from "firebase/database";
 
 class Auth {
   static async login(email, password) {
@@ -153,6 +153,7 @@ class Auth {
 
   static async updateUserProfile(uid, updateData) {
     try {
+      console.log(updateData);
       // Get cedula from uid mapping
       const uidMapRef = ref(db, `uidToCedula/${uid}`);
       const uidMapSnapshot = await get(uidMapRef);
@@ -162,11 +163,35 @@ class Auth {
       const cedula = uidMapSnapshot.val();
 
       // Update user data using cedula
-      const userRef = ref(db, `users/${cedula}`);
-      await set(userRef, {
-        ...updateData,
-        updatedAt: new Date().toISOString(),
-      });
+      const updates = {};
+      updates[`users/${cedula}/email`] = updateData.email;
+      updates[`users/${cedula}/phone`] = updateData.phone;
+      updates[`users/${cedula}/name`] = updateData.name;
+      updates[`users/${cedula}/profileUrl`] = updateData.profileUrl;
+      updates[`users/${cedula}/updatedAt`] = new Date().toISOString();
+
+      if (updateData.activities) {
+        const activities = updateData.activities;
+
+        // Check each activity for the user
+        Object.entries(activities).forEach(([activityId, activityEnabled]) => {
+          if (activityEnabled) {
+            // Update user info in this activity
+            updates[
+              `activities/${activityId}/registeredUsers/${updateData.id}/email`
+            ] = updateData.email;
+            updates[
+              `activities/${activityId}/registeredUsers/${updateData.id}/phone`
+            ] = updateData.phone;
+            updates[
+              `activities/${activityId}/registeredUsers/${updateData.id}/name`
+            ] = updateData.name;
+          }
+        });
+      }
+
+      // Apply all updates atomically
+      await update(ref(db), updates);
       return true;
     } catch (error) {
       throw error;
