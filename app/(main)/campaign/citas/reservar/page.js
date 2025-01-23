@@ -57,6 +57,11 @@ export default function Reservar() {
       router.push("/");
     }
     setCampaign(campaign);
+    // Parse weight field as number where possible
+    campaign.pricesData = campaign.pricesData.map((price) => ({
+      ...price,
+      weight: isNaN(price.weight) ? price.weight : parseInt(price.weight),
+    }));
   }
 
   useEffect(() => {
@@ -102,7 +107,17 @@ export default function Reservar() {
     const weightOptions = document.querySelectorAll('input[name="price"]');
     for (let option of weightOptions) {
       const priceData = JSON.parse(option.value);
-      if (pet.weight <= parseInt(priceData.weight)) {
+      if (
+        // Check if weight is a number and compare numerically
+        (typeof priceData.weight === "number" &&
+          pet.weight <= priceData.weight) ||
+        // Check if weight is a string and matches pet type
+        (typeof priceData.weight === "string" &&
+          ((pet.animal === false &&
+            priceData.weight.toLowerCase() === "gatos") ||
+            (pet.animal === true &&
+              priceData.weight.toLowerCase() === "perros")))
+      ) {
         option.checked = true;
         break;
       }
@@ -373,13 +388,13 @@ export default function Reservar() {
                   <Form.Check
                     key={index}
                     type="radio"
-                    label={
-                      (price.weight != "100"
-                        ? `Hasta ${price.weight} kg`
-                        : `Más de ${
-                            campaign.pricesData[index - 1].weight
-                          } kg`) + ` (₡${price.price})`
-                    }
+                    label={`${
+                      typeof price.weight === "number"
+                        ? price.weight !== 100
+                          ? `Hasta ${price.weight} kg`
+                          : `Más de ${campaign.pricesData[index - 1].weight} kg`
+                        : price.weight // Display string category directly
+                    }: ₡${price.price.toLocaleString()}`}
                     name="price"
                     id={`${price.weight}kg`}
                     required

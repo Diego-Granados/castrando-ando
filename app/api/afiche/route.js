@@ -2,6 +2,19 @@ import { createCanvas, loadImage, registerFont } from "canvas";
 import { NextResponse } from "next/server";
 import path from "path";
 
+// Register fonts
+registerFont(path.join(process.cwd(), "fonts", "Montserrat-Bold.ttf"), {
+  family: "Montserrat_Bold",
+  weight: "bold",
+});
+registerFont(path.join(process.cwd(), "fonts", "Montserrat-ExtraBold.ttf"), {
+  family: "Montserrat_ExtraBold",
+  weight: "800",
+});
+console.log(
+  "Fonts registered " +
+    path.join(process.cwd(), "fonts", "Montserrat-ExtraBold.ttf")
+);
 export async function POST(request) {
   try {
     const data = await request.json();
@@ -17,7 +30,7 @@ export async function POST(request) {
       priceSpecial,
       requirements,
     } = data;
-
+    console.log(pricesData);
     // Load the template image first to get its dimensions
     const templateImage = await loadImage(
       path.join(process.cwd(), "private", "aficheTemplate.jpg")
@@ -41,7 +54,7 @@ export async function POST(request) {
     let y = canvas.height * 0.05;
 
     // Draw title
-    ctx.font = `800 ${canvas.width * 0.06}px Arial`;
+    ctx.font = `42px Montserrat_ExtraBold`;
     const titleLines = wrapText(ctx, title.toUpperCase(), textWidth);
     titleLines.forEach((line) => {
       ctx.fillText(line, canvas.width / 2, y);
@@ -50,25 +63,28 @@ export async function POST(request) {
 
     // Draw prices
     ctx.fillStyle = "#080808";
-    ctx.font = `bold ${canvas.width * 0.032}px Arial`;
+    ctx.font = `22px Montserrat_Bold`;
     ctx.fillText("PRECIOS", canvas.width / 2, y);
     y += canvas.width * 0.04;
-    ctx.font = `bold ${canvas.width * 0.032}px Arial`;
-    pricesData.forEach(({ price, weight }) => {
-      if (weight < 100) {
-        ctx.fillText(
-          `${weight}kg o menos: ₡${formatNumber(price)}`,
-          canvas.width / 2,
-          y
-        );
+    ctx.font = `22px Montserrat_Bold`;
+    pricesData.forEach(({ price, weight }, index) => {
+      if (typeof weight === "number") {
+        if (weight < 100) {
+          ctx.fillText(
+            `${weight}kg o menos: ₡${formatNumber(price)}`,
+            canvas.width / 2,
+            y
+          );
+        } else {
+          ctx.fillText(
+            `Más de ${pricesData[index - 1].weight}kg: ₡${formatNumber(price)}`,
+            canvas.width / 2,
+            y
+          );
+        }
       } else {
-        ctx.fillText(
-          `Más de ${
-            pricesData[pricesData.length - 2].weight
-          }kg: ₡${formatNumber(price)}`,
-          canvas.width / 2,
-          y
-        );
+        // Handle string categories
+        ctx.fillText(`${weight}: ₡${formatNumber(price)}`, canvas.width / 2, y);
       }
       y += canvas.width * 0.04;
     });
@@ -88,7 +104,7 @@ export async function POST(request) {
 
     // Draw description
     y += canvas.width * 0.01;
-    ctx.font = `bold ${canvas.width * 0.035}px Arial`;
+    ctx.font = `22px Montserrat_Bold`;
     ctx.fillStyle = "#eb922a";
     const descLines = wrapText(ctx, description, textWidth);
     descLines.forEach((line) => {
@@ -98,7 +114,7 @@ export async function POST(request) {
 
     // Draw date and time
     y += canvas.width * 0.04;
-    ctx.font = `bold ${canvas.width * 0.06}px Arial`;
+    ctx.font = `42px Montserrat_Bold`;
     ctx.fillStyle = "#4fc53d";
     const dateObj = new Date(date + "T12:00:00Z");
     const formattedDate = dateObj
@@ -111,12 +127,12 @@ export async function POST(request) {
       .replace(/^\w/, (c) => c.toUpperCase());
     ctx.fillText(formattedDate, canvas.width / 2, y);
     // y += canvas.width * 0.055;
-    // ctx.font = `bold ${canvas.width * 0.035}px Arial`;
+    // ctx.font = `bold ${canvas.width * 0.035}px Montserrat`;
     // ctx.fillText(`${startTime} - ${endTime}`, canvas.width / 2, y);
 
     // Draw place
-    y += canvas.width * 0.055;
-    ctx.font = `bold ${canvas.width * 0.04}px Arial`;
+    y += canvas.width * 0.06;
+    ctx.font = `38px Montserrat_Bold`;
     ctx.fillStyle = "#004925";
     const placeLines = wrapText(ctx, place, textWidth);
     placeLines.forEach((line) => {
@@ -127,7 +143,7 @@ export async function POST(request) {
     // Draw requirements
     y += canvas.width * 0.01;
     ctx.fillStyle = "#8c1a93";
-    ctx.font = `bold ${canvas.width * 0.035}px Arial`;
+    ctx.font = `22px Montserrat_Bold`;
     ctx.fillText("REQUISITOS", canvas.width / 2, y);
     y += canvas.width * 0.04;
     requirements.forEach((req) => {
@@ -141,7 +157,7 @@ export async function POST(request) {
     // Draw contact info
     y += canvas.width * 0.02;
     ctx.fillStyle = "#3c1f24";
-    ctx.font = `bold ${canvas.width * 0.0355}px Arial`;
+    ctx.font = `22px Montserrat_Bold`;
     const contactInfo = `CITAS: HACER CLICK EN EL LINK ADJUNTO A LA PUBLICACIÓN O ENVIAR UN MENSAJE AL WHATSAPP ${formatPhoneNumber(
       phone
     )} (NO ATENDEMOS LLAMADAS)`;

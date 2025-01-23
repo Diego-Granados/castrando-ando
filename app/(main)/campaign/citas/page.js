@@ -30,6 +30,11 @@ export default function Citas() {
       router.push("/");
     }
     setCampaign(campaign);
+    // Parse weight field as number where possible
+    campaign.pricesData = campaign.pricesData.map((price) => ({
+      ...price,
+      weight: isNaN(price.weight) ? price.weight : parseInt(price.weight),
+    }));
   }
 
   const { loading, error } = useSubscription(() =>
@@ -78,7 +83,9 @@ export default function Citas() {
                         <Button
                           variant="primary"
                           disabled={timeslots[timeslot].available === 0}
-                          aria-label={`Reservar a las ${timeslot.split(":")[0]} horas en ${campaign.place} el día ${campaign.date}`}
+                          aria-label={`Reservar a las ${
+                            timeslot.split(":")[0]
+                          } horas en ${campaign.place} el día ${campaign.date}`}
                         >
                           AGENDAR CITA
                         </Button>

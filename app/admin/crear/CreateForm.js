@@ -97,8 +97,98 @@ function CreateForm() {
 
     const prices = formData.getAll("price");
     const weights = formData.getAll("weight");
+
+    // Validate weights are in ascending order and handle special cases
+    let lastNumericWeight = -1;
+    let foundString = false;
+    let found100 = false;
+    let foundNumber = false;
+    let typeLock = "";
+
+    for (let i = 0; i < weights.length; i++) {
+      const weight = weights[i];
+      const isNumeric = !isNaN(weight);
+
+      if (typeLock === "number" && !isNumeric) {
+        toast.error("No se permite intercalar números y frases");
+        setCreating(false);
+        return;
+      } else if (typeLock === "string" && isNumeric) {
+        toast.error("No se permite intercalar números y frases");
+        setCreating(false);
+        return;
+      }
+
+      // Validate weight and price are greater than 0
+      if (isNumeric && parseInt(weight) <= 0) {
+        toast.error("Los pesos deben ser mayores a 0");
+        setCreating(false);
+        return;
+      }
+      if (parseInt(prices[i]) <= 0) {
+        toast.error("Los precios deben ser mayores a 0");
+        setCreating(false);
+        return;
+      }
+
+      if (isNumeric) {
+        if (found100) {
+          toast.error("No se permiten más pesos numéricos después de 100");
+          setCreating(false);
+          return;
+        }
+        const numWeight = parseInt(weight);
+
+        // Check if weight is 100
+        if (numWeight === 100) {
+          if (i === 0) {
+            toast.error("El peso 100 no puede ser el primer elemento");
+            setCreating(false);
+            return;
+          }
+          if (isNaN(weights[i - 1])) {
+            toast.error("El peso anterior al 100 debe ser un número");
+            setCreating(false);
+            return;
+          }
+          if (!isNaN(weights[i - 1]) && parseInt(weights[i - 1]) >= 100) {
+            toast.error("El peso anterior al 100 debe ser menor que 100");
+            setCreating(false);
+            return;
+          }
+          found100 = true;
+          if (!foundString) {
+            typeLock = "string";
+          }
+          continue;
+        }
+
+        // Check ascending order within each numeric section
+        if (numWeight <= lastNumericWeight) {
+          toast.error("Los pesos deben estar en orden ascendente");
+          setCreating(false);
+          return;
+        }
+
+        if (foundString) {
+          typeLock = "number";
+        }
+        lastNumericWeight = numWeight;
+        foundNumber = true;
+      } else {
+        if (foundNumber) {
+          typeLock = "string";
+        }
+        foundString = true;
+      }
+    }
+
     rawFormData.pricesData = prices.map((price, index) => {
-      return { price: price, weight: weights[index] };
+      const weight = weights[index];
+      return {
+        price: parseInt(price),
+        weight: isNaN(weight) ? weight : parseInt(weight), // Keep as string if not a number
+      };
     });
 
     try {
@@ -176,7 +266,11 @@ function CreateForm() {
     const prices = formData.getAll("price");
     const weights = formData.getAll("weight");
     rawFormData.pricesData = prices.map((price, index) => {
-      return { price: parseInt(price), weight: parseInt(weights[index]) };
+      const weight = weights[index];
+      return {
+        price: parseInt(price),
+        weight: isNaN(weight) ? weight : parseInt(weight), // Keep as string if not a number
+      };
     });
 
     try {

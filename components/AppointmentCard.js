@@ -8,8 +8,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import Stack from "react-bootstrap/Stack";
 import Badge from "react-bootstrap/Badge";
-import { get, ref, child } from "firebase/database";
-import { db } from "@/lib/firebase/config";
+import CampaignController from "@/controllers/CampaignController";
 import Link from "next/link";
 import InscriptionController from "@/controllers/InscriptionController";
 
@@ -68,12 +67,20 @@ export default function AppointmentCard({
   const [showEdit, setShowEdit] = useState(false);
   const [campaign, setCampaign] = useState(null);
 
+  function setCampaignState(campaign) {
+    setCampaign(campaign);
+    // Parse weight field as number where possible
+    campaign.pricesData = campaign.pricesData.map((price) => ({
+      ...price,
+      weight: isNaN(price.weight) ? price.weight : parseInt(price.weight),
+    }));
+  }
+
   const handleCloseEdit = () => setShowEdit(false);
   const handleShowEdit = () => {
-    get(child(ref(db), `campaigns/${appointment.campaignId}`)).then(
-      (snapshot) => {
-        setCampaign(snapshot.val());
-      }
+    CampaignController.getCampaignByIdOnce(
+      appointment.campaignId,
+      setCampaignState
     );
     setShowEdit(true);
   };
@@ -306,11 +313,14 @@ export default function AppointmentCard({
                       key={index}
                       type="radio"
                       label={
-                        (price.weight != "100"
-                          ? `Hasta ${price.weight} kg`
-                          : `Más de ${
-                              campaign.pricesData[index - 1].weight
-                            } kg`) + ` (₡${price.price})`
+                        typeof price.weight === "number"
+                          ? price.weight !== 100
+                            ? `Hasta ${price.weight} kg`
+                            : `Más de ${
+                                campaign.pricesData[index - 1].weight
+                              } kg`
+                          : price.weight + // Display string weight directly
+                            ` (₡${price.price.toLocaleString()})`
                       }
                       name="price"
                       id="10kg"

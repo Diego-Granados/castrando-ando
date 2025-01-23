@@ -9,7 +9,6 @@ import Badge from "react-bootstrap/Badge";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 import CampaignCommentController from "@/controllers/CampaignCommentController";
-import { auth } from "@/lib/firebase/config";
 import CampaignForum from "./mensajes/CampaignForum";
 
 export default function Campaign() {
@@ -28,6 +27,11 @@ export default function Campaign() {
     const today = new Date();
     setActive(today <= datetime);
     setCampaign(campaign);
+    // Parse weight field as number where possible
+    campaign.pricesData = campaign.pricesData.map((price) => ({
+      ...price,
+      weight: isNaN(price.weight) ? price.weight : parseInt(price.weight),
+    }));
   }
 
   const { loading, error } = useSubscription(() =>
@@ -74,18 +78,23 @@ export default function Campaign() {
                     {campaign.pricesData.map((price, index) => (
                       <li key={index}>
                         ₡{price.price}{" "}
-                        {price.weight != "100"
-                          ? `hasta ${price.weight}`
-                          : `más de ${campaign.pricesData[index - 1].weight}`}{" "}
-                        kg
+                        {
+                          typeof price.weight === "number"
+                            ? price.weight !== 100
+                              ? `Hasta ${price.weight} kg`
+                              : `Más de ${
+                                  campaign.pricesData[index - 1].weight
+                                } kg`
+                            : price.weight // Display string category directly
+                        }
                       </li>
                     ))}
                   </ul>
                   <p>
                     <strong>
                       Cargo adicional en casos especiales de ₡
-                      {campaign.priceSpecial} (preñez, celo, piometra, perros XL,
-                      entre otros)
+                      {campaign.priceSpecial} (preñez, celo, piometra, perros
+                      XL, entre otros)
                     </strong>
                   </p>
                   {active && (

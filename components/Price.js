@@ -3,7 +3,7 @@ import { Col, Form, Row } from "react-bootstrap";
 export default function Price({ id, price, weight }) {
   return (
     <Row>
-      <Col>
+      <Col xs={12} lg={6} className="mb-3 mb-lg-0">
         <Form.Group
           controlId={`price${id}`}
           as={Row}
@@ -23,19 +23,18 @@ export default function Price({ id, price, weight }) {
           </Col>
         </Form.Group>
       </Col>
-      <Col>
+      <Col xs={12} lg={6}>
         <Form.Group
           controlId={`weight${id}`}
           as={Row}
           className="align-items-center"
         >
           <Form.Label column sm={3}>
-            Hasta (kg):
+            Peso en kg o descripción (ej: gatos):
           </Form.Label>
           <Col sm={9}>
             <Form.Control
               name="weight"
-              type="number"
               placeholder="Peso de animal"
               defaultValue={weight}
               required

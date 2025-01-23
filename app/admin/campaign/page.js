@@ -29,6 +29,11 @@ export default function Campaign() {
     const today = new Date();
     setActive(today <= datetime);
     setCampaign(campaign);
+    // Parse weight field as number where possible
+    campaign.pricesData = campaign.pricesData.map((price) => ({
+      ...price,
+      weight: isNaN(price.weight) ? price.weight : parseInt(price.weight),
+    }));
   }
 
   const { loading, error } = useSubscription(() =>
@@ -67,13 +72,20 @@ export default function Campaign() {
     setCalculatingInventory(true);
     try {
       const medicines = await Medicine.getAllOnce();
-      const totalWeight = await CampaignController.calculateMedicineNeeds(campaignId, medicines);
+      const totalWeight = await CampaignController.calculateMedicineNeeds(
+        campaignId,
+        medicines
+      );
       let totals = [];
       for (const medicine of medicines) {
         totals.push({
           name: medicine.name,
-          total: Math.ceil(medicine.amount * (Math.floor(totalWeight / medicine.weightMultiplier)) * medicine.daysOfTreatment),
-          unit: medicine.unit
+          total: Math.ceil(
+            medicine.amount *
+              Math.floor(totalWeight / medicine.weightMultiplier) *
+              medicine.daysOfTreatment
+          ),
+          unit: medicine.unit,
         });
       }
       setInventoryEstimate(totals);
@@ -123,10 +135,15 @@ export default function Campaign() {
                       {campaign.pricesData.map((price, index) => (
                         <li key={index}>
                           ₡{price.price}{" "}
-                          {price.weight != "100"
-                            ? `hasta ${price.weight}`
-                            : `más de ${campaign.pricesData[index - 1].weight}`}{" "}
-                          kg
+                          {
+                            typeof price.weight === "number"
+                              ? price.weight !== 100
+                                ? `Hasta ${price.weight} kg`
+                                : `Más de ${
+                                    campaign.pricesData[index - 1].weight
+                                  } kg`
+                              : price.weight // Display string category directly
+                          }
                         </li>
                       ))}
                     </ul>
@@ -138,7 +155,7 @@ export default function Campaign() {
                       </strong>
                     </p>
 
-                    <div className="d-flex justify-content-center gap-3">
+                    <div className="d-flex justify-content-center gap-3 flex-wrap">
                       <Link href={`/admin/campaign/inscritos?id=${campaignId}`}>
                         <Button
                           variant="info"
@@ -169,7 +186,9 @@ export default function Campaign() {
                         onClick={handleCalculateInventory}
                         disabled={calculatingInventory}
                       >
-                        {calculatingInventory ? 'Calculando...' : 'Calcular estimación de inventario'}
+                        {calculatingInventory
+                          ? "Calculando..."
+                          : "Calcular estimación de inventario"}
                       </Button>
                     </div>
                   </div>
@@ -242,7 +261,11 @@ export default function Campaign() {
                 </Button>
               </Modal.Footer>
             </Modal>
-            <Modal show={showInventory} onHide={() => setShowInventory(false)} centered>
+            <Modal
+              show={showInventory}
+              onHide={() => setShowInventory(false)}
+              centered
+            >
               <Modal.Header closeButton>
                 <Modal.Title>Estimación de Inventario Necesario</Modal.Title>
               </Modal.Header>
@@ -271,7 +294,10 @@ export default function Campaign() {
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowInventory(false)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowInventory(false)}
+                >
                   Cerrar
                 </Button>
               </Modal.Footer>

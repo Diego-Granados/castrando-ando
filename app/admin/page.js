@@ -21,10 +21,6 @@ export default function Home() {
   const { loading, error } = useSubscription(() =>
     CampaignController.getAllCampaigns(setCampaigns)
   );
-  // useEffect(() => {
-  //   const unsubscribe = CampaignController.getAllCampaigns(setCampaigns);
-  //   return () => unsubscribe();
-  // }, []);
 
   useEffect(() => {
     const LastperPage = activePage * campaignsPerPage;
