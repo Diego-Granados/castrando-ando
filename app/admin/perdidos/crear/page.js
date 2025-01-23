@@ -2,5 +2,5 @@
 import LostPetForms from "@/components/LostPetForms";
 
 export default function CrearAnimalPerdido() {
-  return <LostPetForms />;
+  return <LostPetForms isAdmin={true} />;
 } 

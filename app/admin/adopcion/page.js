@@ -2,116 +2,161 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Modal, Carousel, Form, Badge } from "react-bootstrap";
 import { BsCalendar, BsGeoAlt, BsTelephone, BsPerson } from "react-icons/bs";
+import Link from "next/link";
+import AuthController from "@/controllers/AuthController";
+import AdoptionController from "@/controllers/AdoptionController";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function AdminAdopcion() {
-  const [pets, setPets] = useState([]);
+  const router = useRouter();
+  const [adoptions, setAdoptions] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedPet, setSelectedPet] = useState(null);
+  const [error, setError] = useState(null);
+  const [selectedAdoption, setSelectedAdoption] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [petToDelete, setPetToDelete] = useState(null);
-
-  const mockPets = [
-    {
-      id: 1,
-      nombre: "Luna",
-      tipoAnimal: "Perro",
-      peso: "12.5",
-      descripcion: "Luna es una perrita muy cariñosa y juguetona. Tiene 2 años y está esterilizada. Es excelente con niños y otros perros.",
-      contact: "+506 8888-8888",
-      location: "San José, Barrio Los Yoses",
-      date: "2024-03-15",
-      images: ["https://images.unsplash.com/photo-1543466835-00a7907e9de1"],
-      userId: "user1",
-      userName: "María González",
-      estado: "Buscando Hogar"
-    },
-    {
-      id: 2,
-      nombre: "Milo",
-      tipoAnimal: "Gato",
-      peso: "4.2",
-      descripcion: "Milo es un gatito muy tranquilo y limpio. Tiene 1 año y está vacunado. Es perfecto para apartamento y usa su arenero correctamente.",
-      contact: "+506 7777-7777",
-      location: "Heredia, San Francisco",
-      date: "2024-03-14",
-      images: ["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba"],
-      userId: "user2",
-      userName: "Carlos Rodríguez",
-      estado: "Adoptado"
-    }
-  ];
+  const [adoptionToDelete, setAdoptionToDelete] = useState(null);
+  const [showMyPosts, setShowMyPosts] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [pendingStateChange, setPendingStateChange] = useState(null);
 
   useEffect(() => {
-    const loadPets = async () => {
+    let unsubscribe;
+
+    const initialize = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setPets(mockPets);
+        let user = null;
+        try {
+          const authData = await AuthController.getCurrentUser();
+          user = authData.user;
+          setIsAuthenticated(true);
+          setCurrentUser(user);
+        } catch (error) {
+          console.error("Error de autenticación:", error);
+          router.push('/userlogin');
+          return;
+        }
+
+        // Obtener adopciones
+        unsubscribe = await AdoptionController.getAllAdoptions((adoptionsData) => {
+          if (showMyPosts && user) {
+            const filtered = Object.fromEntries(
+              Object.entries(adoptionsData).filter(([_, adoption]) => adoption.userId === user.uid)
+            );
+            setAdoptions(filtered);
+          } else {
+            setAdoptions(adoptionsData);
+          }
+          setLoading(false);
+        });
       } catch (error) {
-        console.error("Error al cargar mascotas:", error);
-      } finally {
+        console.error("Error loading adoptions:", error);
+        setError(error.message);
         setLoading(false);
       }
     };
 
-    loadPets();
-  }, []);
+    initialize();
 
-  const handlePetClick = (pet) => {
-    setSelectedPet(pet);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [showMyPosts, router]);
+
+  const handleAdoptionClick = (adoption) => {
+    setSelectedAdoption(adoption);
     setShowModal(true);
   };
 
-  const handleDeleteClick = (pet) => {
-    setPetToDelete(pet);
+  const handleDeleteClick = (adoption) => {
+    setAdoptionToDelete(adoption);
     setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = async () => {
     try {
-      const updatedPets = pets.filter(pet => pet.id !== petToDelete.id);
-      setPets(updatedPets);
+      await AdoptionController.deleteAdoption({
+        adoptionId: adoptionToDelete.id,
+        photos: adoptionToDelete.photos
+      });
+
+      setAdoptions(prev => {
+        const updated = { ...prev };
+        delete updated[adoptionToDelete.id];
+        return updated;
+      });
+
       setShowDeleteModal(false);
       setShowModal(false);
-      alert("Publicación eliminada exitosamente");
+      setAdoptionToDelete(null);
+      toast.success('Publicación eliminada exitosamente');
     } catch (error) {
       console.error("Error al eliminar:", error);
-      alert("Error al eliminar la publicación");
+      toast.error('Error al eliminar la publicación');
     }
   };
 
-  const getStatusBadge = (estado) => {
-    const statusStyles = {
-      "Buscando Hogar": "success",
-      Adoptado: "secondary",
-      "En proceso": "warning"
-    };
-    return (
-      <Badge bg={statusStyles[estado]} className="mb-2">
-        {estado}
-      </Badge>
-    );
+  const handleStateChange = async () => {
+    try {
+      const result = await AdoptionController.updateAdoptionStatus(selectedAdoption.id, pendingStateChange);
+
+      if (result.success) {
+        setAdoptions(prev => ({
+          ...prev,
+          [selectedAdoption.id]: {
+            ...prev[selectedAdoption.id],
+            estado: pendingStateChange
+          }
+        }));
+
+        setSelectedAdoption(prev => ({
+          ...prev,
+          estado: pendingStateChange
+        }));
+
+        setPendingStateChange(null);
+        toast.success('Estado actualizado exitosamente');
+      } else {
+        throw new Error('Error al actualizar el estado');
+      }
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      toast.error('Error al actualizar el estado');
+      setPendingStateChange(null);
+    }
   };
 
-  const tiposAnimales = [
-    "Perro",
-    "Gato",
-    "Ave",
-    "Conejo",
-    "Hamster",
-    "Otro"
-  ];
-
-  const estadosAdopcion = [
-    "Buscando Hogar",
-    "En proceso",
-    "Adoptado"
-  ];
+  const getStatusBadgeVariant = (estado) => {
+    switch (estado) {
+      case "Buscando Hogar":
+        return "success";
+      case "En proceso":
+        return "warning";
+      case "Adoptado":
+        return "secondary";
+      default:
+        return "primary";
+    }
+  };
 
   if (loading) {
     return (
-      <Container className="py-4 text-center">
-        <h2>Cargando publicaciones...</h2>
+      <Container className="py-4">
+        <div className="text-center">
+          <h2>Cargando publicaciones...</h2>
+        </div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <div className="alert alert-danger">
+          Error al cargar las publicaciones: {error}
+        </div>
       </Container>
     );
   }
@@ -119,127 +164,182 @@ export default function AdminAdopcion() {
   return (
     <Container className="py-4">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
-        Administrar Adopciones
+        Administrar Publicaciones de Adopción
       </h1>
 
-      {pets.length === 0 ? (
-        <div className="text-center">
-          <h2>No hay mascotas en adopción</h2>
-        </div>
-      ) : (
-        <Row className="g-4">
-          {pets.map((pet) => (
-            <Col key={pet.id} xs={12} md={6} lg={4}>
-              <div 
-                className="card h-100 shadow-sm hover-shadow" 
-                style={{ cursor: "pointer" }}
-                onClick={() => handlePetClick(pet)}
-              >
-                <div className="position-relative">
-                  {pet.images && pet.images.length > 0 && (
-                    <img
-                      src={pet.images[0]}
-                      alt="Mascota"
-                      className="card-img-top"
-                      style={{ height: "250px", objectFit: "cover" }}
-                    />
-                  )}
-                  <div className="position-absolute top-0 end-0 m-2">
-                    {getStatusBadge(pet.estado)}
-                  </div>
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title text-center mb-2">{pet.nombre}</h5>
-                  <p className="text-muted text-center mb-2">{pet.tipoAnimal}</p>
-                  <p className="card-text">
-                    {pet.descripcion.substring(0, 100)}
-                    {pet.descripcion.length > 100 ? "..." : ""}
-                  </p>
-                  <div className="d-flex align-items-center mb-2">
-                    <BsGeoAlt className="me-2" />
-                    <small className="text-muted">{pet.location}</small>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <BsCalendar className="me-2" />
-                    <small className="text-muted">{new Date(pet.date).toLocaleDateString()}</small>
-                  </div>
-                </div>
-              </div>
-            </Col>
-          ))}
-        </Row>
-      )}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <Button 
+          variant={showMyPosts ? "primary" : "outline-primary"}
+          onClick={() => setShowMyPosts(!showMyPosts)}
+        >
+          {showMyPosts ? "Ver todas" : "Ver mis publicaciones"}
+        </Button>
+        <Link href="/admin/adopcion/crear" passHref>
+          <Button variant="success">Nueva Publicación</Button>
+        </Link>
+      </div>
 
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {Object.values(adoptions).map((adoption) => (
+          <Col key={adoption.id}>
+            <Card className="h-100 shadow-sm hover-shadow">
+              {adoption.photos?.[0] && (
+                <div style={{ position: "relative", height: "200px" }}>
+                  <img
+                    src={adoption.photos[0]}
+                    alt={adoption.nombre}
+                    style={{ width: '100%', height: '100%', objectFit: "cover" }}
+                  />
+                </div>
+              )}
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-start">
+                  <Card.Title>{adoption.nombre}</Card.Title>
+                  <Badge bg={getStatusBadgeVariant(adoption.estado)}>
+                    {adoption.estado}
+                  </Badge>
+                </div>
+                <div>
+                  <strong>Tipo:</strong> {adoption.tipoAnimal}<br />
+                  <strong>Edad:</strong> {adoption.edad} años<br />
+                  <strong>Ubicación:</strong> {adoption.location}
+                </div>
+                <div className="mt-2">{adoption.descripcion}</div>
+                <Button 
+                  variant="outline-primary" 
+                  onClick={() => handleAdoptionClick(adoption)}
+                  className="w-100 mt-3"
+                >
+                  Ver más detalles
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {/* Modal de detalles */}
       <Modal show={showModal} onHide={() => {
         setShowModal(false);
+        setPendingStateChange(null);
       }} size="lg">
-        {selectedPet && (
+        {selectedAdoption && (
           <>
             <Modal.Header closeButton>
-              <Modal.Title>{selectedPet.nombre} - {selectedPet.tipoAnimal}</Modal.Title>
+              <Modal.Title>{selectedAdoption.nombre}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              {selectedPet.images && selectedPet.images.length > 0 && (
+              {selectedAdoption.photos && selectedAdoption.photos.length > 0 && (
                 <Carousel className="mb-4">
-                  {selectedPet.images.map((image, index) => (
+                  {selectedAdoption.photos.map((photo, index) => (
                     <Carousel.Item key={index}>
                       <img
                         className="d-block w-100"
-                        src={image}
-                        alt={`Imagen ${index + 1}`}
+                        src={photo}
+                        alt={`Foto ${index + 1}`}
                         style={{ height: "400px", objectFit: "cover" }}
                       />
                     </Carousel.Item>
                   ))}
                 </Carousel>
               )}
-              
+
               <div className="mb-3">
                 <h5>Estado de Adopción</h5>
-                {getStatusBadge(selectedPet.estado)}
+                <Badge bg={getStatusBadgeVariant(selectedAdoption.estado)}>
+                  {selectedAdoption.estado}
+                </Badge>
               </div>
+
               <div className="mb-3">
                 <h5>Descripción</h5>
-                <p>{selectedPet.descripcion}</p>
+                <p>{selectedAdoption.descripcion}</p>
               </div>
+
               <div className="mb-3">
                 <h5>Peso</h5>
-                <p>{selectedPet.peso} kg</p>
+                <p>{selectedAdoption.peso} kg</p>
               </div>
+
+              <div className="mb-3">
+                <h5>Edad</h5>
+                <p>{selectedAdoption.edad ? `${selectedAdoption.edad} años` : 'N/A'}</p>
+              </div>
+
               <div className="mb-3">
                 <div className="d-flex align-items-center">
                   <BsGeoAlt className="me-2" />
                   <h5 className="mb-0">Ubicación</h5>
                 </div>
-                <p>{selectedPet.location}</p>
+                <p>{selectedAdoption.location}</p>
               </div>
+
               <div className="mb-3">
                 <div className="d-flex align-items-center">
                   <BsTelephone className="me-2" />
                   <h5 className="mb-0">Contacto</h5>
                 </div>
-                <p>{selectedPet.contact}</p>
+                <p>{selectedAdoption.contact}</p>
               </div>
+
               <div className="mb-3">
                 <div className="d-flex align-items-center">
                   <BsCalendar className="me-2" />
                   <h5 className="mb-0">Fecha de Publicación</h5>
                 </div>
-                <p>{new Date(selectedPet.date).toLocaleDateString()}</p>
+                <p>{new Date(selectedAdoption.date).toLocaleDateString()}</p>
               </div>
+
               <div className="mb-3">
                 <div className="d-flex align-items-center">
                   <BsPerson className="me-2" />
                   <h5 className="mb-0">Publicado por</h5>
                 </div>
-                <p>{selectedPet.userName}</p>
+                <p>{selectedAdoption.userName}</p>
               </div>
+
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="danger" onClick={() => handleDeleteClick(selectedPet)}>
-                Eliminar Publicación
+
+              <div className="d-flex align-items-center gap-2 me-auto">
+                <small className="text-muted">Editar Estado:</small>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Select
+                    value={pendingStateChange || selectedAdoption.estado}
+                    onChange={(e) => setPendingStateChange(e.target.value)}
+                    style={{ width: 'auto' }}
+                    size="sm"
+                  >
+                    <option value="Buscando Hogar">Buscando Hogar</option>
+                    <option value="En proceso">En proceso</option>
+                    <option value="Adoptado">Adoptado</option>
+                  </Form.Select>
+                  {pendingStateChange && pendingStateChange !== selectedAdoption.estado && (
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm"
+                      onClick={handleStateChange}
+                    >
+                      Confirmar Cambio
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <Link href={`/admin/adopcion/editar/${selectedAdoption.id}`} passHref>
+                <Button variant="primary">
+                  Editar
+                </Button>
+              </Link>
+              <Button 
+                variant="danger" 
+                onClick={() => handleDeleteClick(selectedAdoption)}
+              >
+                Eliminar
               </Button>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
+              <Button variant="secondary" onClick={() => {
+                setShowModal(false);
+                setPendingStateChange(null);
+              }}>
                 Cerrar
               </Button>
             </Modal.Footer>
@@ -247,8 +347,8 @@ export default function AdminAdopcion() {
         )}
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+      {/* Modal de confirmación de eliminación */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar Eliminación</Modal.Title>
         </Modal.Header>
