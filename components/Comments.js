@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { Button, Image } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import CommentController from '@/controllers/CommentController';
+import { useState, useEffect } from "react";
+import { Button, Image } from "react-bootstrap";
+import { toast } from "react-toastify";
+import CommentController from "@/controllers/CommentController";
 
 export default function Comments({ entityType, entityId, isAdmin }) {
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
@@ -17,22 +17,26 @@ export default function Comments({ entityType, entityId, isAdmin }) {
 
   useEffect(() => {
     let unsubscribe;
-    
+
     const loadComments = async () => {
       try {
         // Si todavía está cargando el usuario, esperar
         if (isLoadingUser) return;
 
         // Para blog, necesitamos usuario autenticado o ser admin
-        if (entityType === 'blog' && !currentUser && !isAdmin) {
+        if (entityType === "blog" && !currentUser && !isAdmin) {
           setComments([]);
           return;
         }
 
-        unsubscribe = await CommentController.getComments(entityType, entityId, setComments);
+        unsubscribe = await CommentController.getComments(
+          entityType,
+          entityId,
+          setComments
+        );
       } catch (error) {
-        console.error('Error loading comments:', error);
-        toast.error('Error al cargar los comentarios');
+        console.error("Error loading comments:", error);
+        toast.error("Error al cargar los comentarios");
       }
     };
 
@@ -50,8 +54,8 @@ export default function Comments({ entityType, entityId, isAdmin }) {
     try {
       if (isAdmin) {
         setCurrentUser({
-          uid: 'admin',
-          role: 'Admin'
+          uid: "admin",
+          role: "Admin",
         });
       } else {
         const { user } = await CommentController.getCurrentUser();
@@ -67,25 +71,25 @@ export default function Comments({ entityType, entityId, isAdmin }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!newComment.trim()) return;
-    
+
     setIsLoading(true);
     try {
       const result = await CommentController.createComment({
         entityType,
         entityId,
         content: newComment.trim(),
-        author: isAdmin ? 'Admin' : undefined,
-        authorId: isAdmin ? 'admin' : undefined
+        author: isAdmin ? "Admin" : undefined,
+        authorId: isAdmin ? "admin" : undefined,
       });
 
       if (result.ok) {
-        setNewComment('');
-        toast.success('Comentario publicado');
+        setNewComment("");
+        toast.success("Comentario publicado");
       } else {
-        toast.error('Error al publicar el comentario');
+        toast.error("Error al publicar el comentario");
       }
     } catch (error) {
-      toast.error('Error al publicar el comentario');
+      toast.error("Error al publicar el comentario");
     } finally {
       setIsLoading(false);
     }
@@ -101,12 +105,12 @@ export default function Comments({ entityType, entityId, isAdmin }) {
       );
 
       if (result.ok) {
-        toast.success('Comentario eliminado');
+        toast.success("Comentario eliminado");
       } else {
-        toast.error('Error al eliminar el comentario');
+        toast.error("Error al eliminar el comentario");
       }
     } catch (error) {
-      toast.error('Error al eliminar el comentario');
+      toast.error("Error al eliminar el comentario");
     }
   }
 
@@ -123,7 +127,7 @@ export default function Comments({ entityType, entityId, isAdmin }) {
   }
 
   // Si es blog y no hay usuario autenticado ni es admin, mostrar mensaje de inicio de sesión
-  if (entityType === 'blog' && !currentUser && !isAdmin) {
+  if (entityType === "blog" && !currentUser && !isAdmin) {
     return (
       <div className="card shadow-sm mb-4">
         <div className="card-body text-center">
@@ -138,16 +142,22 @@ export default function Comments({ entityType, entityId, isAdmin }) {
 
   return (
     <div className="card shadow-sm mb-4">
-      <div className="card-body d-flex flex-column" style={{ minHeight: '500px' }}>
+      <div
+        className="card-body d-flex flex-column"
+        style={{ minHeight: "500px" }}
+      >
         <h3>Comentarios</h3>
-        
+
         {/* Lista de comentarios en la parte superior con scroll */}
         <div className="comments-list flex-grow-1 overflow-auto mb-4">
           {comments.length === 0 ? (
             <p className="text-center text-muted">No hay comentarios aún</p>
           ) : (
-            comments.map(comment => (
-              <div key={comment.id} className="comment-item p-3 mb-3 bg-light rounded">
+            comments.map((comment) => (
+              <div
+                key={comment.id}
+                className="comment-item p-3 mb-3 bg-light rounded"
+              >
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="d-flex align-items-center">
                     {comment.authorAvatar && (
@@ -167,7 +177,8 @@ export default function Comments({ entityType, entityId, isAdmin }) {
                   </small>
                 </div>
                 <p className="mt-2 mb-1">{comment.content}</p>
-                {(currentUser?.role === 'Admin' || currentUser?.uid === comment.authorId) && (
+                {(currentUser?.role === "Admin" ||
+                  currentUser?.uid === comment.authorUid) && (
                   <div className="comment-actions mt-2">
                     <Button
                       variant="link"
@@ -195,11 +206,8 @@ export default function Comments({ entityType, entityId, isAdmin }) {
                 placeholder="Escribe un comentario..."
                 disabled={isLoading}
               />
-              <Button 
-                type="submit" 
-                disabled={isLoading || !newComment.trim()}
-              >
-                {isLoading ? 'Publicando...' : 'Publicar comentario'}
+              <Button type="submit" disabled={isLoading || !newComment.trim()}>
+                {isLoading ? "Publicando..." : "Publicar comentario"}
               </Button>
             </form>
           ) : (
@@ -235,4 +243,4 @@ export default function Comments({ entityType, entityId, isAdmin }) {
       `}</style>
     </div>
   );
-} 
+}

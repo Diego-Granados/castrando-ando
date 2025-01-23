@@ -190,6 +190,19 @@ class Auth {
         });
       }
 
+      if (updateData.comments) {
+        const comments = updateData.comments;
+        // Update user info in each comment
+        Object.entries(comments).forEach(([commentId, comment]) => {
+          updates[
+            `comments/${comment.entityType}/${comment.entityId}/${commentId}/author`
+          ] = updateData.name;
+          updates[
+            `comments/${comment.entityType}/${comment.entityId}/${commentId}/authorAvatar`
+          ] = updateData.profileUrl || "";
+        });
+      }
+
       // Apply all updates atomically
       await update(ref(db), updates);
       return true;
