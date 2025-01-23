@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Modal, Carousel, Form } from "react-bootstrap";
 import { BsCalendar, BsClock, BsGeoAlt, BsPeople } from "react-icons/bs";
 import AuthController from "@/controllers/AuthController";
+import Comments from "@/components/Comments";
 
 export default function Actividades() {
   const [activities, setActivities] = useState([]);
@@ -11,6 +12,7 @@ export default function Actividades() {
   const [showModal, setShowModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [registrationForm, setRegistrationForm] = useState({
     email: "",
     cedula: ""
@@ -73,6 +75,17 @@ export default function Actividades() {
           }
         ];
         setActivities(sampleActivities);
+        
+        // Check if user is admin
+        try {
+          const { user } = await AuthController.getCurrentUser();
+          if (user) {
+            const userData = await AuthController.getUserData(user.uid);
+            setIsAdmin(userData?.role === 'admin');
+          }
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+        }
       } catch (error) {
         console.error("Error cargando actividades:", error);
       } finally {
@@ -369,6 +382,13 @@ export default function Actividades() {
                   {selectedActivity.cuposDisponibles} cupos disponibles de {selectedActivity.capacidadTotal}
                 </p>
               )}
+
+              {/* Componente de comentarios */}
+              <Comments 
+                entityType="activity" 
+                entityId={selectedActivity.id} 
+                isAdmin={isAdmin}
+              />
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseModal}>
