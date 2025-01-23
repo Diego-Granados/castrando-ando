@@ -71,7 +71,7 @@ export default function NavBarAdmin() {
               <Link href="/admin/allies" passHref legacyBehavior>
                 <NavDropdown.Item>Aliados</NavDropdown.Item>
               </Link>
-              <Link href="/admin/mensajes" passHref legacyBehavior>
+              <Link href="/mensajes" passHref legacyBehavior>
                 <NavDropdown.Item>Foro mensajes</NavDropdown.Item>
               </Link>
             </NavDropdown>

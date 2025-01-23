@@ -54,14 +54,15 @@ function () {
               });
 
             case 4:
-              if (!(author === 'Admin' && authorId === 'admin')) {
+              if (!(author === "Admin" && authorId === "admin")) {
                 _context.next = 8;
                 break;
               }
 
               userData = {
-                author: 'Admin',
-                authorId: 'admin',
+                author: "Admin",
+                authorId: "admin",
+                authorUid: "admin",
                 authorAvatar: ""
               };
               _context.next = 18;
@@ -93,7 +94,8 @@ function () {
               userDataFromDB = _context.sent;
               userData = {
                 author: userDataFromDB.name,
-                authorId: user.uid,
+                authorId: userDataFromDB.id,
+                authorUid: user.uid,
                 authorAvatar: userDataFromDB.profileUrl || ""
               };
 
@@ -185,7 +187,7 @@ function () {
               });
 
             case 8:
-              isAdmin = role === 'Admin';
+              isAdmin = role === "Admin";
 
               if (isAdmin) {
                 _context3.next = 15;
@@ -278,7 +280,7 @@ function () {
             case 11:
               comment = _context4.sent;
 
-              if (!(!comment || comment.authorId !== user.uid)) {
+              if (!(!comment || comment.authorUid !== user.uid)) {
                 _context4.next = 14;
                 break;
               }

@@ -156,7 +156,9 @@ export default function Comments({ entityType, entityId, isAdmin }) {
             comments.map((comment) => (
               <div
                 key={comment.id}
-                className="comment-item p-3 mb-3 bg-light rounded"
+                className={`comment-item p-3 mb-3 rounded ${
+                  currentUser?.uid === comment.authorUid ? "own-comment" : "bg-light"
+                }`}
               >
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="d-flex align-items-center">
@@ -203,6 +205,12 @@ export default function Comments({ entityType, entityId, isAdmin }) {
                 rows="3"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
                 placeholder="Escribe un comentario..."
                 disabled={isLoading}
               />
@@ -220,10 +228,15 @@ export default function Comments({ entityType, entityId, isAdmin }) {
 
       <style jsx global>{`
         .comment-item {
-          background-color: #f8f9fa;
           padding: 1rem;
           margin-bottom: 1rem;
           border-radius: 4px;
+        }
+        .own-comment {
+          background-color: #e3f2fd;
+        }
+        .bg-light {
+          background-color: #f8f9fa;
         }
         .comment-actions {
           margin-top: 0.5rem;
