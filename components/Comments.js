@@ -97,6 +97,7 @@ export default function Comments({ entityType, entityId, isAdmin }) {
 
   async function handleDelete(commentId) {
     try {
+      console.log(commentId);
       const result = await CommentController.deleteComment(
         entityType,
         entityId,
@@ -107,9 +108,11 @@ export default function Comments({ entityType, entityId, isAdmin }) {
       if (result.ok) {
         toast.success("Comentario eliminado");
       } else {
+        console.log(result);
         toast.error("Error al eliminar el comentario");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Error al eliminar el comentario");
     }
   }
