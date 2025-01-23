@@ -343,6 +343,11 @@ export default function Actividades() {
                     </Button>
                   )}
                 </div>
+                <Comments 
+                entityType="activity" 
+                entityId={selectedActivity.id} 
+                isAdmin={isAdmin}
+              />
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="secondary" onClick={handleCloseModal}>
@@ -354,38 +359,4 @@ export default function Actividades() {
         </Modal>
       </Container>
     </div>
-              )}
-
-              {/* Componente de comentarios */}
-              <Comments 
-                entityType="activity" 
-                entityId={selectedActivity.id} 
-                isAdmin={isAdmin}
-              />
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={handleCloseModal}>
-                Cerrar
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => handleRegistration(selectedActivity)}
-                disabled={
-                  selectedActivity.estado === "finalizada" ||
-                  new Date(`${selectedActivity.fecha}T${selectedActivity.hora}`) < new Date() ||
-                  (selectedActivity.tipoCapacidad === "limitada" && selectedActivity.cuposDisponibles === 0)
-                }
-              >
-                {selectedActivity.tipoCapacidad === "limitada" && selectedActivity.cuposDisponibles === 0
-                  ? "Sin cupos disponibles"
-                  : selectedActivity.estado === "finalizada" || new Date(`${selectedActivity.fecha}T${selectedActivity.hora}`) < new Date()
-                  ? "Actividad finalizada"
-                  : "Registrarme"}
-              </Button>
-            </Modal.Footer>
-          </>
-        )}
-      </Modal>
-    </Container>
-  );
-}
+)}
