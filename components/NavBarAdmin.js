@@ -59,6 +59,9 @@ export default function NavBarAdmin() {
               <Link href="/admin/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar actividades</NavDropdown.Item>
               </Link>
+              <Link href="/admin/blog" passHref legacyBehavior>
+                <NavDropdown.Item>Blog</NavDropdown.Item>
+              </Link>
               <Link href="/admin/usuarios" passHref legacyBehavior>
                 <NavDropdown.Item>Actividad de usuarios</NavDropdown.Item>
               </Link>
@@ -67,6 +70,9 @@ export default function NavBarAdmin() {
               </Link>
               <Link href="/admin/allies" passHref legacyBehavior>
                 <NavDropdown.Item>Aliados</NavDropdown.Item>
+              </Link>
+              <Link href="/admin/mensajes" passHref legacyBehavior>
+                <NavDropdown.Item>Foro mensajes</NavDropdown.Item>
               </Link>
             </NavDropdown>
 
@@ -91,8 +97,8 @@ export default function NavBarAdmin() {
                   Administrar mascotas perdidas
                 </NavDropdown.Item>
               </Link>
-              <Link href="/admin/solicitudes" passHref legacyBehavior>
-                <NavDropdown.Item>Solicitudes</NavDropdown.Item>
+              <Link href="/admin/solicitarApoyo" passHref legacyBehavior>
+                <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
               </Link>
             </NavDropdown>
 

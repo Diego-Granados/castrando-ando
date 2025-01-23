@@ -1,8 +1,6 @@
 "use client";
 import CampaignComment from "@/models/CampaignComment";
-import { auth } from "@/lib/firebase/config";
-import { ref, onValue } from "firebase/database";
-import Auth from "@/models/Auth";
+import AuthController from "@/controllers/AuthController";
 
 class CampaignCommentController {
   static async createComment(campaignId, content) {
@@ -13,7 +11,7 @@ class CampaignCommentController {
 
       const user = await Auth.getCurrentUser();
       const isAdmin = await this.isUserAdmin();
-      
+
       let authorName;
       if (isAdmin) {
         // Si es admin, usar el rol como nombre
@@ -33,7 +31,7 @@ class CampaignCommentController {
         authorName,
         user.uid
       );
-      
+
       return { ok: true, commentId: result.commentId };
     } catch (error) {
       return { ok: false, error: error.message };
@@ -43,7 +41,10 @@ class CampaignCommentController {
   static async getComments(campaignId, callback) {
     try {
       // Devolvemos la función de limpieza
-      const unsubscribe = await CampaignComment.getComments(campaignId, callback);
+      const unsubscribe = await CampaignComment.getComments(
+        campaignId,
+        callback
+      );
       return unsubscribe;
     } catch (error) {
       console.error("Error obteniendo comentarios:", error);
@@ -59,8 +60,13 @@ class CampaignCommentController {
       }
 
       const isAdmin = await this.isUserAdmin();
-      
-      await CampaignComment.deleteComment(campaignId, commentId, user.uid, isAdmin);
+
+      await CampaignComment.deleteComment(
+        campaignId,
+        commentId,
+        user.uid,
+        isAdmin
+      );
       return { ok: true };
     } catch (error) {
       return { ok: false, error: error.message };
@@ -78,11 +84,8 @@ class CampaignCommentController {
 
   static async isUserAdmin() {
     try {
-      const user = auth.currentUser;
-      if (!user) return false;
-      
-      const userRole = await Auth.getUserRole(user.uid);
-      return userRole === "Admin";
+      const { role } = await AuthController.getCurrentUser();
+      return role === "Admin";
     } catch (error) {
       console.error("Error checking admin status:", error);
       return false;
@@ -90,4 +93,4 @@ class CampaignCommentController {
   }
 }
 
-export default CampaignCommentController; 
+export default CampaignCommentController;

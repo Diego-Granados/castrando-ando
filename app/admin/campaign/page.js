@@ -12,7 +12,7 @@ import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 import Medicine from "@/models/Medicine";
 import Table from "react-bootstrap/Table";
-import CampaignForum from "@/app/(main)/campaign/mensajes/CampaignForum";
+import Comments from "@/components/Comments";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -231,7 +231,7 @@ export default function Campaign() {
 
             <Row className="mt-4">
               <Col xs={12}>
-                <CampaignForum campaignId={campaignId} />
+                <Comments entityType="campaign" entityId={campaignId} isAdmin={true} />
               </Col>
             </Row>
 

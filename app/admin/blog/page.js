@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Row, Col, Button, Image, Modal } from "react-bootstrap";
+import Link from "next/link";
 import BlogController from "@/controllers/BlogController";
 import { toast } from "react-toastify";
 import Comments from "@/components/Comments";
@@ -8,7 +9,6 @@ import Comments from "@/components/Comments";
 export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -24,8 +24,6 @@ export default function Blog() {
     const loadBlogs = async () => {
       try {
         await BlogController.getBlogs(setBlogPosts);
-        const adminStatus = await BlogController.isUserAdmin();
-        setIsAdmin(adminStatus);
       } catch (error) {
         console.error("Error cargando blogs:", error);
       } finally {
@@ -66,6 +64,17 @@ export default function Blog() {
   return (
     <main className="container">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Blog</h1>
+      <div className="d-flex justify-content-end mb-4">
+        <Link href="/admin/blog/crear" passHref>
+          <Button
+            variant="primary"
+            className="rounded-pill"
+            style={{ padding: "10px 20px" }}
+          >
+            CREAR BLOG
+          </Button>
+        </Link>
+      </div>
       {blogPosts.length === 0 ? (
         <div className="text-center">
           <h2>No hay blogs publicados aún</h2>
@@ -105,17 +114,15 @@ export default function Blog() {
                   <p className="card-text text-center">
                     {truncateText(post.content)}
                   </p>
-                  {isAdmin && (
-                    <div className="text-end mt-2">
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={(e) => handleDeleteClick(e, post)}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  )}
+                  <div className="text-end mt-2">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={(e) => handleDeleteClick(e, post)}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Col>
@@ -156,7 +163,7 @@ export default function Blog() {
               <Comments 
                 entityType="blog" 
                 entityId={selectedPost.id} 
-                isAdmin={isAdmin}
+                isAdmin={true}
               />
             </Modal.Body>
             <Modal.Footer>

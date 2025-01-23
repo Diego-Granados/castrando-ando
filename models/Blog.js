@@ -1,6 +1,6 @@
 "use client";
-import { auth, db } from "@/lib/firebase/config";
-import { ref, get, set, push, remove, query, orderByChild } from "firebase/database";
+import { db } from "@/lib/firebase/config";
+import { ref, get, set, push, remove } from "firebase/database";
 
 class Blog {
   static async create(blogData) {
@@ -8,24 +8,20 @@ class Blog {
       const blogsRef = ref(db, "blogs");
       const newBlogRef = push(blogsRef);
       
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error("Usuario no autenticado");
-      }
-
       const newBlog = {
         title: blogData.title,
         content: blogData.content,
         imageUrl: blogData.imageUrl || "",
-        author: user.displayName || "Administrador",
-        authorId: user.uid,
+        author: blogData.author || "Admin",
+        authorId: blogData.authorId,
         date: blogData.date || new Date().toLocaleDateString(),
-        createdAt: new Date().toISOString()
+        createdAt: blogData.createdAt || new Date().toISOString()
       };
 
       await set(newBlogRef, newBlog);
       return { id: newBlogRef.key };
     } catch (error) {
+      console.error("Error creating blog:", error);
       throw error;
     }
   }
@@ -45,7 +41,6 @@ class Blog {
           });
         });
         
-        // Ordenar por fecha de creación, más reciente primero
         blogsArray.sort((a, b) => 
           new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
         );
@@ -61,12 +56,46 @@ class Blog {
   }
 
   static async delete(blogId) {
+    if (!blogId) {
+      throw new Error("ID del blog requerido");
+    }
+
     try {
+      // Obtener referencia al blog
       const blogRef = ref(db, `blogs/${blogId}`);
+      
+      // Verificar si existe el blog y obtener sus datos
+      const snapshot = await get(blogRef);
+      if (!snapshot.exists()) {
+        throw new Error("El blog no existe");
+      }
+
+      // Obtener datos del blog para la imagen
+      const blogData = snapshot.val();
+
+      // Si hay una imagen, eliminarla de Cloudinary
+      if (blogData.imageUrl) {
+        try {
+          await fetch('/api/storage/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              urls: [blogData.imageUrl] 
+            }),
+          });
+        } catch (imageError) {
+          console.error("Error al eliminar imagen:", imageError);
+          // Continuamos con la eliminación aunque falle la imagen
+        }
+      }
+
+      // Eliminar el blog de Firebase
       await remove(blogRef);
-      return { ok: true };
+      return true;
     } catch (error) {
-      console.error("Error deleting blog:", error);
+      console.error("Error en delete:", error);
       throw error;
     }
   }

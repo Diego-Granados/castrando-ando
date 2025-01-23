@@ -4,7 +4,7 @@ import { Form, Button } from "react-bootstrap";
 import CampaignCommentController from "@/controllers/CampaignCommentController";
 import { toast } from "react-toastify";
 import useSubscription from "@/hooks/useSubscription";
-import { auth } from "@/lib/firebase/config";
+import AuthController from "@/controllers/AuthController";
 
 export default function CampaignForum({ campaignId }) {
   const [newComment, setNewComment] = useState("");
@@ -12,36 +12,48 @@ export default function CampaignForum({ campaignId }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [comments, setComments] = useState([]);
+  const [userUid, setUserUid] = useState(null);
 
   // Usar useSubscription para los comentarios
-  const { loading, error } = useSubscription(() => 
+  const { loading, error } = useSubscription(() =>
     CampaignCommentController.getComments(campaignId, setComments)
   );
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authStatus = await CampaignCommentController.isUserAuthenticated();
-        setIsAuthenticated(authStatus);
-        if (authStatus) {
-          const adminStatus = await CampaignCommentController.isUserAdmin();
-          setIsAdmin(adminStatus);
-        }
-      } catch (error) {
-        console.error("Error verificando autenticación:", error);
-      } finally {
-        setAuthChecking(false);
-      }
-    };
     checkAuth();
   }, []);
+
+  async function checkAuth() {
+    try {
+      const { user, role } = await AuthController.getCurrentUser();
+
+      if (!user) {
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+        setUserUid(user.uid);
+      }
+      if (role === "Admin") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error verificando autenticación:", error);
+    } finally {
+      setAuthChecking(false);
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
     try {
-      const result = await CampaignCommentController.createComment(campaignId, newComment);
+      const result = await CampaignCommentController.createComment(
+        campaignId,
+        newComment
+      );
       if (result.ok) {
         setNewComment("");
       } else {
@@ -54,7 +66,7 @@ export default function CampaignForum({ campaignId }) {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -62,7 +74,10 @@ export default function CampaignForum({ campaignId }) {
 
   const handleDelete = async (commentId) => {
     try {
-      const result = await CampaignCommentController.deleteComment(campaignId, commentId);
+      const result = await CampaignCommentController.deleteComment(
+        campaignId,
+        commentId
+      );
       if (!result.ok) {
         toast.error(result.error || "Error al eliminar el comentario");
       }
@@ -83,11 +98,14 @@ export default function CampaignForum({ campaignId }) {
   return (
     <div className="campaign-forum p-4">
       <h3 className="mb-4">Comentarios</h3>
-      
-      <div className="comments-container mb-4" style={{ 
-        maxHeight: "400px",
-        overflowY: "auto"
-      }}>
+
+      <div
+        className="comments-container mb-4"
+        style={{
+          maxHeight: "400px",
+          overflowY: "auto",
+        }}
+      >
         {comments.length === 0 ? (
           <p className="text-center text-muted">No hay comentarios aún</p>
         ) : (
@@ -95,7 +113,7 @@ export default function CampaignForum({ campaignId }) {
             <div
               key={comment.id}
               className={`comment mb-3 p-3 border rounded ${
-                isAuthenticated && comment.authorId === auth.currentUser?.uid
+                isAuthenticated && comment.authorId === userUid
                   ? "ms-auto"
                   : "me-auto"
               }`}
@@ -106,7 +124,8 @@ export default function CampaignForum({ campaignId }) {
                 <small className="text-muted">{comment.createdAt}</small>
               </div>
               <p className="mb-1">{comment.content}</p>
-              {(isAdmin || (isAuthenticated && comment.authorId === auth.currentUser?.uid)) && (
+              {(isAdmin ||
+                (isAuthenticated && comment.authorId === userUid)) && (
                 <Button
                   variant="link"
                   className="p-0 text-danger"
@@ -143,4 +162,4 @@ export default function CampaignForum({ campaignId }) {
       )}
     </div>
   );
-} 
+}

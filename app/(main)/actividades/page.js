@@ -15,6 +15,7 @@ import ActivityController from "@/controllers/ActivityController";
 import { useRouter } from "next/navigation";
 import useSubscription from "@/hooks/useSubscription";
 import { toast } from "react-toastify";
+import Comments from "@/components/Comments";
 
 export default function Actividades() {
   const [activities, setActivities] = useState({});
@@ -23,6 +24,7 @@ export default function Actividades() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Subscribe to activities updates
   const { loading, error } = useSubscription(
@@ -352,5 +354,38 @@ export default function Actividades() {
         </Modal>
       </Container>
     </div>
+              )}
+
+              {/* Componente de comentarios */}
+              <Comments 
+                entityType="activity" 
+                entityId={selectedActivity.id} 
+                isAdmin={isAdmin}
+              />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleCloseModal}>
+                Cerrar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => handleRegistration(selectedActivity)}
+                disabled={
+                  selectedActivity.estado === "finalizada" ||
+                  new Date(`${selectedActivity.fecha}T${selectedActivity.hora}`) < new Date() ||
+                  (selectedActivity.tipoCapacidad === "limitada" && selectedActivity.cuposDisponibles === 0)
+                }
+              >
+                {selectedActivity.tipoCapacidad === "limitada" && selectedActivity.cuposDisponibles === 0
+                  ? "Sin cupos disponibles"
+                  : selectedActivity.estado === "finalizada" || new Date(`${selectedActivity.fecha}T${selectedActivity.hora}`) < new Date()
+                  ? "Actividad finalizada"
+                  : "Registrarme"}
+              </Button>
+            </Modal.Footer>
+          </>
+        )}
+      </Modal>
+    </Container>
   );
 }
