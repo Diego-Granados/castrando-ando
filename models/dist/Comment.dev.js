@@ -97,7 +97,7 @@ function () {
                 }, childSnapshot.val()));
               });
               return _context2.abrupt("return", comments.sort(function (a, b) {
-                return new Date(b.createdAt) - new Date(a.createdAt);
+                return new Date(a.createdAt) - new Date(b.createdAt);
               }));
 
             case 9:
@@ -337,6 +337,25 @@ function () {
           }
         }
       }, null, null, [[0, 7]]);
+    }
+  }, {
+    key: "subscribe",
+    value: function subscribe(entityType, entityId, callback) {
+      var commentsRef = (0, _database.ref)(_config.db, "comments/".concat(entityType, "/").concat(entityId));
+      var unsubscribe = (0, _database.onValue)(commentsRef, function (snapshot) {
+        var comments = [];
+        snapshot.forEach(function (childSnapshot) {
+          comments.push(_objectSpread({
+            id: childSnapshot.key
+          }, childSnapshot.val()));
+        }); // Ordenar por fecha, más antiguos primero
+
+        comments.sort(function (a, b) {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
+        callback(comments);
+      });
+      return unsubscribe;
     }
   }]);
 

@@ -34,22 +34,49 @@ function () {
   _createClass(CommentController, null, [{
     key: "createComment",
     value: function createComment(commentData) {
-      var _ref, user, userData, enrichedCommentData, result;
+      var entityType, entityId, content, author, authorId, userData, _ref, user, userDataFromDB, result;
 
       return regeneratorRuntime.async(function createComment$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
               _context.prev = 0;
-              _context.next = 3;
+              entityType = commentData.entityType, entityId = commentData.entityId, content = commentData.content, author = commentData.author, authorId = commentData.authorId;
+
+              if (!(!entityType || !entityId || !content)) {
+                _context.next = 4;
+                break;
+              }
+
+              return _context.abrupt("return", {
+                ok: false,
+                error: "Faltan datos requeridos"
+              });
+
+            case 4:
+              if (!(author === 'Admin' && authorId === 'admin')) {
+                _context.next = 8;
+                break;
+              }
+
+              userData = {
+                author: 'Admin',
+                authorId: 'admin',
+                authorAvatar: ""
+              };
+              _context.next = 18;
+              break;
+
+            case 8:
+              _context.next = 10;
               return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
-            case 3:
+            case 10:
               _ref = _context.sent;
               user = _ref.user;
 
               if (user) {
-                _context.next = 7;
+                _context.next = 14;
                 break;
               }
 
@@ -58,46 +85,49 @@ function () {
                 error: "Debes iniciar sesión para comentar"
               });
 
-            case 7:
-              _context.next = 9;
+            case 14:
+              _context.next = 16;
               return regeneratorRuntime.awrap(_AuthController["default"].getUserData(user.uid));
 
-            case 9:
-              userData = _context.sent;
-              enrichedCommentData = _objectSpread({}, commentData, {
-                author: userData.name || "Usuario",
+            case 16:
+              userDataFromDB = _context.sent;
+              userData = {
+                author: userDataFromDB.name,
                 authorId: user.uid,
-                authorAvatar: userData.profileUrl || ""
-              });
-              _context.next = 13;
-              return regeneratorRuntime.awrap(_Comment["default"].create(enrichedCommentData));
+                authorAvatar: userDataFromDB.profileUrl || ""
+              };
 
-            case 13:
+            case 18:
+              _context.next = 20;
+              return regeneratorRuntime.awrap(_Comment["default"].create(_objectSpread({}, commentData, {}, userData)));
+
+            case 20:
               result = _context.sent;
               return _context.abrupt("return", {
                 ok: true,
                 comment: result
               });
 
-            case 17:
-              _context.prev = 17;
+            case 24:
+              _context.prev = 24;
               _context.t0 = _context["catch"](0);
+              console.error("Error creating comment:", _context.t0);
               return _context.abrupt("return", {
                 ok: false,
-                error: "Error al crear el comentario"
+                error: _context.t0.message
               });
 
-            case 20:
+            case 28:
             case "end":
               return _context.stop();
           }
         }
-      }, null, null, [[0, 17]]);
+      }, null, null, [[0, 24]]);
     }
   }, {
     key: "getComments",
-    value: function getComments(entityType, entityId) {
-      var comments;
+    value: function getComments(entityType, entityId, setComments) {
+      var comments, unsubscribe;
       return regeneratorRuntime.async(function getComments$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -108,25 +138,23 @@ function () {
 
             case 3:
               comments = _context2.sent;
-              return _context2.abrupt("return", {
-                ok: true,
-                comments: comments
-              });
+              setComments(comments); // Luego suscribirse a cambios
 
-            case 7:
-              _context2.prev = 7;
+              unsubscribe = _Comment["default"].subscribe(entityType, entityId, setComments);
+              return _context2.abrupt("return", unsubscribe);
+
+            case 9:
+              _context2.prev = 9;
               _context2.t0 = _context2["catch"](0);
-              return _context2.abrupt("return", {
-                ok: false,
-                error: "Error al cargar los comentarios"
-              });
+              console.error("Error obteniendo comentarios:", _context2.t0);
+              throw _context2.t0;
 
-            case 10:
+            case 13:
             case "end":
               return _context2.stop();
           }
         }
-      }, null, null, [[0, 7]]);
+      }, null, null, [[0, 9]]);
     }
   }, {
     key: "updateComment",
@@ -208,22 +236,33 @@ function () {
   }, {
     key: "deleteComment",
     value: function deleteComment(entityType, entityId, commentId) {
-      var _ref3, user, comment;
+      var isAdmin,
+          _ref3,
+          user,
+          comment,
+          _args4 = arguments;
 
       return regeneratorRuntime.async(function deleteComment$(_context4) {
         while (1) {
           switch (_context4.prev = _context4.next) {
             case 0:
-              _context4.prev = 0;
-              _context4.next = 3;
+              isAdmin = _args4.length > 3 && _args4[3] !== undefined ? _args4[3] : false;
+              _context4.prev = 1;
+
+              if (isAdmin) {
+                _context4.next = 14;
+                break;
+              }
+
+              _context4.next = 5;
               return regeneratorRuntime.awrap(_AuthController["default"].getCurrentUser());
 
-            case 3:
+            case 5:
               _ref3 = _context4.sent;
               user = _ref3.user;
 
               if (user) {
-                _context4.next = 7;
+                _context4.next = 9;
                 break;
               }
 
@@ -232,46 +271,47 @@ function () {
                 error: "Usuario no autenticado"
               });
 
-            case 7:
-              _context4.next = 9;
+            case 9:
+              _context4.next = 11;
               return regeneratorRuntime.awrap(_Comment["default"].get(entityType, entityId, commentId));
 
-            case 9:
+            case 11:
               comment = _context4.sent;
 
-              if (!(comment.authorId !== user.uid)) {
-                _context4.next = 12;
+              if (!(!comment || comment.authorId !== user.uid)) {
+                _context4.next = 14;
                 break;
               }
 
               return _context4.abrupt("return", {
                 ok: false,
-                error: "Solo puedes eliminar tus propios comentarios"
+                error: "No tienes permiso para eliminar este comentario"
               });
 
-            case 12:
-              _context4.next = 14;
+            case 14:
+              _context4.next = 16;
               return regeneratorRuntime.awrap(_Comment["default"]["delete"](entityType, entityId, commentId));
 
-            case 14:
+            case 16:
               return _context4.abrupt("return", {
                 ok: true
               });
 
-            case 17:
-              _context4.prev = 17;
-              _context4.t0 = _context4["catch"](0);
+            case 19:
+              _context4.prev = 19;
+              _context4.t0 = _context4["catch"](1);
+              console.error("Error deleting comment:", _context4.t0);
               return _context4.abrupt("return", {
                 ok: false,
-                error: "Error al eliminar el comentario"
+                error: _context4.t0.message
               });
 
-            case 20:
+            case 23:
             case "end":
               return _context4.stop();
           }
         }
-      }, null, null, [[0, 17]]);
+      }, null, null, [[1, 19]]);
     }
   }, {
     key: "toggleLike",

@@ -5,52 +5,56 @@ import AuthController from "@/controllers/AuthController";
 class CommentController {
   static async createComment(commentData) {
     try {
-      // Si es un comentario de admin (caso especial)
-      if (commentData.author === 'Admin' && commentData.authorId === 'admin') {
-        const enrichedCommentData = {
-          ...commentData,
-          authorAvatar: "", // Avatar vacío para admin
-          createdAt: new Date().toISOString()
-        };
-
-        const result = await Comment.create(enrichedCommentData);
-        return { ok: true, comment: result };
-      }
-
-      // Para usuarios normales, mantener la validación
-      const { user } = await AuthController.getCurrentUser();
-      if (!user) {
-        return { ok: false, error: "Debes iniciar sesión para comentar" };
-      }
-
-      // Obtener datos completos del usuario
-      const userData = await AuthController.getUserData(user.uid);
-      if (!userData) {
-        return { ok: false, error: "No se pudo obtener la información del usuario" };
-      }
+      const { entityType, entityId, content, author, authorId } = commentData;
       
-      const enrichedCommentData = {
-        ...commentData,
-        author: userData.name,
-        authorId: user.uid,
-        authorAvatar: userData.profileUrl || "",
-        createdAt: new Date().toISOString()
-      };
+      if (!entityType || !entityId || !content) {
+        return { ok: false, error: "Faltan datos requeridos" };
+      }
 
-      const result = await Comment.create(enrichedCommentData);
+      let userData;
+      if (author === 'Admin' && authorId === 'admin') {
+        userData = {
+          author: 'Admin',
+          authorId: 'admin',
+          authorAvatar: ""
+        };
+      } else {
+        const { user } = await AuthController.getCurrentUser();
+        if (!user) {
+          return { ok: false, error: "Debes iniciar sesión para comentar" };
+        }
+        const userDataFromDB = await AuthController.getUserData(user.uid);
+        userData = {
+          author: userDataFromDB.name,
+          authorId: user.uid,
+          authorAvatar: userDataFromDB.profileUrl || ""
+        };
+      }
+
+      const result = await Comment.create({
+        ...commentData,
+        ...userData
+      });
+
       return { ok: true, comment: result };
     } catch (error) {
-      console.error("Error en createComment:", error);
-      return { ok: false, error: "Error al crear el comentario" };
+      console.error("Error creating comment:", error);
+      return { ok: false, error: error.message };
     }
   }
 
-  static async getComments(entityType, entityId) {
+  static async getComments(entityType, entityId, setComments) {
     try {
+      // Primero obtener los comentarios existentes
       const comments = await Comment.getAll(entityType, entityId);
-      return { ok: true, comments };
+      setComments(comments);
+
+      // Luego suscribirse a cambios
+      const unsubscribe = Comment.subscribe(entityType, entityId, setComments);
+      return unsubscribe;
     } catch (error) {
-      return { ok: false, error: "Error al cargar los comentarios" };
+      console.error("Error obteniendo comentarios:", error);
+      throw error;
     }
   }
 
@@ -80,32 +84,23 @@ class CommentController {
 
   static async deleteComment(entityType, entityId, commentId, isAdmin = false) {
     try {
-      // Si es admin, permitir eliminar cualquier comentario
-      if (isAdmin) {
-        await Comment.delete(entityType, entityId, commentId);
-        return { ok: true };
+      if (!isAdmin) {
+        const { user } = await AuthController.getCurrentUser();
+        if (!user) {
+          return { ok: false, error: "Usuario no autenticado" };
+        }
+        
+        const comment = await Comment.get(entityType, entityId, commentId);
+        if (!comment || comment.authorId !== user.uid) {
+          return { ok: false, error: "No tienes permiso para eliminar este comentario" };
+        }
       }
-
-      // Para usuarios normales, verificar propiedad
-      const { user } = await AuthController.getCurrentUser();
-      if (!user) {
-        return { ok: false, error: "Usuario no autenticado" };
-      }
-
-      const comment = await Comment.get(entityType, entityId, commentId);
-      if (!comment) {
-        return { ok: false, error: "Comentario no encontrado" };
-      }
-
-      if (comment.authorId !== user.uid) {
-        return { ok: false, error: "Solo puedes eliminar tus propios comentarios" };
-      }
-
+      
       await Comment.delete(entityType, entityId, commentId);
       return { ok: true };
     } catch (error) {
-      console.error("Error en deleteComment:", error);
-      return { ok: false, error: "Error al eliminar el comentario" };
+      console.error("Error deleting comment:", error);
+      return { ok: false, error: error.message };
     }
   }
 
@@ -131,24 +126,7 @@ class CommentController {
   }
 
   static async getCurrentUser() {
-    try {
-      const currentUser = await AuthController.getCurrentUser();
-      if (!currentUser.user) {
-        return { user: null };
-      }
-      
-      const userData = await AuthController.getUserData(currentUser.user.uid);
-      return {
-        user: {
-          ...currentUser.user,
-          name: userData?.name,
-          profileUrl: userData?.profileUrl
-        }
-      };
-    } catch (error) {
-      console.error("Error getting current user:", error);
-      return { user: null };
-    }
+    return AuthController.getCurrentUser();
   }
 
   static async isUserAdmin() {

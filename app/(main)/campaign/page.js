@@ -1,16 +1,14 @@
 "use client";
-import { Row, Col, Button, Form } from "react-bootstrap";
+import { Row, Col, Button } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Carousel } from "react-bootstrap";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "react-bootstrap/Badge";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
-import CampaignCommentController from "@/controllers/CampaignCommentController";
-import { auth } from "@/lib/firebase/config";
-import CampaignForum from "@/components/CampaignForum";
+import Comments from "@/components/Comments";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -76,18 +74,15 @@ export default function Campaign() {
                         ₡{price.price}{" "}
                         {price.weight != "100"
                           ? `hasta ${price.weight}`
-                          : `más de ${
-                              campaign.pricesData[index - 1].weight
-                            }`}{" "}
+                          : `más de ${campaign.pricesData[index - 1].weight}`}{" "}
                         kg
                       </li>
                     ))}
                   </ul>
                   <p>
                     <strong>
-                      Cargo adicional en casos especiales de ₡
-                      {campaign.priceSpecial} (preñez, celo, piometra, perros
-                      XL, entre otros)
+                      Cargo adicional en casos especiales de ₡{campaign.priceSpecial} (preñez,
+                      celo, piometra, perros XL, entre otros)
                     </strong>
                   </p>
                   {active && (
@@ -143,7 +138,7 @@ export default function Campaign() {
 
           <Row>
             <Col xs={12}>
-              <CampaignForum campaignId={campaignId} />
+              <Comments entityType="campaign" entityId={campaignId} />
             </Col>
           </Row>
         </>

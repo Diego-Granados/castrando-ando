@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Row, Col, Button, Image, Modal } from "react-bootstrap";
 import BlogController from "@/controllers/BlogController";
-import CommentController from "@/controllers/CommentController";
 import { toast } from "react-toastify";
+import Comments from "@/components/Comments";
 
 export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
@@ -12,19 +12,12 @@ export default function Blog() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [blogToDelete, setBlogToDelete] = useState(null);
 
-  const MAX_CONTENT_LENGTH = 100; // Máximo de caracteres a mostrar
+  const MAX_CONTENT_LENGTH = 100;
   const truncateText = (text) => {
-
     if (text.length <= MAX_CONTENT_LENGTH) return text;
-
     return text.substring(0, MAX_CONTENT_LENGTH) + "...";
-
   };
 
   useEffect(() => {
@@ -42,85 +35,34 @@ export default function Blog() {
     loadBlogs();
   }, []);
 
-  useEffect(() => {
-    const loadCurrentUser = async () => {
-      try {
-        setIsLoadingUser(true);
-        const { user } = await CommentController.getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error("Error loading user:", error);
-      } finally {
-        setIsLoadingUser(false);
-      }
-    };
-    loadCurrentUser();
-  }, []);
-
   const handleDeleteClick = (e, blog) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     setBlogToDelete(blog);
     setShowDeleteModal(true);
   };
 
-  // Cargar comentarios cuando se abre un post
-  useEffect(() => {
-    if (selectedPost) {
-      loadComments();
-    }
-  }, [selectedPost]);
-
-  const loadComments = async () => {
-    if (!selectedPost) return;
-    
-    const result = await CommentController.getComments('blog', selectedPost.id);
-    if (result.ok) {
-      setComments(result.comments);
-    } else {
-      toast.error(result.error);
-    }
-  };
-
-  const handleSubmitComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim() || !currentUser) return;
-    
-    setIsLoading(true);
-    const result = await CommentController.createComment({
-      entityType: 'blog',
-      entityId: selectedPost.id,
-      content: newComment.trim()
-    });
-
-    if (result.ok) {
-      setNewComment('');
-      await loadComments();
-      toast.success('Comentario publicado');
-    } else {
-      toast.error(result.error || 'Error al publicar el comentario');
-    }
-    setIsLoading(false);
-  };
-
-  const handleDeleteComment = async (commentId) => {
-    const result = await CommentController.deleteComment(
-      'blog',
-      selectedPost.id,
-      commentId
-    );
-
-    if (result.ok) {
-      await loadComments();
-      toast.success('Comentario eliminado');
-    } else {
-      toast.error(result.error);
+  const handleDeleteBlog = async () => {
+    try {
+      const result = await BlogController.deleteBlog(blogToDelete.id);
+      if (result.ok) {
+        toast.success("Blog eliminado correctamente");
+        await BlogController.getBlogs(setBlogPosts);
+      } else {
+        toast.error(result.error || "Error al eliminar el blog");
+      }
+    } catch (error) {
+      console.error("Error eliminando blog:", error);
+      toast.error("Error al eliminar el blog");
+    } finally {
+      setShowDeleteModal(false);
+      setBlogToDelete(null);
     }
   };
 
   if (loading) {
     return <div>Cargando...</div>;
-
   }
+
   return (
     <main className="container">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>Blog</h1>
@@ -180,7 +122,8 @@ export default function Blog() {
           ))}
         </Row>
       )}
-      {/* Modal modificado para mostrar comentarios */}
+
+      {/* Modal del blog con comentarios */}
       <Modal
         show={showModal}
         onHide={() => setShowModal(false)}
@@ -209,73 +152,12 @@ export default function Blog() {
               </div>
               <p style={{ whiteSpace: 'pre-line' }}>{selectedPost.content}</p>
               
-              {/* Sección de comentarios */}
-              <div className="comments-section mt-4">
-                <h4>Comentarios</h4>
-                
-                {isLoadingUser ? (
-                  <p>Cargando...</p>
-                ) : currentUser ? (
-                  <form onSubmit={handleSubmitComment} className="mb-4">
-                    <textarea
-                      className="form-control mb-2"
-                      rows="3"
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Escribe un comentario..."
-                      disabled={isLoading}
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={isLoading || !newComment.trim()}
-                    >
-                      {isLoading ? 'Publicando...' : 'Publicar comentario'}
-                    </Button>
-                  </form>
-                ) : (
-                  <p className="alert alert-info">
-                    Debes iniciar sesión para comentar
-                  </p>
-                )}
-
-                {/* Lista de comentarios */}
-                <div className="comments-list">
-                  {comments.map(comment => (
-                    <div key={comment.id} className="comment-item p-3 mb-3 bg-light rounded">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center">
-                          {comment.authorAvatar && (
-                            <Image
-                              src={comment.authorAvatar}
-                              alt={comment.author}
-                              roundedCircle
-                              width={32}
-                              height={32}
-                              className="me-2"
-                            />
-                          )}
-                          <strong>{comment.author}</strong>
-                        </div>
-                        <small className="text-muted">
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </small>
-                      </div>
-                      <p className="mt-2 mb-1">{comment.content}</p>
-                      {currentUser && currentUser.uid === comment.authorId && (
-                        <div className="comment-actions mt-2">
-                          <Button
-                            variant="link"
-                            className="text-danger p-0"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Componente de comentarios */}
+              <Comments 
+                entityType="blog" 
+                entityId={selectedPost.id} 
+                isAdmin={isAdmin}
+              />
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -295,6 +177,13 @@ export default function Blog() {
         }}
         centered
       >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar el blog "{blogToDelete?.title}"?
+          Esta acción no se puede deshacer.
+        </Modal.Body>
         <Modal.Footer>
           <Button
             variant="secondary"
@@ -305,6 +194,9 @@ export default function Blog() {
           >
             Cancelar
           </Button>
+          <Button variant="danger" onClick={handleDeleteBlog}>
+            Eliminar
+          </Button>
         </Modal.Footer>
       </Modal>
 
@@ -314,19 +206,6 @@ export default function Blog() {
         }
         .blog-card:hover {
           transform: translateY(-5px);
-        }
-        .comment-item {
-          border: 1px solid #dee2e6;
-        }
-        .comments-section {
-          border-top: 1px solid #dee2e6;
-          padding-top: 1.5rem;
-        }
-        .comment-actions {
-          opacity: 0.7;
-        }
-        .comment-actions:hover {
-          opacity: 1;
         }
       `}</style>
     </main>

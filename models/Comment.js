@@ -1,6 +1,6 @@
 "use client";
 import { db } from "@/lib/firebase/config";
-import { ref, get, set, push, remove } from "firebase/database";
+import { ref, get, set, push, remove, onValue } from "firebase/database";
 
 class Comment {
   static async create(commentData) {
@@ -39,7 +39,7 @@ class Comment {
           });
         });
         return comments.sort((a, b) => 
-          new Date(b.createdAt) - new Date(a.createdAt)
+          new Date(a.createdAt) - new Date(b.createdAt)
         );
       }
       return [];
@@ -140,6 +140,26 @@ class Comment {
       console.error("Error deleting all comments:", error);
       throw error;
     }
+  }
+
+  static subscribe(entityType, entityId, callback) {
+    const commentsRef = ref(db, `comments/${entityType}/${entityId}`);
+    
+    const unsubscribe = onValue(commentsRef, (snapshot) => {
+      const comments = [];
+      snapshot.forEach((childSnapshot) => {
+        comments.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
+      
+      // Ordenar por fecha, más antiguos primero
+      comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      callback(comments);
+    });
+
+    return unsubscribe;
   }
 }
 

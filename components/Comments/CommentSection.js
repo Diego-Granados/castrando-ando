@@ -13,10 +13,8 @@ class CommentSection {
 
     // Combinar opciones por defecto con las proporcionadas
     Object.assign(this.options, options);
-
     this.comments = [];
     this.replyTo = null;
-
     // Inicializar
     this.init();
   }
