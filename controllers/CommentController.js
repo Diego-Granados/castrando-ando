@@ -96,7 +96,7 @@ class CommentController {
         }
 
         const comment = await Comment.get(entityType, entityId, commentId);
-        if (!comment || comment.authorId !== user.uid) {
+        if (!comment || comment.authorUid !== user.uid) {
           return {
             ok: false,
             error: "No tienes permiso para eliminar este comentario",
