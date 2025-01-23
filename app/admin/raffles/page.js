@@ -27,7 +27,7 @@ const RafflesPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        const fetchedRaffles = await RaffleController.getAllRaffles();
+        const fetchedRaffles = await RaffleController.getAllRafflesOnce();
         const rafflesArray = Object.entries(fetchedRaffles || {}).map(
           ([id, raffle]) => ({
             id,
