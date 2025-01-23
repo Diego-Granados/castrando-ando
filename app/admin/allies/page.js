@@ -1,151 +1,222 @@
 "use client";
-import React, { useState } from "react";
+
+import { useState, useEffect } from "react";
 import styles from "./AlliesPage.module.css";
-import { Button, Table } from "react-bootstrap";
-import { Cross, Pencil, Send, Trash2 } from "lucide-react";
-import Modal from "@/components/Modal";
+import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import AllyController from "@/controllers/AllyController";
 
 const AlliesPage = () => {
-  const [allies, setAllies] = useState([
-    {
-      id: 1,
-      name: "Aliado 1",
-      image: "/images/placeholder.png",
-      link: "https://example.com/aliado1",
-    },
-    {
-      id: 2,
-      name: "Aliado 2",
-      image: "/images/placeholder.png",
-      link: "https://example.com/aliado2",
-    },
-    {
-      id: 3,
-      name: "Aliado 3",
-      image: "/images/placeholder.png",
-      link: "https://example.com/aliado3",
-    },
-  ]);
-
+  const [allies, setAllies] = useState([]);
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [image, setImage] = useState("");
+  const [link, setLink] = useState("");
+  const [description, setDescription] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [newAlly, setNewAlly] = useState({ name: "", image: "", link: "" });
+  const [modalError, setModalError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [file, setFile] = useState(null);
 
-  const handleAddAlly = () => {
+  useEffect(() => {
+    const fetchAllies = async () => {
+      try {
+        const fetchedAllies = await AllyController.getAllAllies();
+        setAllies(Object.values(fetchedAllies));
+      } catch (error) {
+        console.error("Error fetching allies:", error);
+      }
+    };
+    fetchAllies();
+  }, []);
+
+  const handleAdd = () => {
+    setId("");
+    setName("");
+    setImage("");
+    setLink("");
+    setDescription("");
+    setFile(null);
+    setIsEditing(false);
     setShowModal(true);
   };
 
-  const handleSaveAlly = () => {
-    setAllies([...allies, { ...newAlly, id: allies.length + 1 }]);
-    setShowModal(false);
-    setNewAlly({ name: "", image: "", link: "" });
+  const handleEdit = (ally) => {
+    setId(ally.id);
+    setName(ally.name);
+    setImage(ally.image);
+    setLink(ally.link);
+    setDescription(ally.description);
+    setIsEditing(true);
+    setShowModal(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewAlly({ ...newAlly, [name]: value });
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
   };
 
-  const handleDelete = (id) => {
-    setAllies(allies.filter((ally) => ally.id !== id));
+  const handleSave = async (e) => {
+    e.preventDefault();
+    console.log("handleSave called"); // Debugging log
+    try {
+      const allyData = {
+        id: id || Date.now().toString(),
+        name,
+        image,
+        link,
+        description,
+      };
+      await AllyController.createOrUpdateAlly(allyData, file);
+      setShowModal(false);
+      const fetchedAllies = await AllyController.getAllAllies();
+      setAllies(Object.values(fetchedAllies));
+    } catch (error) {
+      setModalError(`Error saving ally: ${error.message}`);
+      console.error("Error saving ally:", error);
+    }
   };
 
-  const handleEdit = (id) => {
-    // Aquí puedes agregar la lógica para editar un aliado
-    console.log(`Editar aliado con id: ${id}`);
+  const handleDelete = async (allyId) => {
+    try {
+      await AllyController.deleteAlly(allyId);
+      const fetchedAllies = await AllyController.getAllAllies();
+      setAllies(Object.values(fetchedAllies));
+    } catch (error) {
+      console.error("Error deleting ally:", error);
+    }
   };
 
   return (
     <div className={styles.container}>
-      <h1>Aliados</h1>
-      <button
-        className={`${styles.btn} ${styles.btnPrimary}`}
-        onClick={handleAddAlly}
-      >
-        Agregar Aliado
-      </button>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Imagen</th>
-            <th>Enlace</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {allies.map((ally) => (
-            <tr key={ally.id}>
-              <td>{ally.name}</td>
-              <td>
-                <img
-                  src={ally.image}
-                  alt={ally.name}
-                  className={styles.allyImage}
-                />
-              </td>
-              <td>
-                <a href={ally.link} target="_blank" rel="noopener noreferrer">
-                  {ally.link}
-                </a>
-              </td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  className={styles.btn}
-                  onClick={() => handleEdit(volunteer.id)}
-                >
-                  <Pencil size={16} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  className={styles.btn}
-                  onClick={() => handleDelete(volunteer.id)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={styles.header}>
+        <h1>Gestión de Aliados</h1>
+        <p className={styles.subtitle}>
+          Administra los aliados de la organización
+        </p>
+        <Button className={styles.addButton} onClick={handleAdd}>
+          <Plus size={20} className={styles.buttonIcon} /> Agregar Aliado
+        </Button>
+      </div>
 
-      {showModal && (
-        <Modal title="Agregar Nuevo Aliado" onClose={() => setShowModal(false)}>
-          <div className={styles.formGroup}>
-            <label>Nombre:</label>
-            <input
-              type="text"
-              name="name"
-              value={newAlly.name}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Imagen (URL):</label>
-            <input
-              type="text"
-              name="image"
-              value={newAlly.image}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Enlace:</label>
-            <input
-              type="text"
-              name="link"
-              value={newAlly.link}
-              onChange={handleChange}
-            />
-          </div>
-          <button
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={handleSaveAlly}
-          >
-            Guardar
-          </button>
-        </Modal>
-      )}
+      <div className={styles.tableWrapper}>
+        <Table hover className={styles.table}>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Imagen</th>
+              <th>Enlace</th>
+              <th>Descripción</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allies.map((ally) => (
+              <tr key={ally.id}>
+                <td>{ally.name}</td>
+                <td className={styles.imageCell}>
+                  <img
+                    src={ally.image}
+                    alt={ally.name}
+                    className={styles.tableImage}
+                  />
+                </td>
+                <td className={styles.linkCell}>
+                  <a href={ally.link} target="_blank" rel="noopener noreferrer">
+                    {ally.link}
+                  </a>
+                </td>
+                <td className={styles.descriptionCell}>{ally.description}</td>
+                <td className={styles.actions}>
+                  <Button
+                    variant="outline-primary"
+                    className={styles.actionButton}
+                    onClick={() => handleEdit(ally)}
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    className={styles.actionButton}
+                    onClick={() => handleDelete(ally.id)}
+                    title="Eliminar"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className={styles.modalHeader}>
+          <Modal.Title>
+            {isEditing ? "Editar Aliado" : "Agregar Aliado"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className={styles.modalBody}>
+          {modalError && <Alert variant="danger">{modalError}</Alert>}
+          <Form onSubmit={handleSave}>
+            <Form.Group controlId="name" className={styles.formGroup}>
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="image" className={styles.formGroup}>
+              <Form.Label>Imagen</Form.Label>
+              <div className={styles.imageUpload}>
+                <Form.Control
+                  type="file"
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
+                />
+                {image && !file && (
+                  <div className={styles.currentImage}>
+                    <img
+                      src={image}
+                      alt="Current"
+                      className={styles.previewImage}
+                    />
+                  </div>
+                )}
+              </div>
+            </Form.Group>
+            <Form.Group controlId="link" className={styles.formGroup}>
+              <Form.Label>Enlace</Form.Label>
+              <Form.Control
+                type="text"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="description" className={styles.formGroup}>
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <div className={styles.modalFooter}>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="primary">
+                {isEditing ? "Guardar cambios" : "Agregar"}
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

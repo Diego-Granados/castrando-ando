@@ -115,7 +115,6 @@ function NavBar() {
                 <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
               </Link>
             </NavDropdown>
-
             <NavDropdown
               title="Recaudación de fondos"
               id="fundraising-nav-dropdown"
@@ -125,6 +124,9 @@ function NavBar() {
               </Link>
               <Link href="/funds" passHref legacyBehavior>
                 <NavDropdown.Item>Apoyo</NavDropdown.Item>
+              </Link>
+              <Link href="/funds" passHref legacyBehavior>
+                <NavDropdown.Item>Rifas</NavDropdown.Item>
               </Link>
             </NavDropdown>
           </Nav>

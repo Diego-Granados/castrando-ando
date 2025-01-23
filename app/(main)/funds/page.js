@@ -1,134 +1,329 @@
 "use client";
-
-import React, { useState, useRef } from 'react';
-import styles from './FundsPage.module.css';
-import NumberGrid from '@/components/NumberGrid';
-import Modal from '@/components/Modal';
+import React, { useState, useEffect } from "react";
+import styles from "./FundsPage.module.css";
+import RaffleController from "@/controllers/RaffleController";
+import Modal from "@/components/Modal";
 
 const FundsPage = () => {
-    const [showGrid, setShowGrid] = useState(false);
-    const [selectedNumber, setSelectedNumber] = useState(null);
-    const [confirmReservation, setConfirmReservation] = useState(false);
-    const [showWinner, setShowWinner] = useState(false);
-    const [receipt, setReceipt] = useState(null);
-    const [receiptMessage, setReceiptMessage] = useState('No se ha adjuntado comprobante');
-    const fileInputRef = useRef(null);
+  const [selectedRaffle, setSelectedRaffle] = useState(null);
+  const [raffles, setRaffles] = useState([]);
+  const [showNumbers, setShowNumbers] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedNumber, setSelectedNumber] = useState(null);
+  const [formData, setFormData] = useState({
+    buyer: "",
+    id: "",
+    phone: "",
+    receipt: null,
+  });
 
-    const raffle = {
-        name: 'Rifa 1',
-        description: 'Descripción de la rifa 1',
-        price: '₡1000',
-        date: '2024-12-01',
-        image: '/placeholder.png',
+  useEffect(() => {
+    const fetchRaffles = async () => {
+      try {
+        const fetchedRaffles = await RaffleController.getAllRaffles();
+        const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+          ([id, raffle]) => ({
+            id,
+            ...raffle,
+          })
+        );
+        setRaffles(rafflesArray);
+      } catch (error) {
+        console.error("Error fetching raffles:", error);
+        setRaffles([]);
+      }
     };
+    fetchRaffles();
+  }, []);
 
-    const winnerNumber = 42; // Número ganador (puedes cambiarlo según tu lógica)
+  const handleRaffleChange = (event) => {
+    const raffleId = event.target.value;
+    const raffle = raffles.find((r) => r.id === raffleId);
+    setSelectedRaffle(raffle);
+    setShowNumbers(false);
+  };
 
-    const handleBuyClick = () => {
-        setShowGrid(true);
-    };
+  const handleBuyClick = () => {
+    setShowNumbers(true);
+  };
 
-    const handleNumberSelect = (number) => {
-        setSelectedNumber(number);
-        setConfirmReservation(true);
-    };
+  const handleNumberClick = (number, numberData) => {
+    if (selectedRaffle.status === "finished") {
+      return; // Don't do anything if raffle is finished
+    }
 
-    const handleConfirmReservation = () => {
-        if (!receipt) {
-            alert('Por favor, sube una imagen del comprobante.');
-            return;
-        }
-        // Aquí puedes agregar la lógica para proceder con la compra y validar el comprobante
-        console.log(`Número reservado: ${selectedNumber} por ${raffle.price}`);
-        console.log('Comprobante:', receipt);
-        setConfirmReservation(false);
-        setShowGrid(false);
-        setReceipt(null);
-        setReceiptMessage('No se ha adjuntado comprobante');
-    };
+    if (numberData.status === "available") {
+      setSelectedNumber(number);
+      setShowModal(true);
+    }
+  };
 
-    const handleShowWinner = () => {
-        setShowWinner(true);
-    };
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedNumber(null);
+    setFormData({
+      buyer: "",
+      id: "",
+      phone: "",
+      receipt: null,
+    });
+  };
 
-    const handleCloseModal = () => {
-        setShowGrid(false);
-        setConfirmReservation(false);
-        setShowWinner(false);
-        setReceipt(null);
-        setReceiptMessage('No se ha adjuntado comprobante');
-    };
+  const handleInputChange = (event) => {
+    const { name, value, files } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: files ? files[0] : value,
+    }));
+  };
 
-    const handleReceiptChange = (e) => {
-        setReceipt(e.target.files[0]);
-        setReceiptMessage(e.target.files[0] ? e.target.files[0].name : 'No se ha adjuntado comprobante');
-    };
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const numberData = {
+        ...formData,
+        status: "pending",
+        purchased: true,
+        approved: false,
+      };
 
-    const handleFileInputClick = () => {
-        fileInputRef.current.click();
-    };
+      await RaffleController.updateNumber(
+        selectedRaffle.id,
+        selectedNumber,
+        numberData
+      );
 
-    return (
-        <div className="container">
-            <h1>Apoyo económico</h1>
-            <p>Hola, cualquier apoyo económico que nos puedan brindar es de suma ayuda para la asociación y las campañas.</p>
-            <h2>Donaciones</h2>
-            <section style={{ padding: '20px' }}>
-                <p>Tu apoyo es fundamental para continuar con nuestra labor. Puedes realizar una donación a través de los siguientes métodos:</p>
-                <ul>
-                    <li>Donaciones monetarias: Por medio de SINPE móvil al número celular 8888-8888</li>
-                    <li>Donaciones de artículos: Contactando al número celular 8888-8888</li>
-                </ul>
-            </section>
-            <h2>Rifas</h2>
-            <section style={{ padding: '20px' , alignItems: 'center', justifyContent: 'center' , display: 'flex', flexDirection: 'column'}}>
-                <p>Participa en nuestra rifa y ayuda a recaudar fondos para nuestra causa. Estas rifas se realizan cada mes y los ganadores se definen con los números ganadores de la loteria nacional. Para la compra de un número, el pago se debe realizar mediante SINPE móvil al número 8888-8888</p>
-                <div className={styles.raffle}>
-                    <img src={raffle.image} alt={`${raffle.name} image`} className={styles.raffleImage} />
-                    <h3>{raffle.name}</h3>
-                    <p>{raffle.description}</p>
-                    <p>Precio: {raffle.price}</p>
-                    <p>Fecha de la rifa: {raffle.date}</p>
-                    <div className={styles.buttons}>
-                        <button className="btn btn-primary" onClick={handleBuyClick}>Participar</button>
-                        <button className="btn btn-secondary" onClick={handleShowWinner}>Consultar Ganadores</button>
-                    </div>
+      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const rafflesArray = Object.entries(fetchedRaffles || {}).map(
+        ([id, raffle]) => ({
+          id,
+          ...raffle,
+        })
+      );
+
+      setRaffles(rafflesArray);
+
+      const updatedSelectedRaffle = rafflesArray.find(
+        (raffle) => raffle.id === selectedRaffle.id
+      );
+      setSelectedRaffle(updatedSelectedRaffle);
+
+      setShowModal(false);
+      setSelectedNumber(null);
+      setFormData({
+        buyer: "",
+        id: "",
+        phone: "",
+        receipt: null,
+      });
+
+      alert("Número reservado exitosamente");
+    } catch (error) {
+      console.error("Error reserving number:", error);
+      alert("Error al reservar el número: " + error.message);
+    }
+  };
+
+  const getNumberStatus = (numberData) => {
+    if (numberData.approved) return styles.approved;
+    if (numberData.purchased) return styles.pending;
+    return "";
+  };
+
+  return (
+    <div className={styles.container}>
+      <h1>Rifas</h1>
+      <select onChange={handleRaffleChange} className={styles.select}>
+        <option value="">Seleccione una rifa</option>
+        {raffles.map((raffle) => (
+          <option key={raffle.id} value={raffle.id}>
+            {raffle.name}
+          </option>
+        ))}
+      </select>
+
+      {selectedRaffle && (
+        <div className={styles.raffleInfo}>
+          <div className={styles.raffleContent}>
+            <div className={styles.raffleDetails}>
+              <h2>Información de la Rifa</h2>
+              <p>
+                <strong>Nombre:</strong> {selectedRaffle.name}
+              </p>
+              <p>
+                <strong>Descripción:</strong> {selectedRaffle.description}
+              </p>
+              <p>
+                <strong>Precio:</strong> ¢{selectedRaffle.price}.00
+              </p>
+              <p>
+                <strong>Fecha:</strong>{" "}
+                {new Date(selectedRaffle.date).toLocaleDateString()}
+              </p>
+            </div>
+
+            {selectedRaffle.image && (
+              <div className={styles.prizeContainer}>
+                <h3>Premio</h3>
+                <div className={styles.imageContainer}>
+                  <img
+                    src={selectedRaffle.image}
+                    alt={selectedRaffle.name}
+                    className={styles.raffleImage}
+                  />
                 </div>
-                {showGrid && (
-                    <Modal title="Comprar Número" onClose={handleCloseModal}>
-                        <NumberGrid onSelect={handleNumberSelect} />
-                    </Modal>
-                )}
-                {confirmReservation && (
-                    <Modal title="Confirmar Compra" onClose={handleCloseModal}>
-                        <p>¿Desea comprar el número {selectedNumber} por un precio de {raffle.price} colones?</p>
-                        <p>Debe adjuntar una imagen del comprobante del pago SINPE móvil que se realiza al número 8888-8888</p>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleReceiptChange}
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                        />
-                        <button className="btn btn-secondary" onClick={handleFileInputClick}>Adjuntar Comprobante</button>
-                        <p className={styles.tabbed}>{receiptMessage}</p>
-                        <div className={styles.buttons}>
-                            <button className="btn btn-primary" onClick={handleConfirmReservation}>Confirmar</button>
-                            <button className="btn btn-secondary" onClick={handleCloseModal}>Cancelar</button>
-                        </div>
-                    </Modal>
-                )}
-                {showWinner && (
-                    <Modal title="Número Ganador" onClose={handleCloseModal}>
-                        <p>El número ganador es: {winnerNumber}</p>
-                        <div className={styles.buttons}>
-                            <button className="btn btn-secondary" onClick={handleCloseModal}>Cerrar</button>
-                        </div>
-                    </Modal>
-                )}
-            </section>
+              </div>
+            )}
+          </div>
+
+          {selectedRaffle.status === "finished" ? (
+            <div className={styles.winnerInfo}>
+              <h3>¡Rifa Finalizada!</h3>
+              <p>
+                <strong>Número Ganador:</strong> {selectedRaffle.winner}
+              </p>
+              <p>
+                <strong>Ganador:</strong> {selectedRaffle.winnerName}
+              </p>
+            </div>
+          ) : (
+            <button onClick={handleBuyClick} className={styles.buyButton}>
+              Ver Números
+            </button>
+          )}
+
+          {showNumbers && (
+            <div className={styles.numbersGrid}>
+              {Object.entries(selectedRaffle.numbers).map(
+                ([number, numberData]) => (
+                  <div
+                    key={number}
+                    className={`${styles.number} ${getNumberStatus(
+                      numberData
+                    )}`}
+                    onClick={() => handleNumberClick(number, numberData)}
+                    style={{
+                      cursor:
+                        selectedRaffle.status === "finished"
+                          ? "default"
+                          : "pointer",
+                    }}
+                  >
+                    {number}
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
-    );
+      )}
+
+      {showModal && (
+        <Modal onClose={handleModalClose} className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>
+              Reservar Número {selectedNumber}
+            </h2>
+            <form onSubmit={handleFormSubmit} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  Nombre:
+                  <input
+                    type="text"
+                    name="buyer"
+                    value={formData.buyer}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    required
+                  />
+                </label>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  Cédula:
+                  <input
+                    type="text"
+                    name="id"
+                    value={formData.id}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    required
+                  />
+                </label>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  Teléfono:
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    required
+                  />
+                </label>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  Comprobante:
+                  <div className={styles.customFileInput}>
+                    <input
+                      type="file"
+                      name="receipt"
+                      onChange={handleInputChange}
+                      className={styles.fileInputHidden}
+                      required
+                      id="receipt"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("receipt").click()}
+                      className={styles.fileButton}
+                    >
+                      Seleccionar archivo
+                    </button>
+                    {formData.receipt && (
+                      <span className={styles.fileName}>
+                        {formData.receipt.name}
+                      </span>
+                    )}
+                  </div>
+                </label>
+              </div>
+              <div className={styles.modalButtons}>
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className={`${styles.button} ${styles.cancelButton}`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles.button} ${styles.submitButton}`}
+                >
+                  Reservar
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
+
+      <div className={styles.info}>
+        <p>
+          Participa en nuestra rifa y ayuda a recaudar fondos para nuestra
+          causa.
+        </p>
+        <p>
+          Estas rifas se realizan cada mes y los ganadores se definen con los
+          números ganadores de la lotería nacional. Para la compra de un número,
+          el pago se debe realizar mediante SINPE móvil al número 8888-8888.
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default FundsPage;

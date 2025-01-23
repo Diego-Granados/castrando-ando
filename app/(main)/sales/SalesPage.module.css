@@ -1,29 +1,226 @@
 .container {
-    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
-.category {
-    margin-bottom: 40px;
-}
-
-.catalog {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-}
-
-.product {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px;
+.header {
     text-align: center;
-    width: 200px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.categorySection {
+    margin-bottom: 4rem;
+}
+
+.categorySection h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.productsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.productCard {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.productCard:hover {
+    transform: translateY(-5px);
+}
+
+.imageWrapper {
+    position: relative;
+    padding-top: 75%;
+    overflow: hidden;
 }
 
 .productImage {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.productCard:hover .productImage {
+    transform: scale(1.05);
+}
+
+.productInfo {
+    padding: 1.5rem;
+}
+
+.productName {
+    font-size: 1.2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.productDescription {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.productMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.price {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.stock {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.buyButton {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #3498db;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.buyButton:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.buyButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.emptyMessage {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Modal Styles */
+.modalContent {
+    padding: 1.5rem;
+}
+
+.selectedProduct {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modalImage {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.productDetails {
+    flex: 1;
+}
+
+.modalPrice {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.contactInfo {
+    margin-bottom: 2rem;
+}
+
+.contactMethod {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1rem 0;
+    color: #2c3e50;
+}
+
+.closeButton {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #e9ecef;
+    color: #2c3e50;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+    background-color: #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .selectedProduct {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .modalImage {
+        width: 200px;
+        height: 200px;
+    }
 }
