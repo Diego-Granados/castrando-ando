@@ -6,17 +6,18 @@ class CommentController {
   static async createComment(commentData) {
     try {
       const { entityType, entityId, content, author, authorId } = commentData;
-      
+
       if (!entityType || !entityId || !content) {
         return { ok: false, error: "Faltan datos requeridos" };
       }
 
       let userData;
-      if (author === 'Admin' && authorId === 'admin') {
+      if (author === "Admin" && authorId === "admin") {
         userData = {
-          author: 'Admin',
-          authorId: 'admin',
-          authorAvatar: ""
+          author: "Admin",
+          authorId: "admin",
+          authorUid: "admin",
+          authorAvatar: "",
         };
       } else {
         const { user } = await AuthController.getCurrentUser();
@@ -26,14 +27,15 @@ class CommentController {
         const userDataFromDB = await AuthController.getUserData(user.uid);
         userData = {
           author: userDataFromDB.name,
-          authorId: user.uid,
-          authorAvatar: userDataFromDB.profileUrl || ""
+          authorId: userDataFromDB.id,
+          authorUid: user.uid,
+          authorAvatar: userDataFromDB.profileUrl || "",
         };
       }
 
       const result = await Comment.create({
         ...commentData,
-        ...userData
+        ...userData,
       });
 
       return { ok: true, comment: result };
@@ -65,12 +67,15 @@ class CommentController {
         return { ok: false, error: "Usuario no autenticado" };
       }
 
-      const isAdmin = role === 'Admin';
-      
+      const isAdmin = role === "Admin";
+
       if (!isAdmin) {
         const comment = await Comment.get(entityType, entityId, commentId);
         if (comment.authorId !== user.uid) {
-          return { ok: false, error: "No tienes permiso para editar este comentario" };
+          return {
+            ok: false,
+            error: "No tienes permiso para editar este comentario",
+          };
         }
       }
 
@@ -89,13 +94,16 @@ class CommentController {
         if (!user) {
           return { ok: false, error: "Usuario no autenticado" };
         }
-        
+
         const comment = await Comment.get(entityType, entityId, commentId);
         if (!comment || comment.authorId !== user.uid) {
-          return { ok: false, error: "No tienes permiso para eliminar este comentario" };
+          return {
+            ok: false,
+            error: "No tienes permiso para eliminar este comentario",
+          };
         }
       }
-      
+
       await Comment.delete(entityType, entityId, commentId);
       return { ok: true };
     } catch (error) {
@@ -140,4 +148,4 @@ class CommentController {
   }
 }
 
-export default CommentController; 
+export default CommentController;

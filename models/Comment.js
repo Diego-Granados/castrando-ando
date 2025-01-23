@@ -1,23 +1,45 @@
 "use client";
 import { db } from "@/lib/firebase/config";
-import { ref, get, set, push, remove, onValue } from "firebase/database";
+import {
+  ref,
+  get,
+  set,
+  push,
+  remove,
+  onValue,
+  update,
+} from "firebase/database";
 
 class Comment {
   static async create(commentData) {
     try {
-      const commentsRef = ref(db, `comments/${commentData.entityType}/${commentData.entityId}`);
+      const updates = {};
+      const commentsRef = ref(
+        db,
+        `comments/${commentData.entityType}/${commentData.entityId}`
+      );
       const newCommentRef = push(commentsRef);
-
       const newComment = {
         content: commentData.content,
         author: commentData.author || "Usuario",
         authorId: commentData.authorId,
+        authorUid: commentData.authorUid,
         authorAvatar: commentData.authorAvatar || "",
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
-      await set(newCommentRef, newComment);
+      updates[
+        `comments/${commentData.entityType}/${commentData.entityId}/${newCommentRef.key}`
+      ] = newComment;
+      if (commentData.authorId !== "admin") {
+        updates[`users/${commentData.authorId}/comments/${newCommentRef.key}`] =
+          {
+            entityType: commentData.entityType,
+            entityId: commentData.entityId,
+          };
+      }
+      await update(ref(db), updates);
       return { id: newCommentRef.key, ...newComment };
     } catch (error) {
       console.error("Error en create comment:", error);
@@ -35,11 +57,11 @@ class Comment {
         snapshot.forEach((childSnapshot) => {
           comments.push({
             id: childSnapshot.key,
-            ...childSnapshot.val()
+            ...childSnapshot.val(),
           });
         });
-        return comments.sort((a, b) => 
-          new Date(a.createdAt) - new Date(b.createdAt)
+        return comments.sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
       }
       return [];
@@ -51,9 +73,12 @@ class Comment {
 
   static async get(entityType, entityId, commentId) {
     try {
-      const commentRef = ref(db, `comments/${entityType}/${entityId}/${commentId}`);
+      const commentRef = ref(
+        db,
+        `comments/${entityType}/${entityId}/${commentId}`
+      );
       const snapshot = await get(commentRef);
-      
+
       if (!snapshot.exists()) {
         return null;
       }
@@ -67,8 +92,30 @@ class Comment {
 
   static async delete(entityType, entityId, commentId) {
     try {
-      const commentRef = ref(db, `comments/${entityType}/${entityId}/${commentId}`);
-      await remove(commentRef);
+      // Get comment info first
+      const commentRef = ref(
+        db,
+        `comments/${entityType}/${entityId}/${commentId}`
+      );
+      const snapshot = await get(commentRef);
+
+      if (!snapshot.exists()) {
+        throw new Error("Comment not found");
+      }
+
+      const commentData = snapshot.val();
+
+      // Create updates object for atomic operation
+      const updates = {};
+
+      // Update enabled status in comments
+      updates[`comments/${entityType}/${entityId}/${commentId}`] = null;
+
+      // Update enabled status in user's comments
+      updates[`users/${commentData.authorId}/comments/${commentId}`] = null;
+
+      // Apply all updates atomically
+      await update(ref(db), updates);
       return true;
     } catch (error) {
       console.error("Error en delete comment:", error);
@@ -78,7 +125,10 @@ class Comment {
 
   static async update(entityType, entityId, commentId, content) {
     try {
-      const commentRef = ref(db, `comments/${entityType}/${entityId}/${commentId}`);
+      const commentRef = ref(
+        db,
+        `comments/${entityType}/${entityId}/${commentId}`
+      );
       const snapshot = await get(commentRef);
 
       if (!snapshot.exists()) {
@@ -90,7 +140,7 @@ class Comment {
         ...commentData,
         content,
         updatedAt: new Date().toISOString(),
-        isEdited: true
+        isEdited: true,
       });
 
       return { ok: true };
@@ -102,7 +152,10 @@ class Comment {
 
   static async toggleLike(entityType, entityId, commentId) {
     try {
-      const likeRef = ref(db, `comments/${entityType}/${entityId}/${commentId}/likes/${commentId}`);
+      const likeRef = ref(
+        db,
+        `comments/${entityType}/${entityId}/${commentId}/likes/${commentId}`
+      );
       const snapshot = await get(likeRef);
 
       if (snapshot.exists()) {
@@ -134,7 +187,19 @@ class Comment {
   static async deleteAllFromEntity(entityType, entityId) {
     try {
       const commentsRef = ref(db, `comments/${entityType}/${entityId}`);
-      await remove(commentsRef);
+      const snapshot = await get(commentsRef);
+
+      if (snapshot.exists()) {
+        const comments = snapshot.val();
+        const updates = {};
+        Object.entries(comments).forEach(([commentId, comment]) => {
+          updates[`comments/${entityType}/${entityId}/${commentId}`] = null;
+          if (comment.authorId && comment.authorId !== "admin") {
+            updates[`users/${comment.authorId}/comments/${commentId}`] = null;
+          }
+        });
+        await update(ref(db), updates);
+      }
       return true;
     } catch (error) {
       console.error("Error deleting all comments:", error);
@@ -144,16 +209,16 @@ class Comment {
 
   static subscribe(entityType, entityId, callback) {
     const commentsRef = ref(db, `comments/${entityType}/${entityId}`);
-    
+
     const unsubscribe = onValue(commentsRef, (snapshot) => {
       const comments = [];
       snapshot.forEach((childSnapshot) => {
         comments.push({
           id: childSnapshot.key,
-          ...childSnapshot.val()
+          ...childSnapshot.val(),
         });
       });
-      
+
       // Ordenar por fecha, más antiguos primero
       comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       callback(comments);
