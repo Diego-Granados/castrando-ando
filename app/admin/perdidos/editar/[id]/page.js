@@ -6,11 +6,10 @@ import LostPetController from "@/controllers/LostPetController";
 import AuthController from "@/controllers/AuthController";
 import { Container, Spinner } from "react-bootstrap";
 
-export default function EditLostPetPage() {
+export default function AdminEditLostPetPage() {
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const params = useParams();
   const router = useRouter();
 
@@ -18,14 +17,13 @@ export default function EditLostPetPage() {
     const initialize = async () => {
       try {
         // Check user authorization
-        const { user, role } = await AuthController.getCurrentUser();
+        const { user } = await AuthController.getCurrentUser();
         if (!user) {
-          router.push('/userLogin');
+          router.push('/adminlogin');
           return;
         }
-        setIsAdmin(role === 'Admin');
 
-        // Get lost pet data - using getLostPetByIdOnce since we don't need real-time updates
+        // Get lost pet data
         const petData = await LostPetController.getLostPetByIdOnce(params.id);
         
         if (!petData) {
@@ -34,9 +32,9 @@ export default function EditLostPetPage() {
           return;
         }
 
-        // Verify ownership
-        if (petData.userId !== user.uid && role !== 'Admin') {
-          router.push('/animales_perdidos');
+        // Verify ownership - in admin page we only check if the user owns the post
+        if (petData.userId !== user.uid) {
+          router.push('/admin/perdidos');
           return;
         }
 
@@ -72,9 +70,9 @@ export default function EditLostPetPage() {
 
   return (
     <LostPetForms
-      isAdmin={isAdmin}
+      isAdmin={true}
       initialData={pet}
       isEditing={true}
     />
   );
-} 
+}

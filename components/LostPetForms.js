@@ -181,7 +181,7 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
         const result = await LostPetController.createLostPet(submissionData);
         if (result && result.success) {
           toast.success(result.message || "Operación exitosa");
-          router.push(isAdmin ? '/admin/animales_perdidos' : '/animales_perdidos');
+          router.push(isAdmin ? '/admin/perdidos' : '/animales_perdidos');
         } else {
           throw new Error(result?.message || "Error en la operación");
         }
@@ -222,7 +222,7 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
           toastId: "update-lost-pet",
           onClose: () => {
             setLoading(false);
-            router.push(isAdmin ? '/admin/animales_perdidos' : '/animales_perdidos');
+            router.push(isAdmin ? '/admin/perdidos' : '/animales_perdidos');
           },
         });
       } else {
@@ -242,7 +242,7 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
         <div className="d-flex justify-content-between align-items-center mb-4">
           <Button
             variant="secondary"
-            onClick={() => router.push("/animales_perdidos")}
+            onClick={() => router.push(isAdmin ? "/admin/perdidos" : "/animales_perdidos")}
           >
             ← Volver
           </Button>
