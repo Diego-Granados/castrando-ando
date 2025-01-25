@@ -59,8 +59,6 @@ class AdoptionController {
   }
 
   static async updateAdoption(adoptionId, formData) {
-    console.log(formData);
-    console.log(adoptionId);
     try {
       await AdoptionController.verifyRole();
     } catch (error) {
@@ -68,6 +66,70 @@ class AdoptionController {
     }
 
     try {
+      // Get existing adoption data to compare photos
+      const existingAdoption = await Adoption.getByIdOnce(adoptionId);
+      if (!existingAdoption) {
+        throw new Error("Adoption not found");
+      }
+
+      let finalPhotos = [];
+
+      // Handle existing photos deletion
+      if (existingAdoption.photos.length > 0) {
+        const photosToDelete = existingAdoption.photos.filter(
+          oldPhoto => !formData.photos.includes(oldPhoto)
+        );
+
+        if (photosToDelete.length > 0) {
+          console.log("Deleting photos:", photosToDelete);
+          const deleteResponse = await fetch("/api/storage/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ urls: photosToDelete }),
+          });
+          
+          if (!deleteResponse.ok) {
+            throw new Error("Failed to delete old photos");
+          }
+        }
+
+        // Keep existing photos that weren't deleted
+        finalPhotos = existingAdoption.photos.filter(
+          photo => !photosToDelete.includes(photo)
+        );
+      }
+
+      // Handle new photo uploads if there are files
+      if (formData.newFiles && formData.newFiles.length > 0) {
+        try {
+          const path = `adoptions/adoption-${Date.now()}`;
+          const fileData = new FormData();
+          fileData.append("path", path);
+          
+          for (let file of formData.newFiles) {
+            fileData.append("files", file);
+          }
+
+          const uploadResponse = await fetch("/api/storage/upload", {
+            method: "POST",
+            body: fileData,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error("Error uploading images");
+          }
+
+          const newPhotoUrls = await uploadResponse.json();
+          finalPhotos = [...finalPhotos, ...newPhotoUrls];
+        } catch (error) {
+          console.error("Error uploading new images:", error);
+          throw new Error("Failed to upload new images");
+        }
+      }
+
+      // Update the database with new data
       const updates = {};
       updates[`/adoptions/${adoptionId}/nombre`] = formData.nombre;
       updates[`/adoptions/${adoptionId}/edad`] = formData.edad;
@@ -77,8 +139,10 @@ class AdoptionController {
       updates[`/adoptions/${adoptionId}/contact`] = formData.contact;
       updates[`/adoptions/${adoptionId}/location`] = formData.location;
       updates[`/adoptions/${adoptionId}/estado`] = formData.estado;
+      updates[`/adoptions/${adoptionId}/photos`] = finalPhotos;
 
       await Adoption.update(adoptionId, updates);
+
       return { success: true, message: "Publicación actualizada exitosamente" };
     } catch (error) {
       console.error("Error updating adoption:", error);

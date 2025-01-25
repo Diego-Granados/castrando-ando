@@ -8,7 +8,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import AuthController from "@/controllers/AuthController";
 import Link from "next/link";
-import NotificationsPopover from "./NotificationsPopover";
+import NotificationsPopoverAdmin from "./NotificationsPopoverAdmin";
 
 export default function NavBarAdmin() {
   const router = useRouter();
@@ -114,7 +114,7 @@ export default function NavBarAdmin() {
               </Link>
             </NavDropdown>
           </Nav>
-          <NotificationsPopover userType="admin" />
+          <NotificationsPopoverAdmin />
           <Form inline="true" onSubmit={handleSignout}>
             <Button type="submit">Cerrar sesión</Button>
           </Form>

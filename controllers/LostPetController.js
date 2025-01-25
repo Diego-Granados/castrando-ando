@@ -66,14 +66,81 @@ class LostPetController {
     }
 
     try {
+      // Get existing pet data to compare photos
+      const existingPet = await LostPet.getByIdOnce(petId);
+      if (!existingPet) {
+        throw new Error("Pet not found");
+      }
+
+      let finalPhotos = [];
+      
+      // Handle existing photos deletion
+      if (existingPet.photos.length > 0) {
+        const photosToDelete = existingPet.photos.filter(
+          oldPhoto => !formData.photos.includes(oldPhoto)
+        );
+
+        if (photosToDelete.length > 0) {
+          console.log("Deleting photos:", photosToDelete);
+          const deleteResponse = await fetch("/api/storage/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ urls: photosToDelete }),
+          });
+          
+          if (!deleteResponse.ok) {
+            throw new Error("Failed to delete old photos");
+          }
+        }
+
+        // Keep existing photos that weren't deleted
+        finalPhotos = existingPet.photos.filter(
+          photo => !photosToDelete.includes(photo)
+        );
+        console.log(finalPhotos);
+      }
+
+      // Handle new photo uploads if there are files
+      if (formData.newFiles && formData.newFiles.length > 0) {
+        try {
+          const path = `lostPets/pet-${Date.now()}`;
+          const fileData = new FormData();
+          fileData.append("path", path);
+          
+          for (let file of formData.newFiles) {
+            fileData.append("files", file);
+          }
+
+          const uploadResponse = await fetch("/api/storage/upload", {
+            method: "POST",
+            body: fileData,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error("Error uploading images");
+          }
+
+          const newPhotoUrls = await uploadResponse.json();
+          finalPhotos = [...finalPhotos, ...newPhotoUrls];
+        } catch (error) {
+          console.error("Error uploading new images:", error);
+          throw new Error("Failed to upload new images");
+        }
+      }
+
+      // Update the database with new data
       const updates = {};
       updates[`/lostPets/${petId}/tipoAnimal`] = formData.tipoAnimal;
       updates[`/lostPets/${petId}/status`] = formData.status;
       updates[`/lostPets/${petId}/descripcion`] = formData.descripcion;
       updates[`/lostPets/${petId}/location`] = formData.location;
       updates[`/lostPets/${petId}/contact`] = formData.contact;
+      updates[`/lostPets/${petId}/photos`] = finalPhotos;
 
       await LostPet.update(petId, updates);
+
       return { success: true, message: "Publicación actualizada exitosamente" };
     } catch (error) {
       console.error("Error updating lost pet:", error);

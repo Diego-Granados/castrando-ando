@@ -155,7 +155,7 @@ export default function AnimalesPerdidos() {
   }
 
   return (
-    <Container>
+    <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 style={{ color: "#2055A5" }}>Animales Perdidos</h1>
         {isAuthenticated && (
