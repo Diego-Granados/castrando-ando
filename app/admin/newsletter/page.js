@@ -8,6 +8,7 @@ import {
   Form,
   Table,
   Badge,
+  Spinner
 } from "react-bootstrap";
 import { Plus, Pencil, Trash2, Send } from "lucide-react";
 import { toast } from "react-toastify";
@@ -22,6 +23,7 @@ export default function NewsletterMessages() {
   const [showSendModal, setShowSendModal] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Use AbortController for cleanup
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function NewsletterMessages() {
 
       const messageData = {
         subject: formData.get("subject").trim(),
-        content: formData.get("content").trim()
+        content: formData.get("content").trim(),
       };
 
       if (isEditing && selectedMessage) {
@@ -119,14 +121,19 @@ export default function NewsletterMessages() {
   };
 
   const handleConfirmSend = async () => {
+    if (isSending) return;
+    
     try {
+      setIsSending(true);
       await NewsletterController.sendMessage(selectedMessage);
       toast.success("Mensaje enviado a todos los suscriptores");
-      loadMessages();
+      await loadMessages();
       handleCloseModals();
     } catch (error) {
       console.error("Error sending newsletter:", error);
       toast.error("Error al enviar el boletín");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -261,8 +268,7 @@ export default function NewsletterMessages() {
                 required
               />
               <Form.Text className="text-muted">
-                Puede usar texto enriquecido y HTML básico para dar formato al
-                mensaje.
+                Puede usar texto enriquecido y HTML básico para dar formato al mensaje.
               </Form.Text>
             </Form.Group>
             <div className="text-end">
@@ -295,11 +301,33 @@ export default function NewsletterMessages() {
           </p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModals}>
+          <Button 
+            variant="secondary" 
+            onClick={handleCloseModals}
+            disabled={isSending}
+          >
             Cancelar
           </Button>
-          <Button variant="success" onClick={handleConfirmSend}>
-            Enviar
+          <Button 
+            variant="success" 
+            onClick={handleConfirmSend}
+            disabled={isSending}
+          >
+            {isSending ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Enviando...
+              </>
+            ) : (
+              'Enviar'
+            )}
           </Button>
         </Modal.Footer>
       </Modal>

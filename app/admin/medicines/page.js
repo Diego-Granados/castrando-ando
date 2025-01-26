@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Row, Col, Card, Form, Button } from "react-bootstrap";
+import { Row, Col, Card, Form, Button, Modal } from "react-bootstrap";
 import MedicineController from "@/controllers/MedicineController";
 import useSubscription from "@/hooks/useSubscription";
 
@@ -15,6 +15,13 @@ export default function MedicinesPage() {
     daysOfTreatment: "",
   });
 
+  // Error Modal State
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  // Delete Confirmation Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [medicineToDelete, setMedicineToDelete] = useState(null);
+
   // Use the subscription hook to load medicines
   const { loading, error } = useSubscription(() =>
     MedicineController.getAllMedicines(setMedicines)
@@ -24,7 +31,8 @@ export default function MedicinesPage() {
     e.preventDefault();
     
     if (!newMedicine.name || !newMedicine.amount || !newMedicine.weightMultiplier || !newMedicine.daysOfTreatment) {
-      alert("Por favor complete todos los campos");
+      setErrorMessage("Por favor complete todos los campos");
+      setShowErrorModal(true);
       return;
     }
 
@@ -45,22 +53,33 @@ export default function MedicinesPage() {
         daysOfTreatment: "",
       });
     } catch (error) {
-      alert("Error al guardar el medicamento");
+      setErrorMessage(
+        error.message === "Ya existe un medicamento con este nombre" || 
+        error.message === "Ya existe otro medicamento con este nombre"
+          ? error.message
+          : "Error al guardar el medicamento"
+      );
+      setShowErrorModal(true);
       console.error(error);
     }
   };
 
-  const handleDeleteMedicine = async (medicineId) => {
-    if (window.confirm("¿Está seguro que desea eliminar este medicamento?")) {
-      try {
-        await MedicineController.deleteMedicine(medicineId);
-        if (editingMedicine?.id === medicineId) {
-          handleCancelEdit();
-        }
-      } catch (error) {
-        alert("Error al eliminar el medicamento");
-        console.error(error);
+  const handleDeleteClick = (medicineId) => {
+    setMedicineToDelete(medicineId);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await MedicineController.deleteMedicine(medicineToDelete);
+      if (editingMedicine?.id === medicineToDelete) {
+        handleCancelEdit();
       }
+      setShowDeleteModal(false);
+    } catch (error) {
+      setErrorMessage("Error al eliminar el medicamento");
+      setShowErrorModal(true);
+      console.error(error);
     }
   };
 
@@ -231,7 +250,7 @@ export default function MedicinesPage() {
                     </Button>
                     <Button
                       variant="danger"
-                      onClick={() => handleDeleteMedicine(medicine.id)}
+                      onClick={() => handleDeleteClick(medicine.id)}
                     >
                       Eliminar
                     </Button>
@@ -242,6 +261,39 @@ export default function MedicinesPage() {
           ))}
         </Row>
       )}
+
+      {/* Error Modal */}
+      <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Error</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {errorMessage}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowErrorModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Está seguro que desea eliminar este medicamento?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </main>
   );
 } 

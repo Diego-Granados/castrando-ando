@@ -47,7 +47,21 @@ export default class Medicine {
 
   static async create(medicineData) {
     try {
+      // Check if medicine with same name exists
       const medicinesRef = ref(db, "medicines");
+      const snapshot = await get(medicinesRef);
+      
+      if (snapshot.exists()) {
+        const medicines = snapshot.val();
+        const existingMedicine = Object.values(medicines).find(
+          m => m.name.toLowerCase() === medicineData.name.toLowerCase()
+        );
+        
+        if (existingMedicine) {
+          throw new Error("Ya existe un medicamento con este nombre");
+        }
+      }
+
       const newMedicineRef = push(medicinesRef);
       const updates = {};
       updates[`/medicines/${newMedicineRef.key}`] = medicineData;
@@ -61,6 +75,22 @@ export default class Medicine {
 
   static async update(id, medicineData) {
     try {
+      // Check if another medicine with same name exists (excluding current one)
+      const medicinesRef = ref(db, "medicines");
+      const snapshot = await get(medicinesRef);
+      
+      if (snapshot.exists()) {
+        const medicines = snapshot.val();
+        const existingMedicine = Object.values(medicines).find(
+          m => m.name.toLowerCase() === medicineData.name.toLowerCase() && 
+          Object.keys(medicines).find(key => medicines[key] === m) !== id
+        );
+        
+        if (existingMedicine) {
+          throw new Error("Ya existe otro medicamento con este nombre");
+        }
+      }
+
       const updates = {};
       updates[`/medicines/${id}`] = medicineData;
       await update(ref(db), updates);
