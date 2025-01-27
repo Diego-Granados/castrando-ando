@@ -53,3 +53,7 @@ export async function sendActivityDeregistrationEmail(email, name, activity) {
     activity
   );
 }
+
+export async function sendCertificateEmail(email, name, certificateBuffer) {
+  return await EmailSender.sendCertificateEmail(email, name, certificateBuffer);
+}

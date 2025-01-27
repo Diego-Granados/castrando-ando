@@ -626,7 +626,7 @@ class EmailSender {
         `¡Hola, ${name}! Su cita para la campaña ${campaign} para la fecha ${date} a la hora ${hour} fue cancelada con éxito.`
       )}
       ${EmailSender.formatBodyContent(
-        `Es una lástima que hayas tenido que cancelar la cita, en la Asociación de animalitos abandonados te esperamos con los brazos abiertos para nuestras próximas campañas. Cualquier consulta adicional al correo: ${CONTACT_EMAIL} o al número: ${CONTACT_NUMBER}.`
+        `Es una lástima que hayas tenido que cancelar la cita, en la Asociación Castrando Ando te esperamos con los brazos abiertos para nuestras próximas campañas. Cualquier consulta adicional al correo: ${CONTACT_EMAIL} o al número: ${CONTACT_NUMBER}.`
       )}
       `;
       smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
@@ -835,6 +835,56 @@ class EmailSender {
       return { ok: true };
     } catch (error) {
       console.error(error);
+      return { ok: false };
+    }
+  }
+
+  static async sendCertificateEmail(email, name, certificateBuffer) {
+    const smtpEmail = new SendSmtpEmail();
+    try {
+      smtpEmail.subject = "Certificado de Voluntariado - Castrando Ando";
+      smtpEmail.to = [
+        {
+          email: email,
+          name: name
+        },
+      ];
+      
+      const title = "Certificado de Voluntariado";
+      const subtitle = `¡Gracias por tu voluntariado, ${name}!`;
+      const content = EmailSender.formatBodyContent(`
+        Adjunto encontrarás tu certificado de voluntariado. 
+        Agradecemos tu dedicación y compromiso con nuestra causa.
+      `);
+      
+      smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
+        title,
+        subtitle,
+        content
+      );
+      
+      // Convert buffer to base64 string properly
+      const base64Certificate = certificateBuffer.toString('base64');
+      
+      // Get formatted date for filename
+      const dateForFilename = new Date().toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).replace(/\//g, '-');
+      
+      smtpEmail.attachment = [{
+        content: base64Certificate,
+        name: `Certificado-${name.replace(/\s+/g, "-")}-${dateForFilename}.jpg`,
+        type: "image/jpeg"
+      }];
+
+      smtpEmail.sender = SENDER;
+      
+      const result = await apiInstance.sendTransacEmail(smtpEmail);
+      return { ok: true };
+    } catch (error) {
+      console.error("Error sending certificate email:", error);
       return { ok: false };
     }
   }
