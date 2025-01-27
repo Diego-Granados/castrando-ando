@@ -65,12 +65,36 @@ export default function Notificaciones() {
   };
 
   const getNotificationIcon = (title) => {
+    // Campaign related
+    if (title.toLowerCase().includes('nueva campaña')) return "📢";
+    if (title.toLowerCase().includes('actualización de campaña')) return "🔄";
+    if (title.toLowerCase().includes('cita agendada')) return "📌";
+    if (title.toLowerCase().includes('cita cancelada')) return "❌";
+    if (title.toLowerCase().includes('recordatorio')) return "⏰";
+    if (title.toLowerCase().includes('campaña cancelada')) return "🚫";
+    
+    // Activity related
+    if (title.toLowerCase().includes('nueva actividad')) return "🎉";
+    if (title.toLowerCase().includes('actualización de actividad')) return "📝";
+    if (title.toLowerCase().includes('actividad cancelada')) return "🚫";
+    
+    // Raffle related
+    if (title.toLowerCase().includes('nueva rifa')) return "🎫";
+    
+    // Lost pets related
+    if (title.toLowerCase().includes('mascota perdida')) return "🐾";
+    
+    // Support request related
+    if (title.toLowerCase().includes('solicitud de ayuda')) return "🤝";
+    
+    // Legacy/existing icons
     if (title.toLowerCase().includes('adopción')) return "❤️";
     if (title.toLowerCase().includes('mascota')) return "🐾";
     if (title.toLowerCase().includes('campaña')) return "📅";
     if (title.toLowerCase().includes('cita')) return "📌";
     if (title.toLowerCase().includes('rifa')) return "🎫";
-    return "📢";
+    
+    return "📢"; // Default icon
   };
 
   // Convert notifications object to array and sort by date

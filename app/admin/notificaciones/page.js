@@ -69,6 +69,10 @@ export default function AdminNotificaciones() {
     if (title.toLowerCase().includes('campaña')) return "📅";
     if (title.toLowerCase().includes('cita')) return "📌";
     if (title.toLowerCase().includes('rifa')) return "🎫";
+    if (title.toLowerCase().includes('comprobante')) return "🧾";
+    if (title.toLowerCase().includes('voluntariado')) return "🤝";
+    if (title.toLowerCase().includes('contacto')) return "✉️";
+    
     return "📢";
   };
 
