@@ -2,6 +2,7 @@
 import LostPet from "@/models/LostPet";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
+import NotificationController from "@/controllers/NotificationController";
 
 class LostPetController {
   static async getAllLostPets(callback) {
@@ -51,6 +52,14 @@ class LostPetController {
       };
 
       await LostPet.create(petData);
+      
+      await NotificationController.sendNotificationToAllUsers({
+        title: "¡Nueva Mascota Perdida!",
+        message: `Se ha reportado una mascota ${formData.tipoAnimal} perdida en ${formData.location}. ¡Ayúdanos a encontrarla!`,
+        type: "lost_pet",
+        link: `/animales_perdidos`,
+      });
+
       return { success: true, message: "Publicación creada exitosamente" };
     } catch (error) {
       console.error("Error creating lost pet:", error);

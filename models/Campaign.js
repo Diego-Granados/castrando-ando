@@ -108,6 +108,7 @@ class Campaign {
     updates[`/inscriptions/${newCampaignRef.key}`] = inscriptions;
     // Insertar en DB
     await update(ref(db), updates);
+    return newCampaignRef.key;
   }
 
   static async update(campaignId, updates) {

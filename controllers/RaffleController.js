@@ -1,6 +1,7 @@
 import Raffle from "@/models/Raffle";
 import { ref, set, update } from "firebase/database";
 import { db } from "@/lib/firebase/config";
+import NotificationController from "@/controllers/NotificationController";
 
 class RaffleController {
   static async getAllRaffles() {
@@ -69,6 +70,14 @@ class RaffleController {
 
       const raffleRef = ref(db, "raffles/" + Date.now());
       await set(raffleRef, newRaffle);
+
+      // Send notification to all users about the new raffle
+      await NotificationController.sendNotificationToAllUsers({
+        title: "¡Nueva Rifa Disponible!",
+        message: `Se ha creado una nueva rifa: ${raffleData.name}. Precio por número: ₡${raffleData.price}. ¡No te la pierdas!`,
+        type: "raffle",
+        link: `/raffles`,
+      });
 
       return newRaffle;
     } catch (error) {

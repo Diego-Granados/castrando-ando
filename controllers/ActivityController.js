@@ -4,6 +4,7 @@ import {
   sendActivityRegistrationEmail,
   sendActivityDeregistrationEmail,
 } from "@/controllers/EmailSenderController";
+import NotificationController from "@/controllers/NotificationController";
 
 class ActivityController {
   static async createActivity(activityData) {
@@ -59,6 +60,15 @@ class ActivityController {
       const { id } = await Activity.create({
         ...activityData,
         images: imageUrls,
+      });
+
+      // Send notification to all users about the new activity
+      await NotificationController.sendNotificationToAllUsers({
+        title: `Nueva actividad: ${activityData.title}`,
+        message: `Se ha publicado una nueva actividad: ${activityData.title}. ${activityData.capacityType === 'limitada' ? `Cupos disponibles: ${activityData.totalCapacity}` : 'Cupos ilimitados'}`,
+        type: 'activity',
+        link: '/actividades',
+        activityId: id
       });
 
       return { ok: true, id };
@@ -185,6 +195,14 @@ class ActivityController {
         ...activityData,
         images: imageUrls,
       });
+      console.log(id);
+      await NotificationController.sendNotificationToActivityParticipants({
+        title: "¡Actualización de Actividad!",
+        message: `La actividad "${activityData.title}" ha sido actualizada. Fecha: ${activityData.date}, Hora: ${activityData.hour}. Por favor revisa los detalles.`,
+        type: "activity_update",
+        link: `/actividades`,
+        activityId: id
+      });
 
       return { ok: true };
     } catch (error) {
@@ -196,6 +214,7 @@ class ActivityController {
   }
 
   static async deleteActivity(activity) {
+    console.log(activity.id);
     try {
       console.log(activity);
       // Delete images if they exist

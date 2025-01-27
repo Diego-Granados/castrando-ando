@@ -19,11 +19,11 @@ export default function NotificationsPopoverAdmin() {
 
     const fetchNotifications = async () => {
       try {
-        unsubscribeNotifications = await NotificationController.getNotifications(
+        unsubscribeNotifications = await NotificationController.getAdminNotifications(
           setNotifications,
           5
         );
-        unsubscribeCount = await NotificationController.getUnreadCount(setUnreadCount);
+        unsubscribeCount = await NotificationController.getAdminUnreadCount(setUnreadCount);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         toast.error("Error al cargar las notificaciones");
@@ -46,7 +46,7 @@ export default function NotificationsPopoverAdmin() {
   const handleNotificationClick = async (notification) => {
     try {
       if (!notification.read) {
-        await NotificationController.markAsRead(notification.id);
+        await NotificationController.markAdminNotificationAsRead(notification.id);
       }
       setShow(false);
     } catch (error) {

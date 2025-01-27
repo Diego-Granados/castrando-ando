@@ -4,6 +4,8 @@ import {
   sendContactEmail,
   sendReply,
 } from "@/controllers/EmailSenderController";
+import NotificationController from "@/controllers/NotificationController";
+
 export default class ContactController {
   static async createContactRequest(contactData) {
     try {
@@ -18,6 +20,15 @@ export default class ContactController {
         if (!response.ok) {
           console.error("Error in createContactRequest:", error);
         }
+        console.log(success);
+        // Send notification to admin about new contact request
+        await NotificationController.createAdminNotification({
+          title: "Nuevo Mensaje de Contacto",
+          message: `${contactData.name} ha enviado un mensaje de tipo: ${contactData.type}`,
+          type: "contact_form",
+          link: `/admin/contacto`,
+          contactId: success.id
+        });
       }
       return success;
     } catch (error) {

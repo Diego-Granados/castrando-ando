@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
 import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
-import NotificationController from "@/controllers/NotificationController";
 import styles from "./RafflesPage.module.css";
 import { toast } from "react-toastify";
 
@@ -73,28 +72,12 @@ const RafflesPage = () => {
         }
         return raffle;
       });
-      console.log(selectedPurchase.id);
-      // Send notification to the user
-      await NotificationController.createNotification({
-        userId: selectedPurchase.id, 
-        title: "Número de Rifa Aprobado",
-        message: `Tu comprobante de compra para el número ${selectedPurchase.number} de la rifa ${selectedRaffle.name} ha sido verificado exitosamente.`,
-        type: "raffle_approved",
-        link: `/rifas/${selectedRaffle.id}`,
-        metadata: {
-          raffleId: selectedRaffle.id,
-          raffleName: selectedRaffle.name,
-          number: selectedPurchase.number
-        }
-      });
 
       setRaffles(updatedRaffles);
       setSelectedRaffle(updatedRaffles.find((r) => r.id === selectedRaffle.id));
       setShowImageModal(false);
-      toast.success("Número aprobado y notificación enviada al usuario");
     } catch (error) {
       console.error("Error approving purchase:", error);
-      toast.error("Error al aprobar el número");
     }
   };
 

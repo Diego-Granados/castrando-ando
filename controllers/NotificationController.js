@@ -1,5 +1,7 @@
 import Notification from "@/models/Notification";
 import AuthController from "@/controllers/AuthController";
+import InscriptionController from "@/controllers/InscriptionController";
+import Activity from "@/models/Activity";
 
 
 class NotificationController {
@@ -151,15 +153,105 @@ class NotificationController {
     }
   }
 
-  static async sendNotificationToAdmins(notificationData) {
+
+  static async sendCampaignNotification(notificationData) {
     try {
-      const adminIds = await Notification.getAdminUsers();
-      if (adminIds.length === 0) {
-        throw new Error("No admin users found");
+      const participants = await InscriptionController.getCampaignParticipants(notificationData.campaignId);
+      if (participants.length === 0) {
+        return { ok: true, message: "No hay participantes registrados en esta campaña" };
       }
-      return await this.sendBulkNotifications(adminIds, notificationData);
+
+      // Send notifications to all participants
+      return await this.sendBulkNotifications(participants, notificationData);
     } catch (error) {
-      console.error("Error sending notification to admins:", error);
+      console.error("Error sending campaign notifications:", error);
+      throw error;
+    }
+  }
+
+  static async createAdminNotification(data) {
+    try {
+      const notificationData = {
+        ...data,
+        date: new Date().toISOString(),
+        read: false,
+        enabled: true,
+        userId: 'admin'
+      };
+
+      return await Notification.create(notificationData, 'admin');
+    } catch (error) {
+      console.error("Error creating admin notification:", error);
+      throw error;
+    }
+  }
+
+  static async getAdminNotifications(setNotifications, limit = null) {
+    try {
+      return await Notification.getAll('admin', setNotifications, limit);
+    } catch (error) {
+      console.error("Error getting admin notifications:", error);
+      throw error;
+    }
+  }
+
+  static async getAdminUnreadCount(setCount) {
+    try {
+      return await Notification.getUnreadCount('admin', setCount);
+    } catch (error) {
+      console.error("Error getting admin unread count:", error);
+      throw error;
+    }
+  }
+
+  static async markAdminNotificationAsRead(notificationId) {
+    try {
+      await Notification.markAsRead(notificationId, 'admin');
+    } catch (error) {
+      console.error("Error marking admin notification as read:", error);
+      throw error;
+    }
+  }
+
+  static async markAllAdminNotificationsAsRead() {
+    try {
+      await Notification.markAllAsRead('admin');
+    } catch (error) {
+      console.error("Error marking all admin notifications as read:", error);
+      throw error;
+    }
+  }
+
+  static async deleteAdminNotification(notificationId) {
+    try {
+      await Notification.delete(notificationId, 'admin');
+    } catch (error) {
+      console.error("Error deleting admin notification:", error);
+      throw error;
+    }
+  }
+
+  static async sendNotificationToActivityParticipants(notificationData) {
+    try {
+      // Get the activity first
+      const activity = await Activity.getByIdOnce(notificationData.activityId);
+      
+      if (!activity || !activity.registeredUsers) {
+        return { ok: true, message: "No participants to notify" };
+      }
+
+      // Get array of user IDs from registeredUsers object
+      const participants = Object.keys(activity.registeredUsers);
+      
+      if (participants.length === 0) {
+        return { ok: true, message: "No participants to notify" };
+      }
+
+      console.log("Sending notifications to participants:", participants);
+
+      return await this.sendBulkNotifications(participants, notificationData);
+    } catch (error) {
+      console.error("Error sending activity notifications:", error);
       throw error;
     }
   }

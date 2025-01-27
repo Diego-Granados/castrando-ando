@@ -80,7 +80,7 @@ class Adoption {
       setAdoptions(filteredAdoptions);
     });
     return () => unsubscribe();
-  }
+  } 
 
   static async getById(adoptionId, setAdoption) {
     const adoptionRef = ref(db, `adoptions/${adoptionId}`);

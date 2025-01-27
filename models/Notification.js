@@ -215,21 +215,6 @@ class Notification {
         }
     }
 
-    static async getAdminUsers() {
-        try {
-            const adminsSnapshot = await get(
-                query(ref(db, 'users'), orderByChild('role'), equalTo('Admin'))
-            );
-            
-            if (!adminsSnapshot.exists()) {
-                return [];
-            }
-            return Object.keys(adminsSnapshot.val());
-        } catch (error) {
-            console.error("Error getting admin users:", error);
-            throw error;
-        }
-    }
 
     static async getCedulaByUserId(userId) {
         try {

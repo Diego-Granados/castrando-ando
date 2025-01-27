@@ -16,7 +16,7 @@ export default function AdminNotificaciones() {
     const loadNotifications = async () => {
       try {
         setLoading(true);
-        const unsubscribe = await NotificationController.getNotifications(setNotifications);
+        const unsubscribe = await NotificationController.getAdminNotifications(setNotifications);
         return () => unsubscribe();
       } catch (error) {
         console.error("Error cargando notificaciones:", error);
@@ -32,7 +32,7 @@ export default function AdminNotificaciones() {
     if (e.target.closest('.delete-button')) return;
     
     try {
-      await NotificationController.markAsRead(notification.id);
+      await NotificationController.markAdminNotificationAsRead(notification.id);
       if (notification.link) {
         router.push(notification.link);
       }
@@ -44,8 +44,7 @@ export default function AdminNotificaciones() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const currentUser = await NotificationController.getCedula();
-      await NotificationController.markAllAsRead(currentUser);
+      await NotificationController.markAllAdminNotificationsAsRead();
       toast.success("Todas las notificaciones han sido marcadas como leídas");
     } catch (error) {
       console.error("Error al marcar todas como leídas:", error);
@@ -56,7 +55,7 @@ export default function AdminNotificaciones() {
   const handleDeleteNotification = async (notification, e) => {
     e.stopPropagation();
     try {
-      await NotificationController.delete(notification.id, notification.userId);
+      await NotificationController.deleteAdminNotification(notification.id);
       toast.success("Notificación eliminada");
     } catch (error) {
       console.error("Error al eliminar la notificación:", error);
@@ -69,9 +68,7 @@ export default function AdminNotificaciones() {
     if (title.toLowerCase().includes('mascota')) return "🐾";
     if (title.toLowerCase().includes('campaña')) return "📅";
     if (title.toLowerCase().includes('cita')) return "📌";
-    if (title.toLowerCase().includes('rifa')) return "🎰";
-    if (title.toLowerCase().includes('actividad')) return "📅";
-    if (title.toLowerCase().includes('reporte')) return "⚠️";
+    if (title.toLowerCase().includes('rifa')) return "🎫";
     return "📢";
   };
 
