@@ -143,7 +143,17 @@ class Notification {
         );
         
         const unsubscribe = onValue(unreadQuery, (snapshot) => {
-            setCount(snapshot.exists() ? snapshot.size : 0);
+            if (!snapshot.exists()) {
+                setCount(0);
+                return;
+            }
+
+            // Filter notifications that are both unread and enabled
+            const count = Object.values(snapshot.val()).filter(notification => 
+                notification.enabled !== false
+            ).length;
+
+            setCount(count);
         });
 
         return () => unsubscribe();
