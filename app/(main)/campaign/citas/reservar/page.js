@@ -12,6 +12,7 @@ import AuthController from "@/controllers/AuthController";
 import PetController from "@/controllers/PetController";
 import PetSelector from "@/components/PetSelector";
 import { Modal, Alert } from "react-bootstrap";
+import { formatNumber } from "@/utils/formatters";
 
 export default function Reservar() {
   const searchParams = useSearchParams();
@@ -394,7 +395,7 @@ export default function Reservar() {
                           ? `Hasta ${price.weight} kg`
                           : `Más de ${campaign.pricesData[index - 1].weight} kg`
                         : price.weight // Display string category directly
-                    }: ₡${price.price.toLocaleString()}`}
+                    }: ₡${formatNumber(price.price)}`}
                     name="price"
                     id={`${price.weight}kg`}
                     required
@@ -408,7 +409,9 @@ export default function Reservar() {
 
               <Form.Check
                 type="checkbox"
-                label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...) + ₡${campaign.priceSpecial}`}
+                label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...) + ₡${formatNumber(
+                  campaign.priceSpecial
+                )}`}
                 name="priceSpecial"
                 id="especial"
                 defaultChecked={selectedPet?.priceSpecial}

@@ -4,6 +4,7 @@ import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
 import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
+import { formatNumber } from "@/utils/formatters";
 
 const RafflesPage = () => {
   const [raffles, setRaffles] = useState([]);
@@ -459,7 +460,7 @@ const RafflesPage = () => {
                 <strong>Descripción:</strong> {selectedRaffle.description}
               </p>
               <p>
-                <strong>Precio:</strong> ₡{selectedRaffle.price}
+                <strong>Precio:</strong> ₡{formatNumber(selectedRaffle.price)}
               </p>
               <p>
                 <strong>Fecha:</strong> {selectedRaffle.date}

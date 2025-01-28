@@ -124,10 +124,15 @@ class CampaignController {
       if (formData.photos.length > 0) {
         updates[`/campaigns/${campaignId}/photos`] = formData.photos;
       }
-
-      await Campaign.update(campaignId, updates);
+      await Campaign.update(campaignId, updates, {
+        title: formData.title,
+        date: formData.date,
+        place: formData.place,
+      });
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
+      console.log(error);
+      console.error(error);
       return NextResponse.error(error);
     }
   }

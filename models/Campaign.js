@@ -110,7 +110,7 @@ class Campaign {
     await update(ref(db), updates);
   }
 
-  static async update(campaignId, updates) {
+  static async update(campaignId, updates, formData) {
     const snapshot = await get(child(ref(db), `inscriptions/${campaignId}`));
     if (!snapshot.exists()) {
       return NextResponse.error("No data available");
@@ -161,20 +161,20 @@ class Campaign {
       if (!snapshot.exists()) {
         return 0;
       }
-      
+
       const inscriptions = snapshot.val();
       let totalWeight = 0;
-      
-      Object.values(inscriptions).forEach(timeSlot => {
+
+      Object.values(inscriptions).forEach((timeSlot) => {
         if (timeSlot.appointments) {
-          Object.values(timeSlot.appointments).forEach(appointment => {
+          Object.values(timeSlot.appointments).forEach((appointment) => {
             if (appointment.enabled && !appointment.present) {
               totalWeight += parseFloat(appointment.priceData.weight);
             }
           });
         }
       });
-      
+
       return totalWeight;
     } catch (error) {
       console.error("Error getting inscriptions weight:", error);

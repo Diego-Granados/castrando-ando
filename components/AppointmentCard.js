@@ -11,7 +11,7 @@ import Badge from "react-bootstrap/Badge";
 import CampaignController from "@/controllers/CampaignController";
 import Link from "next/link";
 import InscriptionController from "@/controllers/InscriptionController";
-
+import { formatNumber } from "@/utils/formatters";
 export default function AppointmentCard({
   appointment,
   id,
@@ -149,7 +149,7 @@ export default function AppointmentCard({
             Hora: {appointment.timeslot} <br />
             Animal: {appointment.animal ? "Perro" : "Gato"} <br />
             Sexo: {appointment.sex ? "Macho" : "Hembra"} <br />
-            Precio: ₡{appointment.priceData.price}{" "}
+            Precio: ₡{formatNumber(appointment.priceData.price)}{" "}
             {appointment.priceSpecial && "+ cargo por situación especial"}{" "}
             <br />
             Teléfono de contacto: {appointment.phone}
@@ -320,7 +320,7 @@ export default function AppointmentCard({
                                 campaign.pricesData[index - 1].weight
                               } kg`
                           : price.weight + // Display string weight directly
-                            ` (₡${price.price.toLocaleString()})`
+                            ` (₡${formatNumber(price.price)})`
                       }
                       name="price"
                       id="10kg"
