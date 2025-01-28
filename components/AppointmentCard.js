@@ -313,14 +313,14 @@ export default function AppointmentCard({
                       key={index}
                       type="radio"
                       label={
-                        typeof price.weight === "number"
+                        (typeof price.weight === "number"
                           ? price.weight !== 100
                             ? `Hasta ${price.weight} kg`
                             : `Más de ${
                                 campaign.pricesData[index - 1].weight
                               } kg`
-                          : price.weight + // Display string weight directly
-                            ` (₡${formatNumber(price.price)})`
+                          : price.weight) + // Display string weight directly
+                        ` (₡${formatNumber(price.price)})`
                       }
                       name="price"
                       id="10kg"
@@ -338,7 +338,9 @@ export default function AppointmentCard({
                 </Form.Group>
                 <Form.Check
                   type="checkbox"
-                  label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...)`}
+                  label={`¿Caso especial? (preñez, celo, piometra, perros XL, etc...) + ₡${formatNumber(
+                    campaign.priceSpecial
+                  )}`}
                   name="priceSpecial"
                   id="especial"
                   defaultChecked={appointment.priceSpecial}
