@@ -1,8 +1,21 @@
-import { ref, get, set, update, remove } from "firebase/database";
+import { ref, get, set, update, remove, onValue } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 
 class Raffle {
-  static async getAll() {
+  static async getAll(setRaffles) {
+    const rafflesRef = ref(db, "raffles");
+    const unsubscribe = onValue(rafflesRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        setRaffles({});
+        return;
+      }
+      const raffles = snapshot.val();
+      setRaffles(raffles);
+    });
+    return unsubscribe;
+  }
+
+  static async getAllOnce() {
     try {
       const rafflesRef = ref(db, "raffles");
       const snapshot = await get(rafflesRef);
@@ -14,7 +27,19 @@ class Raffle {
     }
   }
 
-  static async getById(raffleId) {
+  static async getById(raffleId, setRaffle) {
+    const raffleRef = ref(db, `raffles/${raffleId}`);
+    const unsubscribe = onValue(raffleRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        return;
+      }
+      const value = snapshot.val();
+      setRaffle(value);
+    });
+    return unsubscribe;
+  }
+
+  static async getByIdOnce(raffleId) {
     try {
       const raffleRef = ref(db, `raffles/${raffleId}`);
       const snapshot = await get(raffleRef);

@@ -13,6 +13,7 @@ import CampaignController from "@/controllers/CampaignController";
 import Medicine from "@/models/Medicine";
 import Table from "react-bootstrap/Table";
 import Comments from "@/components/Comments";
+import { formatNumber } from "@/utils/formatters";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -134,7 +135,7 @@ export default function Campaign() {
                     <ul>
                       {campaign.pricesData.map((price, index) => (
                         <li key={index}>
-                          ₡{price.price}{" "}
+                          ₡{formatNumber(price.price)}{" "}
                           {
                             typeof price.weight === "number"
                               ? price.weight !== 100
@@ -150,8 +151,8 @@ export default function Campaign() {
                     <p>
                       <strong>
                         Cargo adicional en casos especiales de ₡
-                        {campaign.priceSpecial} (preñez, celo, piometra, perros
-                        XL, entre otros)
+                        {formatNumber(campaign.priceSpecial)} (preñez, celo,
+                        piometra, perros XL, entre otros)
                       </strong>
                     </p>
 
@@ -231,7 +232,11 @@ export default function Campaign() {
 
             <Row className="mt-4">
               <Col xs={12}>
-                <Comments entityType="campaign" entityId={campaignId} isAdmin={true} />
+                <Comments
+                  entityType="campaign"
+                  entityId={campaignId}
+                  isAdmin={true}
+                />
               </Col>
             </Row>
 

@@ -9,7 +9,7 @@ import Badge from "react-bootstrap/Badge";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
 import Comments from "@/components/Comments";
-
+import { formatNumber } from "@/utils/formatters";
 export default function Campaign() {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("id");
@@ -76,7 +76,7 @@ export default function Campaign() {
                   <ul>
                     {campaign.pricesData.map((price, index) => (
                       <li key={index}>
-                        ₡{price.price}{" "}
+                        ₡{formatNumber(price.price)}{" "}
                         {
                           typeof price.weight === "number"
                             ? price.weight !== 100

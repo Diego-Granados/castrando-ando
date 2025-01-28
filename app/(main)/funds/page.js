@@ -21,7 +21,9 @@ const FundsPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        const fetchedRaffles = await RaffleController.getAllRaffles();
+        const fetchedRaffles = await RaffleController.getAllRafflesOnce(
+          setRaffles
+        );
         const rafflesArray = Object.entries(fetchedRaffles || {}).map(
           ([id, raffle]) => ({
             id,
@@ -104,7 +106,10 @@ const FundsPage = () => {
         numberRequested: selectedNumber
       });
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce(
+        setRaffles
+      );
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,

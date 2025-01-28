@@ -222,7 +222,6 @@ function EditForm({ campaign, campaignId }) {
 
     try {
       const response = await CampaignController.updateCampaign(rawFormData);
-
       if (response.ok) {
         toast.success("¡Campaña actualizada con éxito!", {
           position: "top-center",
@@ -233,7 +232,6 @@ function EditForm({ campaign, campaignId }) {
           },
         });
       } else {
-        console.log(response);
         toast.error("¡Error al actualizar la campaña!", {
           position: "top-center",
           autoClose: 8000,
@@ -242,7 +240,6 @@ function EditForm({ campaign, campaignId }) {
         setUpdating(false);
       }
     } catch (error) {
-      console.log(error);
       toast.error("¡Error al actualizar la campaña!", {
         position: "top-center",
         autoClose: 8000,

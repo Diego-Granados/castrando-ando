@@ -5,8 +5,13 @@ import NotificationController from "@/controllers/NotificationController";
 
 class RaffleController {
   static async getAllRaffles() {
+    const unsubscribe = await Raffle.getAll(setRaffles);
+    return unsubscribe;
+  }
+
+  static async getAllRafflesOnce() {
     try {
-      const raffles = await Raffle.getAll();
+      const raffles = await Raffle.getAllOnce();
       console.log("Raffles from controller:", raffles); // Debug
       return raffles || {};
     } catch (error) {
@@ -15,8 +20,13 @@ class RaffleController {
     }
   }
 
-  static async getRaffleById(raffleId) {
-    return await Raffle.getById(raffleId);
+  static async getRaffleById(raffleId, setRaffle) {
+    const unsubscribe = await Raffle.getById(raffleId, setRaffle);
+    return unsubscribe;
+  }
+
+  static async getRaffleByIdOnce(raffleId) {
+    return await Raffle.getByIdOnce(raffleId);
   }
 
   static async createRaffle(raffleData) {
@@ -142,7 +152,7 @@ class RaffleController {
       console.log("Starting update with data:", raffleData);
 
       // Obtener la rifa actual
-      const currentRaffle = await this.getRaffleById(raffleId);
+      const currentRaffle = await this.getRaffleByIdOnce(raffleId);
       if (!currentRaffle) {
         throw new Error("Raffle not found");
       }
@@ -328,7 +338,7 @@ class RaffleController {
       });
 
       // Obtener la rifa actual primero
-      const currentRaffle = await this.getRaffleById(raffleId);
+      const currentRaffle = await this.getRaffleByIdOnce(raffleId);
       if (!currentRaffle) {
         throw new Error("Raffle not found");
       }

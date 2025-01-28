@@ -5,6 +5,7 @@ import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
 import { toast } from "react-toastify";
+import { formatNumber } from "@/utils/formatters";
 
 const RafflesPage = () => {
   const [raffles, setRaffles] = useState([]);
@@ -28,7 +29,7 @@ const RafflesPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        const fetchedRaffles = await RaffleController.getAllRaffles();
+        const fetchedRaffles = await RaffleController.getAllRafflesOnce();
         const rafflesArray = Object.entries(fetchedRaffles || {}).map(
           ([id, raffle]) => ({
             id,
@@ -460,7 +461,7 @@ const RafflesPage = () => {
                 <strong>Descripción:</strong> {selectedRaffle.description}
               </p>
               <p>
-                <strong>Precio:</strong> ₡{selectedRaffle.price}
+                <strong>Precio:</strong> ₡{formatNumber(selectedRaffle.price)}
               </p>
               <p>
                 <strong>Fecha:</strong> {selectedRaffle.date}
