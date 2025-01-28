@@ -29,7 +29,7 @@ class NotificationController {
     try {
       const currentUser = await AuthController.getCurrentUser();
       if (!currentUser) throw new Error("No user authenticated");
-      const cedula = await Notification.getCedulaByUserId(currentUser.user.uid);
+      const cedula = await AuthController.getCedulaByUserId(currentUser.user.uid);
       
       return await Notification.getAll(cedula, setNotifications, limit);
     } catch (error) {
@@ -42,7 +42,7 @@ class NotificationController {
     try {
         const currentUser = await AuthController.getCurrentUser();
         if (!currentUser) throw new Error("No user authenticated");
-        const cedula = await Notification.getCedulaByUserId(currentUser.user.uid);
+        const cedula = await AuthController.getCedulaByUserId(currentUser.user.uid);
 
         return await Notification.getUnreadCount(cedula, setCount);
     } catch (error) {
@@ -55,7 +55,7 @@ class NotificationController {
     try {
         const currentUser = await AuthController.getCurrentUser();
         if (!currentUser) throw new Error("No user authenticated");
-        const cedula = await Notification.getCedulaByUserId(currentUser.user.uid);
+        const cedula = await AuthController.getCedulaByUserId(currentUser.user.uid);
 
         await Notification.markAsRead(notificationId, cedula);
     } catch (error) {
@@ -68,7 +68,7 @@ class NotificationController {
     try {
         const currentUser = await AuthController.getCurrentUser();
         if (!currentUser) throw new Error("No user authenticated");
-        const cedula = await Notification.getCedulaByUserId(currentUser.user.uid);
+        const cedula = await AuthController.getCedulaByUserId(currentUser.user.uid);
 
         await Notification.markAllAsRead(cedula);
     } catch (error) {
@@ -81,7 +81,7 @@ class NotificationController {
     try {
         const currentUser = await AuthController.getCurrentUser();
         if (!currentUser) throw new Error("No user authenticated");
-        const cedula = await Notification.getCedulaByUserId(currentUser.user.uid);
+        const cedula = await AuthController.getCedulaByUserId(currentUser.user.uid);
 
         await Notification.delete(notificationId, cedula);
     } catch (error) {

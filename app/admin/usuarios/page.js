@@ -1,10 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Table, Badge, Form } from "react-bootstrap";
+import UserActivityController from "@/controllers/UserActivityController";
+import UserActivity from "@/models/UserActivity";
+import AuthController from "@/controllers/AuthController";
 
 export default function AdminUsuarios() {
   const [activities, setActivities] = useState([]);
   const [ranking, setRanking] = useState([]);
+  const [userNames, setUserNames] = useState({});
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     tipo: "",
@@ -19,73 +23,64 @@ export default function AdminUsuarios() {
     fechaFin: ""
   });
 
+  const ACTIVITY_TYPES = {
+    CAMPAIGN_SIGNUP: "Inscripción a campaña",
+    LOST_PET_POST: "Publicación mascota perdida",
+    ADOPTION_POST: "Publicación adopción",
+    ACTIVITY_SIGNUP: "Inscripción a actividad",
+    CAMPAIGN_COMMENT: "Comentario en campaña",
+    ACTIVITY_COMMENT: "Comentario en actividad",
+    LOST_PET_COMMENT: "Comentario en mascota perdida",
+    FORUM_POST: "Mensaje en foro",
+    BLOG_COMMENT: "Comentario en blog"
+  };
+
   useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Load all activities
+        await UserActivityController.getAllActivities((activitiesData) => {
+          // Convert activities object to array and add IDs
+          const activitiesArray = Object.entries(activitiesData).map(([id, activity]) => ({
+            id,
+            ...activity
+          }));
+          setActivities(activitiesArray);
+        });
+
+        // Get monthly ranking
+        const monthlyRanking = await UserActivity.getAllMonthlyPoints();
+        
+        // Get user names for all users in ranking
+        const userNamesMap = {};
+        for (const user of monthlyRanking) {
+          try {
+            const userData = await AuthController.getUserData(user.userId);
+            userNamesMap[user.userId] = `${userData.nombre} ${userData.apellido}`;
+          } catch (error) {
+            console.error(`Error getting name for user ${user.userId}:`, error);
+            userNamesMap[user.userId] = user.userId; // Fallback to userId if name not found
+          }
+        }
+        setUserNames(userNamesMap);
+
+        const top10 = monthlyRanking.slice(0, 10).map(user => ({
+          userId: user.userId,
+          nombre: userNamesMap[user.userId] || user.userId,
+          puntos: user.points
+        }));
+        setRanking(top10);
+
+      } catch (error) {
+        console.error("Error loading activities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    // Simular carga de datos
-    const sampleActivities = [
-      {
-        id: 1,
-        tipo: "CAMPAIGN_SIGNUP",
-        descripcion: "Se registró en la campaña 'Esterilización Gratuita'",
-        usuario: "María González",
-        puntos: 10,
-        fecha: "2024-03-20T10:30:00"
-      },
-      {
-        id: 2,
-        tipo: "FORUM_POST",
-        descripcion: "Creó una publicación en el foro: 'Consejos para cuidar a tu mascota'",
-        usuario: "Juan Pérez",
-        puntos: 2,
-        fecha: "2024-03-20T11:15:00"
-      },
-      {
-        id: 3,
-        tipo: "BLOG_POST",
-        descripcion: "Publicó un blog: 'La importancia de la esterilización'",
-        usuario: "Ana Rodríguez",
-        puntos: 5,
-        fecha: "2024-03-19T15:20:00"
-      },
-      {
-        id: 4,
-        tipo: "CAMPAIGN_SIGNUP",
-        descripcion: "Se registró en la campaña 'Vacunación Canina'",
-        usuario: "Carlos Mora",
-        puntos: 10,
-        fecha: "2024-03-18T09:30:00"
-      },
-      {
-        id: 5,
-        tipo: "FORUM_POST",
-        descripcion: "Creó una publicación en el foro: 'Adopción responsable'",
-        usuario: "María González",
-        puntos: 2,
-        fecha: "2024-03-17T14:45:00"
-      }
-    ];
-
-    const sampleRanking = [
-      { id: 1, nombre: "María González", puntos: 45 },
-      { id: 2, nombre: "Juan Pérez", puntos: 38 },
-      { id: 3, nombre: "Ana Rodríguez", puntos: 32 },
-      { id: 4, nombre: "Carlos Mora", puntos: 28 },
-      { id: 5, nombre: "Laura Jiménez", puntos: 25 },
-      { id: 6, nombre: "Pedro Vargas", puntos: 22 },
-      { id: 7, nombre: "Sofía Castro", puntos: 20 },
-      { id: 8, nombre: "Diego Sánchez", puntos: 18 },
-      { id: 9, nombre: "Carmen Núñez", puntos: 15 },
-      { id: 10, nombre: "Roberto Chaves", puntos: 12 }
-    ];
-    
-    setActivities(sampleActivities);
-    setRanking(sampleRanking);
-    setLoading(false);
-  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -115,10 +110,12 @@ export default function AdminUsuarios() {
   };
 
   const filteredActivities = activities.filter(activity => {
-    const matchesTipo = !appliedFilters.tipo || activity.tipo === appliedFilters.tipo;
+    if (!activity.enabled) return false;
+    
+    const matchesTipo = !appliedFilters.tipo || activity.type === appliedFilters.tipo;
     const matchesUsuario = !appliedFilters.usuario || 
-      activity.usuario.toLowerCase().includes(appliedFilters.usuario.toLowerCase());
-    const activityDate = new Date(activity.fecha);
+      activity.userId.toString().toLowerCase().includes(appliedFilters.usuario.toLowerCase());
+    const activityDate = new Date(activity.timestamp);
     const matchesFechaInicio = !appliedFilters.fechaInicio || 
       activityDate >= new Date(appliedFilters.fechaInicio);
     const matchesFechaFin = !appliedFilters.fechaFin || 
@@ -131,12 +128,24 @@ export default function AdminUsuarios() {
     switch (tipo) {
       case "CAMPAIGN_SIGNUP":
         return "🎯";
-      case "FORUM_POST":
+      case "ADOPTION_POST":
+        return "🐾";
+      case "LOST_PET_POST":
+        return "🔍";
+      case "ACTIVITY_SIGNUP":
+        return "📅";
+      case "CAMPAIGN_COMMENT":
         return "💬";
-      case "BLOG_POST":
-        return "✍️";
-      default:
+      case "LOST_PET_COMMENT":
+        return "💬";
+      case "FORUM_POST":
         return "📝";
+      case "BLOG_COMMENT":
+        return "✍️";
+      case "ACTIVITY_COMMENT":
+        return "💬";
+      default:
+        return "📌";
     }
   };
 
@@ -169,9 +178,15 @@ export default function AdminUsuarios() {
                       onChange={handleFilterChange}
                     >
                       <option value="">Todos</option>
-                      <option value="CAMPAIGN_SIGNUP">Registro en campaña</option>
-                      <option value="FORUM_POST">Publicación en foro</option>
-                      <option value="BLOG_POST">Publicación en blog</option>
+                      <option value="CAMPAIGN_SIGNUP">Inscripción a campaña (+10)</option>
+                      <option value="LOST_PET_POST">Publicación mascota perdida (+10)</option>
+                      <option value="ADOPTION_POST">Publicación adopción (+8)</option>
+                      <option value="ACTIVITY_SIGNUP">Inscripción a actividad (+6)</option>
+                      <option value="CAMPAIGN_COMMENT">Comentario en campaña (+2)</option>
+                      <option value="ACTIVITY_COMMENT">Comentario en actividad (+2)</option>
+                      <option value="LOST_PET_COMMENT">Comentario en mascota perdida (+2)</option>
+                      <option value="FORUM_POST">Mensaje en foro (+2)</option>
+                      <option value="BLOG_COMMENT">Comentario en blog (+2)</option>
                     </Form.Select>
                   </Form.Group>
                 </Col>
@@ -243,12 +258,12 @@ export default function AdminUsuarios() {
               {filteredActivities.map(activity => (
                 <tr key={activity.id}>
                   <td>
-                    {getActivityIcon(activity.tipo)} {activity.tipo}
+                    {getActivityIcon(activity.type)} {ACTIVITY_TYPES[activity.type] || activity.type}
                   </td>
-                  <td>{activity.descripcion}</td>
-                  <td>{activity.usuario}</td>
-                  <td>+{activity.puntos}</td>
-                  <td>{new Date(activity.fecha).toLocaleString()}</td>
+                  <td>{activity.description}</td>
+                  <td>{activity.userId}</td>
+                  <td>+{activity.points}</td>
+                  <td>{new Date(activity.timestamp).toLocaleString()}</td>
                 </tr>
               ))}
               {filteredActivities.length === 0 && (
@@ -278,7 +293,7 @@ export default function AdminUsuarios() {
                 </thead>
                 <tbody>
                   {ranking.map((user, index) => (
-                    <tr key={user.id}>
+                    <tr key={user.userId}>
                       <td>
                         {index < 3 ? (
                           <span style={{ fontSize: "1.2em" }}>
@@ -289,9 +304,20 @@ export default function AdminUsuarios() {
                         )}
                       </td>
                       <td>{user.nombre}</td>
-                      <td>{user.puntos}</td>
+                      <td>
+                        <Badge bg="primary" pill>
+                          {user.puntos}
+                        </Badge>
+                      </td>
                     </tr>
                   ))}
+                  {ranking.length === 0 && (
+                    <tr>
+                      <td colSpan="3" className="text-center">
+                        No hay actividades este mes
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </Table>
             </Card.Body>

@@ -7,6 +7,7 @@ import { BsGeoAlt, BsCalendar, BsTelephone, BsPerson } from "react-icons/bs";
 import LostPetController from "@/controllers/LostPetController";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import Comments from "@/components/Comments";
 
 const formatDateTime = (dateString) => {
   const date = new Date(dateString);
@@ -299,6 +300,17 @@ export default function AnimalesPerdidos() {
                   <h5 className="mb-0">Reportado por</h5>
                 </div>
                 <p>{selectedPet.userName}</p>
+              </div>
+
+              {/* Comments Section */}
+              <div className="mt-4">
+                <h5 className="mb-3">Comentarios</h5>
+                <Comments 
+                  entityType="lostPet"
+                  entityId={selectedPet.id}
+                  allowReplies={true}
+                  allowLikes={true}
+                />
               </div>
             </Modal.Body>
             <Modal.Footer>

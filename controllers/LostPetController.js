@@ -3,6 +3,7 @@ import LostPet from "@/models/LostPet";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
 import NotificationController from "@/controllers/NotificationController";
+import UserActivityController from "@/controllers/UserActivityController";
 
 class LostPetController {
   static async getAllLostPets(callback) {
@@ -39,7 +40,7 @@ class LostPetController {
 
   static async createLostPet(formData) {
     try {
-      const { user } = await LostPetController.verifyRole();
+      const { user, role } = await LostPetController.verifyRole();
       
       // Add user information to the formData
       const petData = {
@@ -59,6 +60,18 @@ class LostPetController {
         type: "lost_pet",
         link: `/animales_perdidos`,
       });
+
+      // Register user activity only for regular users
+      if (role === "User") {
+        await UserActivityController.registerActivity({
+          type: "LOST_PET_POST",
+          description: `Reportó una mascota ${formData.tipoAnimal} perdida en ${formData.location}`,
+          metadata: {
+            petType: formData.tipoAnimal,
+            location: formData.location
+          }
+        });
+      }
 
       return { success: true, message: "Publicación creada exitosamente" };
     } catch (error) {

@@ -240,6 +240,27 @@ class Auth {
       throw error;
     }
   }
+
+  static async getCedulaByUserId(userId) {
+    try {
+      const uidMapRef = ref(db, `uidToCedula/${userId}`);
+      const snapshot = await get(uidMapRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      const cedula = snapshot.val();
+      if (!cedula) {
+        throw new Error("Usuario no tiene cédula registrada");
+      }
+
+      return cedula;
+    } catch (error) {
+      console.error("Error obteniendo cédula por ID de usuario:", error);
+      throw error;
+    }
+  }
 }
 
 export default Auth;

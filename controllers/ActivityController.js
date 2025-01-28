@@ -5,6 +5,7 @@ import {
   sendActivityDeregistrationEmail,
 } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
+import UserActivityController from "@/controllers/UserActivityController";
 
 class ActivityController {
   static async createActivity(activityData) {
@@ -254,6 +255,19 @@ class ActivityController {
         user.name,
         activity
       );
+
+      // Register user activity for activity signup
+      await UserActivityController.registerActivity({
+        type: "ACTIVITY_SIGNUP",
+        description: `Te inscribiste en la actividad "${activity.title}"`,
+        metadata: {
+          activityId: activity.id,
+          activityTitle: activity.title,
+          activityDate: activity.date,
+          activityLocation: activity.location
+        }
+      });
+
       return { ok: true, emailResponse };
     } catch (error) {
       return {

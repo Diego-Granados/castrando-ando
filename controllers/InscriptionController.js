@@ -6,6 +6,7 @@ import {
   sendCancelEmail,
 } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
+import UserActivityController from "@/controllers/UserActivityController";
 
 class InscriptionController {
   static async getCampaignInscriptions(
@@ -54,6 +55,18 @@ class InscriptionController {
         link: `/appointments`,
         userId: formData.id,
         campaignId: formData.campaignId
+      });
+
+      // Register user activity for campaign signup
+      await UserActivityController.registerActivity({
+        type: "CAMPAIGN_SIGNUP",
+        description: `Reservó una cita para ${formData.campaign} en ${formData.place}`,
+        metadata: {
+          campaignId: formData.campaignId,
+          appointmentKey: appointmentKey,
+          date: formData.date,
+          timeslot: formData.timeslot
+        }
       });
 
       return NextResponse.json({

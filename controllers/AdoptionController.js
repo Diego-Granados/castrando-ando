@@ -2,6 +2,7 @@
 import Adoption from "@/models/Adoption";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
+import UserActivityController from "@/controllers/UserActivityController";
 
 class AdoptionController {
   static async getAllAdoptions(setAdoptions) {
@@ -38,8 +39,7 @@ class AdoptionController {
 
   static async createAdoption(formData) {
     try {
-      const { user } = await AdoptionController.verifyRole();
-      
+      const { user, role } = await AdoptionController.verifyRole();
       // Add user information to the formData
       const adoptionData = {
         ...formData,
@@ -51,6 +51,20 @@ class AdoptionController {
       };
 
       await Adoption.create(adoptionData);
+
+      // Register user activity only for regular users
+      console.log(role);
+      if (role === "User") {
+        await UserActivityController.registerActivity({
+          type: "ADOPTION_POST",
+          description: `Creó una publicación de adopción para ${formData.nombre}`,
+          metadata: {
+            petName: formData.nombre,
+            petType: formData.tipoAnimal
+          }
+        });
+      }
+
       return { success: true, message: "Publicación creada exitosamente" };
     } catch (error) {
       console.error("Error creating adoption:", error);

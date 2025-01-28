@@ -187,6 +187,16 @@ class AuthController {
       return { ok: false, error: errorMessage };
     }
   }
+  
+  static async getCedulaByUserId(userId) {
+    try {
+        const cedula = await Auth.getCedulaByUserId(userId);
+        return cedula;
+    } catch (error) {
+        console.error("Error getting cédula by user ID:", error);
+        throw error;
+    }
+  }
 }
 
 export default AuthController;
