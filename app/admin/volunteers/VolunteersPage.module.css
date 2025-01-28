@@ -168,3 +168,11 @@
 .btn-danger:hover {
     background-color: #c82333;
 }
+
+.info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    color: #666;
+}

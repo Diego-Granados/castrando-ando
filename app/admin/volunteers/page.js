@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Button, Table, Modal, Alert } from "react-bootstrap";
 import { MedalIcon, Pencil, Receipt, Trash2 } from "lucide-react";
 import VolunteerController from "@/controllers/VolunteerController";
+import { sendCertificateEmail } from "@/controllers/EmailSenderController";
 import styles from "./VolunteersPage.module.css";
 import { Check, StarBorder } from "@mui/icons-material";
+import { toast } from "react-toastify";
 
 const VolunteersPage = () => {
   const [volunteers, setVolunteers] = useState([]);
@@ -54,7 +56,63 @@ const VolunteersPage = () => {
     }
   };
 
-  //TODO Implementar la función del boton estrella, que es enviar certificado. esto cuando se acepta la solicitud, agreagar un campo al editar que permita cambiar el estado, este debe ser un dropdown con las opciones, de enviado, confirmado, rechazado.
+  const handleGenerateCertificate = async (volunteer) => {
+    try {
+      const response = await fetch("/api/certificate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: volunteer.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error generating certificate");
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link for local save
+      const url = window.URL.createObjectURL(blob);
+      const dateForFilename = new Date().toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).replace(/\//g, '-');
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Certificado-${volunteer.name.replace(/\s+/g, "-")}-${dateForFilename}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Convert blob to buffer for email sending
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64String = Buffer.from(arrayBuffer).toString('base64');
+
+      // Send certificate via email directly using EmailSenderController
+      const emailResponse = await sendCertificateEmail(
+        volunteer.email,
+        volunteer.name,
+        base64String
+      );
+
+      if (!emailResponse.ok) {
+        throw new Error("Error sending certificate email");
+      }
+
+      toast.success("Certificado generado y enviado exitosamente");
+    } catch (error) {
+      console.error("Error handling certificate:", error);
+      toast.error("Error al procesar el certificado");
+    }
+  };
 
   const handleModalSubmit = async (e) => {
     e.preventDefault();
@@ -80,6 +138,10 @@ const VolunteersPage = () => {
         <p className={styles.subtitle}>
           Administra las solicitudes de voluntariado
         </p>
+      </div>
+
+      <div className={styles.info}>
+        <p>Los certificados se descargarán a su computadora y serán enviados al correo del voluntario también.</p>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -134,7 +196,7 @@ const VolunteersPage = () => {
                   <Button
                     variant="outline-success"
                     className={styles.actionButton}
-                    onClick={() => handleDelete(volunteer.id)}
+                    onClick={() => handleGenerateCertificate(volunteer)}
                     title="Certificado"
                   >
                     <StarBorder />
