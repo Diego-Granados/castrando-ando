@@ -20,20 +20,22 @@ export default function CalendarioCampanas() {
     try {
       const result = await CalendarController.getCampaignsByMonth(month, year);
       if (result.ok) {
+        console.log('Eventos recibidos:', result.allEvents); // Debug log
         // Ajustar las fechas a la zona horaria local (GMT-6)
-        const campaignsWithDates = result.campaigns.map(campaign => {
-          const utcDate = new Date(campaign.date);
+        const eventsWithDates = result.allEvents.map(event => {
+          const utcDate = new Date(event.date);
           // Ajustar a GMT-6 (compensar 6 horas)
           const localDate = new Date(utcDate.getTime() + (6 * 60 * 60 * 1000));
           return {
-            ...campaign,
+            ...event,
             date: localDate
           };
         });
-        setCampaigns(campaignsWithDates);
+        console.log('Eventos procesados:', eventsWithDates); // Debug log
+        setCampaigns(eventsWithDates);
       }
     } catch (error) {
-      console.error("Error cargando campañas:", error);
+      console.error("Error cargando eventos:", error);
     } finally {
       setLoading(false);
     }
@@ -52,32 +54,60 @@ export default function CalendarioCampanas() {
 
   const tileContent = ({ date: tileDate, view }) => {
     if (view === 'month') {
-      const campaignsForDate = campaigns.filter(campaign => {
+      const eventsForDate = campaigns.filter(event => {
         // Comparar solo la fecha (ignorando la hora)
-        const campaignDate = new Date(campaign.date);
+        const eventDate = new Date(event.date);
         return (
-          campaignDate.getDate() === tileDate.getDate() &&
-          campaignDate.getMonth() === tileDate.getMonth() &&
-          campaignDate.getFullYear() === tileDate.getFullYear()
+          eventDate.getDate() === tileDate.getDate() &&
+          eventDate.getMonth() === tileDate.getMonth() &&
+          eventDate.getFullYear() === tileDate.getFullYear()
         );
       });
 
-      return campaignsForDate.length > 0 ? (
+      return eventsForDate.length > 0 ? (
         <div className="campaign-indicator">
-          {campaignsForDate.map((campaign) => (
-            <Link 
-              href={`/campaign?id=${campaign.id}`}
-              key={campaign.id}
-              className="d-block mt-1"
-            >
-              <Badge bg="primary" className="w-100">
-                {campaign.title}
-                <div className="campaign-time">
-                  {formatTime(campaign.date)}
+          {eventsForDate.map((event) => {
+            // Determinar la ruta basada en el tipo
+            let eventPath = '#';
+            if (event.type === 'campaign') {
+              eventPath = '/';
+            } else if (event.type === 'activity') {
+              eventPath = '/actividades';
+            } else if (event.type === 'raffle') {
+              eventPath = '/funds';
+            }
+
+            return (
+              <Link 
+                href={eventPath}
+                key={event.id}
+                className="d-block mt-1"
+                style={{ textDecoration: 'none' }}
+              >
+                <div 
+                  className="w-100 p-1 rounded" 
+                  style={{ 
+                    backgroundColor: event.type === 'campaign' ? '#4CAF50' : 
+                                   event.type === 'activity' ? '#2196F3' : 
+                                   event.type === 'raffle' ? '#E91E63' : '#757575',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.875em',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div className="event-title">
+                    {event.type === 'campaign' ? '🏥 ' : 
+                     event.type === 'activity' ? '🎯 ' : 
+                     event.type === 'raffle' ? '🎲 ' : ''}{event.title}
+                  </div>
+                  <div className="campaign-time" style={{ fontSize: '0.85em', opacity: 0.9 }}>
+                    {formatTime(event.date)}
+                  </div>
                 </div>
-              </Badge>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       ) : null;
     }
@@ -86,8 +116,16 @@ export default function CalendarioCampanas() {
   return (
     <main className="calendar-page-container">
       <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
-        Calendario de Campañas
+        Calendario de Eventos
       </h1>
+      
+      <div className="event-types-legend mb-3">
+        <div className="d-flex justify-content-center gap-3 flex-wrap">
+          <Badge bg="success" style={{ backgroundColor: '#4CAF50' }}>🏥 Campañas</Badge>
+          <Badge bg="primary" style={{ backgroundColor: '#2196F3' }}>🎯 Actividades</Badge>
+          <Badge bg="danger" style={{ backgroundColor: '#E91E63' }}>🎲 Rifas</Badge>
+        </div>
+      </div>
 
       <div className="calendar-wrapper">
         <div className="calendar-container">
