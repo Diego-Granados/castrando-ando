@@ -24,7 +24,7 @@ export default class Newsletter {
       };
       
       await update(ref(db, `newsletterMessages/${newMessageRef.key}`), message);
-      return { ...message, id: newMessageRef.key };
+      return true;
     } catch (error) {
       console.error("Error creating newsletter message:", error);
       throw error;

@@ -1,11 +1,18 @@
 import Raffle from "@/models/Raffle";
 import { ref, set, update } from "firebase/database";
 import { db } from "@/lib/firebase/config";
+import NotificationController from "@/controllers/NotificationController";
+import RaffleModel from "@/models/Raffle";
 
 class RaffleController {
-  static async getAllRaffles() {
-    const unsubscribe = await Raffle.getAll(setRaffles);
-    return unsubscribe;
+  static async getAllRaffles(setRaffles) {
+    try {
+      const unsubscribe = await Raffle.getAll(setRaffles);
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error getting raffles:", error);
+      throw error;
+    }
   }
 
   static async getAllRafflesOnce() {
@@ -20,8 +27,13 @@ class RaffleController {
   }
 
   static async getRaffleById(raffleId, setRaffle) {
-    const unsubscribe = await Raffle.getById(raffleId, setRaffle);
-    return unsubscribe;
+    try {
+      const unsubscribe = await Raffle.getById(raffleId, setRaffle);
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error getting raffle:", error);
+      throw error;
+    }
   }
 
   static async getRaffleByIdOnce(raffleId) {
@@ -79,6 +91,14 @@ class RaffleController {
 
       const raffleRef = ref(db, "raffles/" + Date.now());
       await set(raffleRef, newRaffle);
+
+      // Send notification to all users about the new raffle
+      await NotificationController.sendNotificationToAllUsers({
+        title: "¡Nueva Rifa Disponible!",
+        message: `Se ha creado una nueva rifa: ${raffleData.name}. Precio por número: ₡${raffleData.price}. ¡No te la pierdas!`,
+        type: "raffle",
+        link: `/raffles`,
+      });
 
       return newRaffle;
     } catch (error) {
@@ -375,6 +395,14 @@ class RaffleController {
       console.error("Update number error:", error);
       throw new Error(`Error updating number: ${error.message}`);
     }
+  }
+
+  static subscribeToRaffle(raffleId, setRaffle) {
+    return RaffleModel.subscribeToRaffle(raffleId, setRaffle);
+  }
+
+  static subscribeToAllRaffles(setRaffles) {
+    return RaffleModel.subscribeToAllRaffles(setRaffles);
   }
 }
 

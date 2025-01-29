@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Row, Col, Badge, ListGroup } from "react-bootstrap";
+import UserActivityController from "@/controllers/UserActivityController";
 
 export default function ActionsPanel() {
   const [activities, setActivities] = useState([]);
@@ -8,113 +9,53 @@ export default function ActionsPanel() {
   const [monthlyPoints, setMonthlyPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Sample data for testing
-  const sampleActivities = [
-    {
-      type: "BLOG_POST",
-      description: "Publicaste un nuevo artículo: 'Beneficios de la esterilización'",
-      timestamp: "2024-02-20T16:30:00Z",
-      points: 5,
-      metadata: {
-        blogTitle: "Beneficios de la esterilización",
-        blogId: "blog_1"
-      }
-    },
-    {
-      type: "CAMPAIGN_SIGNUP",
-      description: "Te uniste a la campaña de esterilización",
-      timestamp: "2024-02-19T10:30:00Z",
-      points: 10,
-      metadata: {
-        campaignName: "Campaña de Esterilización Febrero 2024",
-        campaignId: "camp_1"
-      }
-    },
-    {
-      type: "BLOG_POST",
-      description: "Publicaste un nuevo artículo: 'Cuidados básicos para mascotas'",
-      timestamp: "2024-02-19T09:15:00Z",
-      points: 5,
-      metadata: {
-        blogTitle: "Cuidados básicos para mascotas",
-        blogId: "blog_2"
-      }
-    },
-    {
-      type: "FORUM_POST",
-      description: "Publicaste en el foro: 'Consejos para cuidar a tu mascota'",
-      timestamp: "2024-02-18T15:45:00Z",
-      points: 2,
-      metadata: {
-        forumTitle: "Consejos para cuidar a tu mascota",
-        forumId: "forum_1"
-      }
-    },
-    {
-      type: "CAMPAIGN_SIGNUP",
-      description: "Te uniste a la campaña de vacunación",
-      timestamp: "2024-02-17T09:15:00Z",
-      points: 10,
-      metadata: {
-        campaignName: "Campaña de Vacunación 2024",
-        campaignId: "camp_2"
-      }
-    },
-    {
-      type: "FORUM_POST",
-      description: "Publicaste en el foro: 'Experiencias de adopción'",
-      timestamp: "2024-02-16T14:20:00Z",
-      points: 2,
-      metadata: {
-        forumTitle: "Experiencias de adopción",
-        forumId: "forum_2"
-      }
-    }
-  ];
-
   useEffect(() => {
-    const loadUserActivities = async () => {
+    const loadUserData = async () => {
       try {
-        setActivities(sampleActivities);
+        // Get user activities
+        const unsubscribe = await UserActivityController.getUserActivities(setActivities);
         
-        // Calculate total points
-        const totalPoints = sampleActivities.reduce((sum, activity) => sum + activity.points, 0);
+        // Get total points
+        const totalPoints = await UserActivityController.getUserPoints();
         setPoints(totalPoints);
 
-        // Calculate current month points
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
-        
-        const monthlyPointsTotal = sampleActivities.reduce((sum, activity) => {
-          const activityDate = new Date(activity.timestamp);
-          if (activityDate.getMonth() === currentMonth && 
-              activityDate.getFullYear() === currentYear) {
-            return sum + activity.points;
-          }
-          return sum;
-        }, 0);
-        
-        setMonthlyPoints(monthlyPointsTotal);
+        // Get monthly points
+        const monthPoints = await UserActivityController.getMonthlyPoints();
+        setMonthlyPoints(monthPoints);
+
+        return () => unsubscribe();
       } catch (error) {
         console.error("Error loading user activities:", error);
       } finally {
         setLoading(false);
       }
     };
-    loadUserActivities();
+
+    loadUserData();
   }, []);
 
   function getActivityIcon(type) {
     switch (type) {
       case "CAMPAIGN_SIGNUP":
         return "🎯";
-      case "FORUM_POST":
+      case "ADOPTION_POST":
+        return "🐾";
+      case "LOST_PET_POST":
+        return "🔍";
+      case "ACTIVITY_SIGNUP":
+        return "📅";
+      case "CAMPAIGN_COMMENT":
         return "💬";
-      case "BLOG_POST":
-        return "✍️";
-      default:
+      case "LOST_PET_COMMENT":
+        return "💬";
+      case "FORUM_POST":
         return "📝";
+      case "BLOG_COMMENT":
+        return "✍️";
+      case "ACTIVITY_COMMENT":
+        return "💬";
+      default:
+        return "📌";
     }
   }
 
@@ -122,10 +63,22 @@ export default function ActionsPanel() {
     switch (type) {
       case "CAMPAIGN_SIGNUP":
         return "+10 puntos por inscripción a campaña";
+      case "LOST_PET_POST":
+        return "+10 puntos por publicación de mascota perdida";
+      case "ADOPTION_POST":
+        return "+8 puntos por publicación de adopción";
+      case "ACTIVITY_SIGNUP":
+        return "+6 puntos por inscripción a actividad";
+      case "CAMPAIGN_COMMENT":
+        return "+2 puntos por comentario en campaña";
+      case "LOST_PET_COMMENT":
+        return "+2 puntos por comentario en publicación de mascota perdida";
       case "FORUM_POST":
         return "+2 puntos por mensaje en foro";
-      case "BLOG_POST":
-        return "+5 puntos por publicación en blog";
+      case "BLOG_COMMENT":
+        return "+2 puntos por comentario en blog";
+      case "ACTIVITY_COMMENT":
+        return "+2 puntos por comentario en actividad";
       default:
         return "";
     }

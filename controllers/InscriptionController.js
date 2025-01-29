@@ -5,6 +5,8 @@ import {
   sendConfirmationEmail,
   sendCancelEmail,
 } from "@/controllers/EmailSenderController";
+import NotificationController from "@/controllers/NotificationController";
+import UserActivityController from "@/controllers/UserActivityController";
 
 class InscriptionController {
   static async getCampaignInscriptions(
@@ -44,12 +46,37 @@ class InscriptionController {
         formData.campaignId,
         appointmentKey
       );
+
+      if (authenticated) {
+        // Create notification for the user
+        await NotificationController.createNotification({
+          title: "¡Cita Reservada!",
+          message: `Has reservado una cita para ${formData.campaign} en ${formData.place}. Fecha: ${formData.date}, Hora: ${formData.timeslot}.`,
+          type: "appointment",
+          link: `/appointments`,
+          userId: formData.id,
+          campaignId: formData.campaignId,
+        });
+
+        // Register user activity for campaign signup
+        await UserActivityController.registerActivity({
+          type: "CAMPAIGN_SIGNUP",
+          description: `Reservó una cita para ${formData.campaign} en ${formData.place}`,
+          metadata: {
+            campaignId: formData.campaignId,
+            appointmentKey: appointmentKey,
+            date: formData.date,
+            timeslot: formData.timeslot,
+          },
+        });
+      }
+
       return NextResponse.json({
         message: "Appointment saved correctly!",
         emailResponse: emailResponse,
       });
     } catch (error) {
-      console.error(error);
+      console.log(error);
       return NextResponse.error(error);
     }
   }
@@ -68,9 +95,8 @@ class InscriptionController {
     }
   }
 
-  static async deleteAppointment(formData) {
+  static async deleteAppointment(formData, authenticated = false) {
     try {
-      console.log(formData);
       await Inscription.deleteAppointment(formData);
       const emailResponse = await sendCancelEmail(
         formData.email,
@@ -79,7 +105,18 @@ class InscriptionController {
         formData.date,
         formData.campaign
       );
-      console.log(emailResponse);
+      if (authenticated) {
+        // Create notification for the user
+        await NotificationController.createNotification({
+          title: "Cita Cancelada",
+          message: `Tu cita para ${formData.campaign} del día ${formData.date} a las ${formData.timeslot} ha sido cancelada.`,
+          type: "appointment_cancellation",
+          link: `/campaign?id=${formData.campaignId}`,
+          userId: formData.id,
+          campaignId: formData.campaignId,
+        });
+      }
+
       return NextResponse.json({
         message: "Appointment deleted correctly!",
         emailResponse: emailResponse,
@@ -102,6 +139,15 @@ class InscriptionController {
     } catch (error) {
       console.error(error);
       return NextResponse.error(error);
+    }
+  }
+
+  static async getCampaignParticipants(campaignId) {
+    try {
+      return await Inscription.getCampaignParticipants(campaignId);
+    } catch (error) {
+      console.error("Error getting campaign participants:", error);
+      throw error;
     }
   }
 }

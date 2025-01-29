@@ -4,6 +4,7 @@ import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
 import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
+import { toast } from "react-toastify";
 import { formatNumber } from "@/utils/formatters";
 
 const RafflesPage = () => {
@@ -29,18 +30,49 @@ const RafflesPage = () => {
     const fetchRaffles = async () => {
       try {
         const fetchedRaffles = await RaffleController.getAllRafflesOnce();
-        const rafflesArray = Object.entries(fetchedRaffles || {}).map(
-          ([id, raffle]) => ({
-            id,
-            ...raffle,
-          })
+        const currentDate = new Date();
+
+        // Convert to array and process raffles
+        const processedRaffles = Object.values(fetchedRaffles).map((raffle) => {
+          const raffleDate = new Date(raffle.date);
+          if (raffleDate < currentDate) {
+            return { ...raffle, status: "inactive" };
+          }
+          return raffle;
+        });
+
+        // Sort raffles
+        const sortedRaffles = processedRaffles.sort((a, b) => {
+          if (a.status === "active" && b.status !== "active") return -1;
+          if (a.status !== "active" && b.status === "active") return 1;
+
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA - dateB;
+        });
+
+        // Set closest future raffle as active and selected
+        const futureRaffles = sortedRaffles.filter(
+          (raffle) => new Date(raffle.date) >= currentDate
         );
-        setRaffles(rafflesArray);
+
+        if (futureRaffles.length > 0) {
+          const closestRaffle = futureRaffles[0];
+          await RaffleController.updateRaffle(closestRaffle.id, {
+            ...closestRaffle,
+            status: "active",
+          });
+          sortedRaffles[sortedRaffles.indexOf(closestRaffle)].status = "active";
+          // Set as selected raffle
+          setSelectedRaffle(closestRaffle);
+        }
+
+        setRaffles(sortedRaffles);
       } catch (error) {
         console.error("Error fetching raffles:", error);
-        setRaffles([]);
       }
     };
+
     fetchRaffles();
   }, []);
 
@@ -182,7 +214,7 @@ const RafflesPage = () => {
   const handleAnnounceWinner = async () => {
     try {
       if (!winningNumber) {
-        alert("Por favor ingrese un número ganador");
+        toast.error("Por favor ingrese un número ganador");
         return;
       }
 
@@ -207,24 +239,24 @@ const RafflesPage = () => {
         );
         setSelectedRaffle(updatedRaffle);
 
-        alert(
+        toast.error(
           `El ganador es el número ${winningNumber}, comprado por ${result.purchaser}`
         );
       } else {
-        alert(`Nadie compró el número ${winningNumber}`);
+        toast.error(`Nadie compró el número ${winningNumber}`);
       }
 
       setShowWinnerModal(false);
       setWinningNumber("");
     } catch (error) {
       console.error("Error announcing winner:", error);
-      alert("Error al anunciar el ganador");
+      toast.error("Error al anunciar el ganador");
     }
   };
 
   const handleCreateRaffle = async () => {
     if (!raffleName || !raffleDescription || !rafflePrice || !raffleDate) {
-      alert("Por favor complete todos los campos.");
+      toast.error("Por favor complete todos los campos.");
       return;
     }
 
@@ -271,14 +303,14 @@ const RafflesPage = () => {
       setRaffleImage(null);
       setSelectedRaffle(null);
 
-      alert(
+      toast.success(
         selectedRaffle
           ? "Rifa actualizada exitosamente"
           : "Rifa creada exitosamente"
       );
     } catch (error) {
       console.error("Error creating/updating raffle:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 
@@ -344,10 +376,10 @@ const RafflesPage = () => {
       setSelectedRaffle(null);
       setShowDeleteModal(false);
 
-      alert("Rifa eliminada exitosamente");
+      toast.success("Rifa eliminada exitosamente");
     } catch (error) {
       console.error("Error deleting raffle:", error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -363,7 +395,7 @@ const RafflesPage = () => {
 
   const handleUpdateRaffle = async () => {
     if (!raffleName || !raffleDescription || !rafflePrice || !raffleDate) {
-      alert("Por favor complete todos los campos.");
+      toast.error("Por favor complete todos los campos.");
       return;
     }
 
@@ -399,10 +431,10 @@ const RafflesPage = () => {
       setRaffleImage(null);
       setSelectedRaffle(null);
 
-      alert("Rifa actualizada exitosamente");
+      toast.success("Rifa actualizada exitosamente");
     } catch (error) {
       console.error("Error updating raffle:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 

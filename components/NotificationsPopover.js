@@ -3,97 +3,59 @@ import { useState, useRef, useEffect } from "react";
 import { Overlay, Popover, Badge } from "react-bootstrap";
 import { BsBell, BsBellFill } from "react-icons/bs";
 import Link from "next/link";
-import AuthController from "@/controllers/AuthController";
+import NotificationController from "@/controllers/NotificationController";
 
 export default function NotificationsPopover() {
   const [show, setShow] = useState(false);
   const [target, setTarget] = useState(null);
-  const [userType, setUserType] = useState(null);
+  const [notifications, setNotifications] = useState({});
+  const [unreadCount, setUnreadCount] = useState(0);
   const ref = useRef(null);
 
   useEffect(() => {
-    const checkUserType = async () => {
+    let unsubscribeNotifications;
+    let unsubscribeCount;
+
+    const fetchNotifications = async () => {
       try {
-        const currentUser = await AuthController.getCurrentUser();
-        if (currentUser.role === "Admin") {
-          setUserType("admin");
-        } else {
-          setUserType("user");
-        }
+        unsubscribeNotifications = await NotificationController.getNotifications(
+          setNotifications,
+          5 
+        );
+        unsubscribeCount = await NotificationController.getUnreadCount(setUnreadCount);
       } catch (error) {
-        console.error("Error checking user type:", error);
-        setUserType("user");
+        console.error("Error fetching notifications:", error);
       }
     };
-    checkUserType();
+
+    fetchNotifications();
+
+    return () => {
+      if (unsubscribeNotifications) unsubscribeNotifications();
+      if (unsubscribeCount) unsubscribeCount();
+    };
   }, []);
-
-  const adminNotifications = [
-    {
-      id: "1",
-      title: "Actividad: Campaña de esterilización",
-      message: "La campaña de esterilización está activa y tiene cupos disponibles",
-      date: "2024-02-18T15:45:00Z",
-      read: false,
-      link: "/admin/actividades",
-    },
-    {
-      id: "2",
-      title: "Actividad: Feria de adopción",
-      message: "La feria de adopción ha finalizado",
-      date: "2024-02-17T09:15:00Z",
-      read: true,
-      link: "/admin/actividades",
-    },
-    {
-      id: "3",
-      title: "Actividad: Taller de primeros auxilios",
-      message: "El taller de primeros auxilios no tiene cupos disponibles",
-      date: "2024-02-16T14:20:00Z",
-      read: true,
-      link: "/admin/actividades",
-    }
-  ];
-
-  const userNotifications = [
-    {
-        id: "1",
-        title: "Actualización de campaña",
-        message: "Nueva campaña de esterilización disponible",
-        date: "2024-03-20",
-        read: false,
-        link: "/campanas"
-    },
-    {
-        id: "2",
-        title: "Recordatorio de cita",
-        message: "Tu cita de vacunación está programada para mañana a las 10:00 AM",
-        date: "2024-02-13T13:20:00Z",
-        read: false,
-        link: "/appointments"
-    },
-    {
-        id: "3",
-        title: "Nueva campaña disponible",
-        message: "Se ha publicado una nueva campaña de esterilización en tu zona",
-        date: "2024-02-12T10:15:00Z",
-        read: true,
-        link: "/campaign"
-    }
-  ];
-
-  const notifications = userType === "admin" ? adminNotifications : userNotifications;
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleClick = (event) => {
     setShow(!show);
     setTarget(event.target);
   };
 
-  const handleNotificationClick = (notification) => {
-    // Aquí iría la lógica para marcar como leída
-    setShow(false);
+  const handleNotificationClick = async (notification) => {
+    try {
+      if (!notification.read) {
+        await NotificationController.markAsRead(notification.id);
+      }
+      setShow(false);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
+
+  // Convert notifications object to sorted array
+  const sortedNotifications = Object.values(notifications).sort((a, b) => 
+    new Date(b.date) - new Date(a.date)
+  );
 
   return (
     <div ref={ref}>
@@ -133,9 +95,9 @@ export default function NotificationsPopover() {
             </div>
           </Popover.Header>
           <Popover.Body>
-            {notifications.length > 0 ? (
+            {sortedNotifications.length > 0 ? (
               <>
-                {notifications.map(notification => (
+                {sortedNotifications.map(notification => (
                   <Link
                     key={notification.id}
                     href={notification.link}
@@ -160,7 +122,7 @@ export default function NotificationsPopover() {
                 ))}
                 <div className="text-center mt-2">
                   <Link
-                    href={userType === "admin" ? "/admin/notificaciones" : "/notificaciones"}
+                    href="/notificaciones"
                     onClick={() => setShow(false)}
                     className="text-decoration-none"
                   >

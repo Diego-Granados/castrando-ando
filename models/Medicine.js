@@ -110,10 +110,6 @@ export default class Medicine {
     }
   }
 
-  calculateAmountForPet(petWeight) {
-    return Math.ceil((petWeight / this.weightMultiplier) * this.amount);
-  }
-
   static async getAllOnce() {
     try {
       const medicinesRef = ref(db, "medicines");

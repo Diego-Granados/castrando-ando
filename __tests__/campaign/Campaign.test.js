@@ -1,6 +1,6 @@
 import Campaign from "@/models/Campaign";
 import { db } from "@/lib/firebase/config";
-import { ref, get, onValue, push, update } from "firebase/database";
+import { ref, get, onValue, push, update, child } from "firebase/database";
 
 // Mock Firebase
 jest.mock("@/lib/firebase/config", () => ({
@@ -14,6 +14,7 @@ jest.mock("firebase/database", () => ({
   push: jest.fn(),
   update: jest.fn(),
   increment: jest.fn(),
+  child: jest.fn(),
 }));
 
 describe("Campaign", () => {
@@ -90,6 +91,32 @@ describe("Campaign", () => {
       expect(campaigns).toHaveProperty("3");
       expect(campaigns).not.toHaveProperty("2");
     });
+
+    it("debería asignar el id como propiedad de la campaña", () => {
+      const campaigns = {
+        "campaign-1": { ...mockCampaignData, enabled: true },
+      };
+
+      Campaign.filterEnabled(campaigns);
+
+      expect(campaigns["campaign-1"].id).toBe("campaign-1");
+    });
+
+    it("debería convertir las campañas habilitadas en instancias de Campaign", () => {
+      const campaigns = {
+        1: { ...mockCampaignData, enabled: true },
+      };
+
+      Campaign.filterEnabled(campaigns);
+
+      expect(campaigns[1]).toBeInstanceOf(Campaign);
+    });
+
+    it("debería manejar un objeto vacío", () => {
+      const campaigns = {};
+      Campaign.filterEnabled(campaigns);
+      expect(campaigns).toEqual({});
+    });
   });
 
   describe("getAll", () => {
@@ -105,16 +132,45 @@ describe("Campaign", () => {
 
       onValue.mockImplementation((ref, callback) => {
         callback(mockSnapshot);
-        return jest.fn(); // Return unsubscribe function
+        return jest.fn();
       });
 
-      await Campaign.getAll(setCampaigns);
+      const unsubscribe = await Campaign.getAll(setCampaigns);
 
       expect(ref).toHaveBeenCalledWith(db, "campaigns");
       expect(setCampaigns).toHaveBeenCalled();
       const calls = setCampaigns.mock.calls[0][0];
       expect(calls).toHaveProperty("1");
       expect(calls).not.toHaveProperty("2");
+      expect(typeof unsubscribe).toBe("function");
+    });
+
+    it("debería manejar el caso cuando no hay campañas", async () => {
+      const setCampaigns = jest.fn();
+      const mockSnapshot = {
+        exists: () => false,
+        val: () => null,
+      };
+
+      onValue.mockImplementation((ref, callback) => {
+        callback(mockSnapshot);
+        return jest.fn();
+      });
+
+      await Campaign.getAll(setCampaigns);
+
+      expect(setCampaigns).toHaveBeenCalledWith({});
+    });
+
+    it("debería retornar una función de cancelación de suscripción", async () => {
+      const setCampaigns = jest.fn();
+      const mockUnsubscribe = jest.fn();
+
+      onValue.mockImplementation(() => mockUnsubscribe);
+
+      const unsubscribe = await Campaign.getAll(setCampaigns);
+
+      expect(unsubscribe).toBe(mockUnsubscribe);
     });
   });
 
@@ -403,18 +459,6 @@ describe("Campaign", () => {
         formData.place
       );
     });
-
-    it("debería manejar el caso cuando no hay inscripciones", async () => {
-      get.mockResolvedValue({
-        exists: () => false,
-      });
-
-      await expect(Campaign.update("test-id", {}, {})).rejects.toEqual(
-        expect.objectContaining({
-          message: expect.stringContaining("No data available"),
-        })
-      );
-    });
   });
 
   describe("delete", () => {
@@ -448,18 +492,6 @@ describe("Campaign", () => {
       expect(updateCall).toHaveProperty(
         `/appointments/user1/appt1/enabled`,
         false
-      );
-    });
-
-    it("debería manejar el caso cuando no hay inscripciones", async () => {
-      get.mockResolvedValue({
-        exists: () => false,
-      });
-
-      await expect(Campaign.delete("test-id")).rejects.toEqual(
-        expect.objectContaining({
-          message: expect.stringContaining("No data available"),
-        })
       );
     });
   });

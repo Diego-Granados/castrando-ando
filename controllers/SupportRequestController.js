@@ -1,6 +1,7 @@
 "use client";
 import SupportRequest from "@/models/SupportRequest";
 import AuthController from "@/controllers/AuthController";
+import NotificationController from "@/controllers/NotificationController";
 
 class SupportRequestController {
   static async createRequest(requestData) {
@@ -64,6 +65,14 @@ class SupportRequestController {
         userName: userData.name || "Usuario",
         status: "Pendiente",
         date: new Date().toLocaleDateString(),
+      });
+
+      // Add notification to all users
+      await NotificationController.sendNotificationToAllUsers({
+        title: "Nueva Solicitud de Ayuda",
+        message: `Se ha creado una nueva solicitud de ayuda: "${requestData.title}". ¡Tu apoyo puede hacer la diferencia!`,
+        type: "support_request",
+        link: `/solicitarApoyo`
       });
 
       return { ok: true, id: result.id };
