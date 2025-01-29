@@ -18,7 +18,7 @@ export default class ContactController {
           contactData.type
         );
         if (!response.ok) {
-          console.error("Error in createContactRequest:", error);
+          console.error("Error al enviar el email");
         }
         console.log(success);
         // Send notification to admin about new contact request

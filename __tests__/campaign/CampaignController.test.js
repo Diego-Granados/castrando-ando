@@ -363,6 +363,58 @@ describe("CampaignController", () => {
       ]);
     });
 
+    it("debería calcular correctamente para pastillas con peso total 425kg", async () => {
+      const mockWeight = 425;
+      const mockMedicines = [
+        {
+          name: "Meloxicam",
+          amount: 1,
+          weightMultiplier: 10,
+          daysOfTreatment: 4,
+          unit: "pastillas",
+        },
+      ];
+
+      Campaign.getInscriptionsWeight.mockResolvedValue(mockWeight);
+      Medicine.getAllOnce.mockResolvedValue(mockMedicines);
+
+      const result = await CampaignController.calculateMedicineNeeds("test-id");
+
+      expect(result).toEqual([
+        {
+          name: "Meloxicam",
+          total: 168, // floor(425/10) * 1 * 4 = 42 * 4 = 168
+          unit: "pastillas",
+        },
+      ]);
+    });
+
+    it("debería calcular correctamente para mg con peso total 425kg", async () => {
+      const mockWeight = 425;
+      const mockMedicines = [
+        {
+          name: "Enroflaxina",
+          amount: 100,
+          weightMultiplier: 10,
+          daysOfTreatment: 5,
+          unit: "mg",
+        },
+      ];
+
+      Campaign.getInscriptionsWeight.mockResolvedValue(mockWeight);
+      Medicine.getAllOnce.mockResolvedValue(mockMedicines);
+
+      const result = await CampaignController.calculateMedicineNeeds("test-id");
+
+      expect(result).toEqual([
+        {
+          name: "Enroflaxina",
+          total: 21000, // floor(425/10) * 100 * 5 = 42 * 100 * 5 = 21000
+          unit: "mg",
+        },
+      ]);
+    });
+
     it("debería manejar errores en el cálculo", async () => {
       Campaign.getInscriptionsWeight.mockRejectedValue(new Error("Test error"));
 
