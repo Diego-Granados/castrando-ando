@@ -345,7 +345,7 @@ describe("CampaignController", () => {
           amount: 2,
           weightMultiplier: 10,
           daysOfTreatment: 3,
-          unit: "ml",
+          unit: "pastillas",
         },
       ];
 
@@ -358,7 +358,7 @@ describe("CampaignController", () => {
         {
           name: "Medicine 1",
           total: 60, // (100/10) * 2 * 3 = 60
-          unit: "ml",
+          unit: "pastillas",
         },
       ]);
     });
