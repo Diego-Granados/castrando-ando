@@ -32,13 +32,7 @@ class Auth {
     profileUrl = null
   ) {
     try {
-      //   // Check if user with cedula already exists
       const userRef = ref(db, `users/${cedula}`);
-      //   const snapshot = await get(userRef);
-      //   if (snapshot.exists()) {
-      //     throw new Error("Ya existe un usuario con esta cédula");
-      //   }
-
       // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -91,7 +85,6 @@ class Auth {
 
   static async subscribeToAuthState(callback) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log(user);
       callback(user);
     });
     return unsubscribe;
@@ -153,7 +146,6 @@ class Auth {
 
   static async updateUserProfile(uid, updateData) {
     try {
-      console.log(updateData);
       // Get cedula from uid mapping
       const uidMapRef = ref(db, `uidToCedula/${uid}`);
       const uidMapSnapshot = await get(uidMapRef);
@@ -245,7 +237,7 @@ class Auth {
     try {
       const uidMapRef = ref(db, `uidToCedula/${userId}`);
       const snapshot = await get(uidMapRef);
-      
+
       if (!snapshot.exists()) {
         throw new Error("Usuario no encontrado");
       }
