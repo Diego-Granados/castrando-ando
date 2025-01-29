@@ -1,5 +1,5 @@
 import { db } from "@/lib/firebase/config";
-import { ref, push, update, get } from "firebase/database";
+import { ref, push, update, get, remove } from "firebase/database";
 import Newsletter from "@/models/Newsletter";
 
 jest.mock("@/lib/firebase/config", () => ({
@@ -11,6 +11,7 @@ jest.mock("firebase/database", () => ({
   push: jest.fn(),
   update: jest.fn(),
   get: jest.fn(),
+  remove: jest.fn(),
 }));
 
 describe("Newsletter", () => {
@@ -19,9 +20,18 @@ describe("Newsletter", () => {
   const mockDate = "2025-01-13T00:25:46.283Z";
 
   beforeEach(() => {
+    // Clear all mocks and their implementations
     jest.clearAllMocks();
+    jest.resetAllMocks();
     
     jest.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockDate);
+
+    // Reset mock implementations
+    update.mockReset();
+    remove.mockReset();
+    push.mockReset();
+    get.mockReset();
+    ref.mockReset();
 
     mockMessage = {
       subject: "Campaña de castración en Heredia",
@@ -218,6 +228,56 @@ describe("Newsletter", () => {
       await expect(Newsletter.update("OGS2LFl7hKrJTdV2Am0", mockMessage))
         .rejects
         .toThrow("Error de actualización");
+    });
+  });
+
+  describe("delete", () => {
+    it("debería eliminar un mensaje correctamente", async () => {
+      const messageId = "OGS2LFl7hKrJTdV2Am0";
+      update.mockResolvedValue();
+
+      const result = await Newsletter.delete(messageId);
+
+      expect(result).toBe(true);
+      expect(update).toHaveBeenCalledWith(
+        ref(db),
+        {
+          [`/newsletterMessages/${messageId}`]: null
+        }
+      );
+    });
+
+    it("debería lanzar error si falla la eliminación", async () => {
+      const messageId = "OGS2LFl7hKrJTdV2Am0";
+      update.mockRejectedValue(new Error("Error al eliminar mensaje"));
+
+      await expect(Newsletter.delete(messageId))
+        .rejects
+        .toThrow("Error al eliminar mensaje");
+    });
+
+    it("debería eliminar un suscriptor correctamente", async () => {
+      const subscriberId = "OGS2LFl7hKrJTdV2Am0";
+      update.mockResolvedValue();
+
+      const result = await Newsletter.deleteSubscriber(subscriberId);
+
+      expect(result).toBe(true);
+      expect(update).toHaveBeenCalledWith(
+        ref(db),
+        {
+          [`/newsletterSubscribers/${subscriberId}`]: null
+        }
+      );
+    });
+
+    it("debería lanzar error si falla la eliminación del suscriptor", async () => {
+      const subscriberId = "OGS2LFl7hKrJTdV2Am0";
+      update.mockRejectedValue(new Error("Error al eliminar suscriptor"));
+
+      await expect(Newsletter.deleteSubscriber(subscriberId))
+        .rejects
+        .toThrow("Error al eliminar suscriptor");
     });
   });
 }); 

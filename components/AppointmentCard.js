@@ -36,12 +36,15 @@ export default function AppointmentCard({
   const handleShowCancel = () => setShowCancel(true);
 
   async function cancelAppointment() {
-    const response = await InscriptionController.deleteAppointment({
-      id,
-      appointmentKey,
-      name,
-      ...appointment,
-    });
+    const response = await InscriptionController.deleteAppointment(
+      {
+        id,
+        appointmentKey,
+        name,
+        ...appointment,
+      },
+      authenticated
+    );
     if (response.ok) {
       toast.success("Cita cancelada correctamente.", {
         position: "top-center",

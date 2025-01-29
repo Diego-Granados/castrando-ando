@@ -216,7 +216,8 @@ describe("InscriptionController", () => {
       NotificationController.createNotification.mockResolvedValue();
 
       const result = await InscriptionController.deleteAppointment(
-        mockFormData
+        mockFormData,
+        true
       );
 
       expect(Inscription.deleteAppointment).toHaveBeenCalledWith(mockFormData);
@@ -239,7 +240,8 @@ describe("InscriptionController", () => {
       Inscription.deleteAppointment.mockRejectedValue(error);
 
       const result = await InscriptionController.deleteAppointment(
-        mockFormData
+        mockFormData,
+        true
       );
 
       expect(result).toEqual({ error });
