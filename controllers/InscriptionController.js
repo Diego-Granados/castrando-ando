@@ -47,34 +47,36 @@ class InscriptionController {
         appointmentKey
       );
 
-      // Create notification for the user
-      await NotificationController.createNotification({
-        title: "¡Cita Reservada!",
-        message: `Has reservado una cita para ${formData.campaign} en ${formData.place}. Fecha: ${formData.date}, Hora: ${formData.timeslot}.`,
-        type: "appointment",
-        link: `/appointments`,
-        userId: formData.id,
-        campaignId: formData.campaignId,
-      });
-
-      // Register user activity for campaign signup
-      await UserActivityController.registerActivity({
-        type: "CAMPAIGN_SIGNUP",
-        description: `Reservó una cita para ${formData.campaign} en ${formData.place}`,
-        metadata: {
+      if (authenticated) {
+        // Create notification for the user
+        await NotificationController.createNotification({
+          title: "¡Cita Reservada!",
+          message: `Has reservado una cita para ${formData.campaign} en ${formData.place}. Fecha: ${formData.date}, Hora: ${formData.timeslot}.`,
+          type: "appointment",
+          link: `/appointments`,
+          userId: formData.id,
           campaignId: formData.campaignId,
-          appointmentKey: appointmentKey,
-          date: formData.date,
-          timeslot: formData.timeslot,
-        },
-      });
+        });
+
+        // Register user activity for campaign signup
+        await UserActivityController.registerActivity({
+          type: "CAMPAIGN_SIGNUP",
+          description: `Reservó una cita para ${formData.campaign} en ${formData.place}`,
+          metadata: {
+            campaignId: formData.campaignId,
+            appointmentKey: appointmentKey,
+            date: formData.date,
+            timeslot: formData.timeslot,
+          },
+        });
+      }
 
       return NextResponse.json({
         message: "Appointment saved correctly!",
         emailResponse: emailResponse,
       });
     } catch (error) {
-      console.error(error);
+      console.log(error);
       return NextResponse.error(error);
     }
   }
