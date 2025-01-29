@@ -67,7 +67,7 @@ class ActivityController {
       await NotificationController.sendNotificationToAllUsers({
         title: `Nueva actividad: ${activityData.title}`,
         message: `Se ha publicado una nueva actividad: ${activityData.title}. ${activityData.capacityType === 'limitada' ? `Cupos disponibles: ${activityData.totalCapacity}` : 'Cupos ilimitados'}`,
-        type: 'activity',
+        type: 'ACTIVITY_CREATED',
         link: '/actividades',
         activityId: id
       });
@@ -200,7 +200,7 @@ class ActivityController {
       await NotificationController.sendNotificationToActivityParticipants({
         title: "¡Actualización de Actividad!",
         message: `La actividad "${activityData.title}" ha sido actualizada. Fecha: ${activityData.date}, Hora: ${activityData.hour}. Por favor revisa los detalles.`,
-        type: "activity_update",
+        type: "ACTIVITY_UPDATED",
         link: `/actividades`,
         activityId: id
       });

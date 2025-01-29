@@ -159,7 +159,7 @@ const FundsPage = () => {
       await NotificationController.createAdminNotification({
         title: "Nueva Compra de Rifa Pendiente",
         message: `${formData.buyer} ha comprado el número ${selectedNumber} de la rifa "${selectedRaffle.name}". Pendiente de aprobación.`,
-        type: "raffle_purchase",
+        type: "RAFFLE_PURCHASE_PENDING",
         link: `/admin/raffles`,
         raffleId: selectedRaffle.id,
         numberRequested: selectedNumber

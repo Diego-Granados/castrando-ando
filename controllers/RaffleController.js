@@ -96,7 +96,7 @@ class RaffleController {
       await NotificationController.sendNotificationToAllUsers({
         title: "¡Nueva Rifa Disponible!",
         message: `Se ha creado una nueva rifa: ${raffleData.name}. Precio por número: ₡${raffleData.price}. ¡No te la pierdas!`,
-        type: "raffle",
+        type: "RAFFLE_CREATED",
         link: `/raffles`,
       });
 

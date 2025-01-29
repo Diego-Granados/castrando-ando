@@ -64,7 +64,11 @@ export default function NotificationsPopoverAdmin() {
     <div ref={ref}>
       <div 
         onClick={handleClick}
-        style={{ cursor: "pointer" }}
+        style={{ 
+          cursor: "pointer", 
+          marginRight: "10px",
+          marginTop: "5px"
+        }}
         className="d-flex align-items-center"
       >
         {unreadCount > 0 ? <BsBellFill size={20} /> : <BsBell size={20} />}
@@ -111,7 +115,14 @@ export default function NotificationsPopoverAdmin() {
                       <div className="d-flex justify-content-between">
                         <strong className="text-dark">{notification.title}</strong>
                         {!notification.read && (
-                          <Badge bg="primary" pill>Nueva</Badge>
+                          <Badge 
+                            bg="primary" 
+                            pill 
+                            className="px-2"
+                            style={{ minWidth: "4rem", maxHeight: "1.3rem" }}
+                          >
+                            Nueva
+                          </Badge>
                         )}
                       </div>
                       <p className="text-muted mb-1" style={{ fontSize: "0.9rem" }}>

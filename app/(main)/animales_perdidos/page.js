@@ -304,7 +304,6 @@ export default function AnimalesPerdidos() {
 
               {/* Comments Section */}
               <div className="mt-4">
-                <h5 className="mb-3">Comentarios</h5>
                 <Comments 
                   entityType="lostPet"
                   entityId={selectedPet.id}

@@ -113,7 +113,7 @@ export default function Inscritos() {
                   await NotificationController.createNotification({
                     title: "¡Recordatorio de Cita!",
                     message: `Recuerda tu cita para ${campaign.title} el día ${campaign.date} a las ${timeslot}. Lugar: ${campaign.place}`,
-                    type: "appointment_reminder",
+                    type: "APPOINTMENT_REMINDER",
                     link: `/appointments`,
                     userId: inscription.id,
                     campaignId: campaign.id

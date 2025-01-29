@@ -197,6 +197,26 @@ class AuthController {
         throw error;
     }
   }
+
+  static async filterRegisteredUsers(cedulas) {
+    try {
+      const validCedulas = await Auth.filterRegisteredUsers(cedulas);
+      return validCedulas;
+    } catch (error) {
+      console.error("Error filtering registered users:", error);
+      throw error;
+    }
+  }
+
+  static async getUserRole(uid) {
+    try {
+      const role = await Auth.getUserRole(uid);
+      return role;
+    } catch (error) {
+      console.error("Error retrieving user role:", error);
+      throw error;
+    }
+  }
 }
 
 export default AuthController;

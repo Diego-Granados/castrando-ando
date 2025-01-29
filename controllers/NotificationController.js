@@ -10,6 +10,14 @@ class NotificationController {
       const currentUser = await AuthController.getCurrentUser();
       if (!currentUser) throw new Error("No user authenticated");
 
+      // Validate target user exists (skip validation if it's an admin notification)
+      if (data.userId !== 'admin') {
+        const validUsers = await AuthController.filterRegisteredUsers([data.userId]);
+        if (validUsers.length === 0) {
+          return;
+        }
+      }
+
       const notificationData = {
         ...data,
         date: new Date().toISOString(),
@@ -160,9 +168,15 @@ class NotificationController {
       if (participants.length === 0) {
         return { ok: true, message: "No hay participantes registrados en esta campaña" };
       }
+      console.log("Participants:", participants);
+      const validParticipants = await AuthController.filterRegisteredUsers(participants);
+      console.log("Valid participants:", validParticipants);
+      if (validParticipants.length === 0) {
+        return { ok: true, message: "No hay participantes válidos registrados en esta campaña" };
+      }
 
-      // Send notifications to all participants
-      return await this.sendBulkNotifications(participants, notificationData);
+      console.log("Sending notifications to verified participants:", validParticipants);
+      return await this.sendBulkNotifications(validParticipants, notificationData);
     } catch (error) {
       console.error("Error sending campaign notifications:", error);
       throw error;
