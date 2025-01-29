@@ -3,6 +3,7 @@ import Campaign from "@/models/Campaign";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
 import { ref, get } from "firebase/database";
+import Medicine from "@/models/Medicine";
 
 class CampaignController {
   static async getAllCampaigns(setCampaigns) {
@@ -165,7 +166,21 @@ class CampaignController {
 
   static async calculateMedicineNeeds(campaignId) {
     try {
-      return await Campaign.getInscriptionsWeight(campaignId);
+      let totals = [];
+      const totalWeight = await Campaign.getInscriptionsWeight(campaignId);
+      const medicines = await Medicine.getAllOnce();
+      for (const medicine of medicines) {
+        totals.push({
+          name: medicine.name,
+          total: Math.ceil(
+            medicine.amount *
+              Math.floor(totalWeight / medicine.weightMultiplier) *
+              medicine.daysOfTreatment
+          ),
+          unit: medicine.unit,
+        });
+      }
+      return totals;
     } catch (error) {
       console.error("Error calculating medicine needs:", error);
       throw error;
