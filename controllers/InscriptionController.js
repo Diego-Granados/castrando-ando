@@ -95,7 +95,7 @@ class InscriptionController {
     }
   }
 
-  static async deleteAppointment(formData) {
+  static async deleteAppointment(formData, authenticated = false) {
     try {
       await Inscription.deleteAppointment(formData);
       const emailResponse = await sendCancelEmail(
@@ -105,15 +105,17 @@ class InscriptionController {
         formData.date,
         formData.campaign
       );
-      // Create notification for the user
-      await NotificationController.createNotification({
-        title: "Cita Cancelada",
-        message: `Tu cita para ${formData.campaign} del día ${formData.date} a las ${formData.timeslot} ha sido cancelada.`,
-        type: "appointment_cancellation",
-        link: `/campaign?id=${formData.campaignId}`,
-        userId: formData.id,
-        campaignId: formData.campaignId,
-      });
+      if (authenticated) {
+        // Create notification for the user
+        await NotificationController.createNotification({
+          title: "Cita Cancelada",
+          message: `Tu cita para ${formData.campaign} del día ${formData.date} a las ${formData.timeslot} ha sido cancelada.`,
+          type: "appointment_cancellation",
+          link: `/campaign?id=${formData.campaignId}`,
+          userId: formData.id,
+          campaignId: formData.campaignId,
+        });
+      }
 
       return NextResponse.json({
         message: "Appointment deleted correctly!",
