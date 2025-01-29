@@ -7,7 +7,14 @@ class BlogController {
   static async createBlog(blogData) {
     try {
       const { user, role } = await AuthController.getCurrentUser();
-      if (!user || role !== "Admin") {
+      
+      // Verificar si el usuario está autenticado
+      if (!user) {
+        return { ok: false, error: "Usuario no autenticado" };
+      }
+
+      // Verificar si el usuario es admin
+      if (role !== "Admin") {
         return { ok: false, error: "No tienes permisos para crear blogs" };
       }
 
@@ -38,7 +45,14 @@ class BlogController {
   static async deleteBlog(blogId) {
     try {
       const { user, role } = await AuthController.getCurrentUser();
-      if (!user || role !== "Admin") {
+      
+      // Verificar si el usuario está autenticado
+      if (!user) {
+        return { ok: false, error: "Usuario no autenticado" };
+      }
+
+      // Verificar si el usuario es admin
+      if (role !== "Admin") {
         return { ok: false, error: "No tienes permisos para eliminar blogs" };
       }
 
@@ -55,13 +69,19 @@ class BlogController {
   }
 
   static async isUserAuthenticated() {
-    return AuthController.isUserAuthenticated();
+    try {
+      const { user } = await AuthController.getCurrentUser();
+      return user !== null;
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      return false;
+    }
   }
 
   static async isUserAdmin() {
     try {
-      const { role } = await AuthController.getCurrentUser();
-      return role === "Admin";
+      const { user, role } = await AuthController.getCurrentUser();
+      return user !== null && role === "Admin";
     } catch (error) {
       console.error("Error checking admin status:", error);
       return false;
