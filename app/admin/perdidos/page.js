@@ -138,19 +138,20 @@ export default function AdminPerdidos() {
 
   return (
     <Container className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4 px-3">
-        <h1 style={{ color: "#2055A5" }}>Administrar Animales Perdidos</h1>
-        <div className="d-flex gap-3">
-          <Button 
-            variant="outline-primary"
-            onClick={() => setShowMyPosts(!showMyPosts)}
-          >
-            {showMyPosts ? "Ver todas" : "Ver mis publicaciones"}
-          </Button>
-          <Link href="/admin/perdidos/crear" passHref>
-            <Button variant="primary">Nueva Publicación</Button>
-          </Link>
-        </div>
+      <h1 className="text-center mb-4" style={{ color: "#2055A5" }}>
+        Administrar Animales Perdidos
+      </h1>
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <Button 
+          variant={showMyPosts ? "primary" : "outline-primary"}
+          onClick={() => setShowMyPosts(!showMyPosts)}
+        >
+          {showMyPosts ? "Ver todas" : "Ver mis publicaciones"}
+        </Button>
+        <Link href="/admin/perdidos/crear" passHref>
+          <Button variant="success">Nueva Publicación</Button>
+        </Link>
       </div>
 
       {Object.values(lostPets).length === 0 ? (

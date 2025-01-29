@@ -216,6 +216,17 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
 
     setLoading(true);
     const formData = new FormData(e.target);
+    
+    // Get existing photos that weren't deleted
+    const remainingPhotos = selectedFiles
+      .filter(file => !file.isNew)
+      .map(file => file.preview);
+
+    // Get new files that need to be uploaded
+    const newFiles = selectedFiles
+      .filter(file => file.isNew)
+      .map(file => file.file);
+
     const updateData = {
       nombre: formData.get("nombre"),
       edad: formData.get("edad"),
@@ -224,8 +235,9 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
       descripcion: formData.get("descripcion"),
       contact: formData.get("contact"),
       location: formData.get("location"),
-      estado: "Buscando Hogar",
-      id: initialData.id
+      estado: formData.get("estado"),
+      photos: remainingPhotos,
+      newFiles: newFiles
     };
 
     try {
@@ -395,7 +407,6 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
 
             <Form.Group controlId="photos" className="mb-3">
               <Form.Label>Fotos (máximo 3)</Form.Label>
-              {!isEditing ? (
                 <>
                   <Form.Control
                     type="file"
@@ -411,11 +422,6 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
                     Formatos aceptados: JPG, PNG, GIF
                   </Form.Text>
                 </>
-              ) : (
-                <div className="text-muted">
-                  Las fotos no se pueden modificar después de crear la publicación.
-                </div>
-              )}
             </Form.Group>
 
             {selectedFiles.length > 0 && (
@@ -429,7 +435,6 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
                         alt={file.name || `Imagen ${index + 1}`}
                         style={imagePreviewStyle}
                       />
-                      {!isEditing && (
                         <Button 
                           variant="danger" 
                           size="sm"
@@ -439,7 +444,6 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
                         >
                           ×
                         </Button>
-                      )}
                     </div>
                   ))}
                 </div>

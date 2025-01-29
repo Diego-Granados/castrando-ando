@@ -5,6 +5,7 @@ import styles from "./AlliesPage.module.css";
 import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import AllyController from "@/controllers/AllyController";
+import { toast } from "react-toastify";
 
 const AlliesPage = () => {
   const [allies, setAllies] = useState([]);
@@ -57,21 +58,41 @@ const AlliesPage = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    console.log("handleSave called"); // Debugging log
     try {
       const allyData = {
         id: id || Date.now().toString(),
         name,
         image,
-        link,
+        link: link || "",
         description,
       };
       await AllyController.createOrUpdateAlly(allyData, file);
       setShowModal(false);
       const fetchedAllies = await AllyController.getAllAllies();
       setAllies(Object.values(fetchedAllies));
+
+      toast.success(
+        isEditing
+          ? "Aliado actualizado exitosamente"
+          : "Aliado creado exitosamente",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
     } catch (error) {
-      setModalError(`Error saving ally: ${error.message}`);
+      toast.error(`Error: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Error saving ally:", error);
     }
   };
@@ -81,7 +102,24 @@ const AlliesPage = () => {
       await AllyController.deleteAlly(allyId);
       const fetchedAllies = await AllyController.getAllAllies();
       setAllies(Object.values(fetchedAllies));
+
+      toast.success("Aliado eliminado exitosamente", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
+      toast.error(`Error al eliminar aliado: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Error deleting ally:", error);
     }
   };
@@ -157,7 +195,6 @@ const AlliesPage = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className={styles.modalBody}>
-          {modalError && <Alert variant="danger">{modalError}</Alert>}
           <Form onSubmit={handleSave}>
             <Form.Group controlId="name" className={styles.formGroup}>
               <Form.Label>Nombre</Form.Label>
@@ -188,12 +225,11 @@ const AlliesPage = () => {
               </div>
             </Form.Group>
             <Form.Group controlId="link" className={styles.formGroup}>
-              <Form.Label>Enlace</Form.Label>
+              <Form.Label>Enlace (opcional)</Form.Label>
               <Form.Control
                 type="text"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
-                required
               />
             </Form.Group>
             <Form.Group controlId="description" className={styles.formGroup}>

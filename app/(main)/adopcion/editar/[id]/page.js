@@ -20,7 +20,7 @@ export default function EditAdoptionPage() {
         // Check user authorization
         const { user, role } = await AuthController.getCurrentUser();
         if (!user) {
-          router.push('/login');
+          router.push('/userLogin');
           return;
         }
         setIsAdmin(role === 'Admin');

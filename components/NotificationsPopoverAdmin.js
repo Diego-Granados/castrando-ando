@@ -4,8 +4,9 @@ import { Overlay, Popover, Badge } from "react-bootstrap";
 import { BsBell, BsBellFill } from "react-icons/bs";
 import Link from "next/link";
 import NotificationController from "@/controllers/NotificationController";
+import { toast } from "react-toastify";
 
-export default function NotificationsPopover() {
+export default function NotificationsPopoverAdmin() {
   const [show, setShow] = useState(false);
   const [target, setTarget] = useState(null);
   const [notifications, setNotifications] = useState({});
@@ -18,13 +19,14 @@ export default function NotificationsPopover() {
 
     const fetchNotifications = async () => {
       try {
-        unsubscribeNotifications = await NotificationController.getNotifications(
+        unsubscribeNotifications = await NotificationController.getAdminNotifications(
           setNotifications,
-          5 
+          5
         );
-        unsubscribeCount = await NotificationController.getUnreadCount(setUnreadCount);
+        unsubscribeCount = await NotificationController.getAdminUnreadCount(setUnreadCount);
       } catch (error) {
         console.error("Error fetching notifications:", error);
+        toast.error("Error al cargar las notificaciones");
       }
     };
 
@@ -44,11 +46,12 @@ export default function NotificationsPopover() {
   const handleNotificationClick = async (notification) => {
     try {
       if (!notification.read) {
-        await NotificationController.markAsRead(notification.id);
+        await NotificationController.markAdminNotificationAsRead(notification.id);
       }
       setShow(false);
     } catch (error) {
       console.error("Error marking notification as read:", error);
+      toast.error("Error al marcar la notificación como leída");
     }
   };
 
@@ -86,7 +89,7 @@ export default function NotificationsPopover() {
         <Popover id="notifications-popover">
           <Popover.Header>
             <div className="d-flex justify-content-between align-items-center">
-              <span>Notificaciones</span>
+              <span>Notificaciones Admin</span>
               {unreadCount > 0 && (
                 <Badge bg="danger" pill>
                   {unreadCount} nueva{unreadCount !== 1 && "s"}
@@ -100,7 +103,7 @@ export default function NotificationsPopover() {
                 {sortedNotifications.map(notification => (
                   <Link
                     key={notification.id}
-                    href={notification.link}
+                    href={notification.link || "#"}
                     onClick={() => handleNotificationClick(notification)}
                     className="text-decoration-none"
                   >
@@ -122,7 +125,7 @@ export default function NotificationsPopover() {
                 ))}
                 <div className="text-center mt-2">
                   <Link
-                    href="/notificaciones"
+                    href="/admin/notificaciones"
                     onClick={() => setShow(false)}
                     className="text-decoration-none"
                   >

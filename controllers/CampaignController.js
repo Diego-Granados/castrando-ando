@@ -3,6 +3,7 @@ import Campaign from "@/models/Campaign";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
 import { ref, get } from "firebase/database";
+import NotificationController from "@/controllers/NotificationController";
 import Medicine from "@/models/Medicine";
 
 class CampaignController {
@@ -47,7 +48,17 @@ class CampaignController {
       formData["available"] = totalAvailableSlots;
       formData["enabled"] = true;
 
-      Campaign.create(formData, inscriptions);
+      const campaignId = await Campaign.create(formData, inscriptions);
+      
+      // Send notification to all users about the new campaign
+      await NotificationController.sendNotificationToAllUsers({
+        title: "¡Nueva Campaña de Castración!",
+        message: `Nueva campaña: ${formData.title} el ${formData.date}. Lugar: ${formData.place}. ¡Reserva tu cupo!`,
+        type: "campaign",
+        link: `/campaign?id=${campaignId}`,
+        campaignId: campaignId
+      });
+
       console.log("CREATED");
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
@@ -126,6 +137,15 @@ class CampaignController {
         date: formData.date,
         place: formData.place,
       });
+
+      await NotificationController.sendCampaignNotification({
+        title: "¡Actualización de Campaña!",
+        message: `La campaña "${formData.title}" ha sido actualizada. Fecha: ${formData.date}. Lugar: ${formData.place}. Por favor revisa los detalles.`,
+        type: "campaign_update",
+        link: `/campaign?id=${campaignId}`,
+        campaignId: campaignId
+      });
+
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
       console.log(error);
@@ -135,6 +155,8 @@ class CampaignController {
   }
 
   static async deleteCampaign(formData) {
+    let campaign = null;
+    
     try {
       await CampaignController.verifyRole();
     } catch (error) {
@@ -142,6 +164,14 @@ class CampaignController {
     }
     try {
       const campaignId = formData.campaignId;
+
+      const setCampaign = (data) => {
+        campaign = data;
+      };
+
+      await Campaign.getByIdOnce(campaignId, setCampaign); 
+      
+      // Delete campaign and photos
       await Campaign.delete(campaignId);
       const photos = formData.photos;
       const deleteResponse = await fetch("/api/storage/delete", {
@@ -154,6 +184,16 @@ class CampaignController {
       if (!deleteResponse.ok) {
         throw new Error("Failed to delete old files");
       }
+
+      // Send notification to all campaign participants
+      await NotificationController.sendCampaignNotification({
+        title: "¡Campaña Cancelada!",
+        message: `La campaña "${campaign.title}" programada para el ${campaign.date} ha sido cancelada.`,
+        type: "campaign_cancellation",
+        link: `/campaigns`,
+        campaignId: campaignId
+      });
+
       return NextResponse.json({ message: "Campaign deleted successfully!" });
     } catch (error) {
       return NextResponse.error(error);

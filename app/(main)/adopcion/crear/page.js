@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdoptionForms from "@/components/AdoptionForms";
 import AdoptionController from "@/controllers/AdoptionController";
-import { toast } from "react-toastify";
 
 export default function CreateAdoptionPage() {
   const [loading, setLoading] = useState(false);

@@ -2,17 +2,29 @@ import { ref, get, set, update, remove, onValue } from "firebase/database";
 import { db } from "@/lib/firebase/config";
 
 class Raffle {
-  static async getAll(setRaffles) {
-    const rafflesRef = ref(db, "raffles");
-    const unsubscribe = onValue(rafflesRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        setRaffles({});
-        return;
-      }
-      const raffles = snapshot.val();
-      setRaffles(raffles);
-    });
-    return unsubscribe;
+  static getAll(setRaffles) {
+    try {
+      const rafflesRef = ref(db, "raffles");
+      const unsubscribe = onValue(rafflesRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const rafflesData = snapshot.val();
+          const rafflesArray = Object.entries(rafflesData).map(
+            ([id, raffle]) => ({
+              id,
+              ...raffle,
+            })
+          );
+          setRaffles(rafflesArray);
+        } else {
+          setRaffles([]);
+        }
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error in raffle model - getAll:", error);
+      throw error;
+    }
   }
 
   static async getAllOnce() {
@@ -27,16 +39,23 @@ class Raffle {
     }
   }
 
-  static async getById(raffleId, setRaffle) {
-    const raffleRef = ref(db, `raffles/${raffleId}`);
-    const unsubscribe = onValue(raffleRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        return;
-      }
-      const value = snapshot.val();
-      setRaffle(value);
-    });
-    return unsubscribe;
+  static getById(raffleId, setRaffle) {
+    try {
+      const raffleRef = ref(db, `raffles/${raffleId}`);
+      const unsubscribe = onValue(raffleRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const raffleData = snapshot.val();
+          setRaffle({ id: raffleId, ...raffleData });
+        } else {
+          setRaffle(null);
+        }
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error in raffle model - getById:", error);
+      throw error;
+    }
   }
 
   static async getByIdOnce(raffleId) {
@@ -125,6 +144,36 @@ class Raffle {
       console.error("Error updating number:", error);
       throw error;
     }
+  }
+
+  static subscribeToRaffle(raffleId, setRaffle) {
+    const raffleRef = ref(db, `raffles/${raffleId}`);
+    return onValue(raffleRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const raffleData = snapshot.val();
+        setRaffle({ id: raffleId, ...raffleData });
+      } else {
+        setRaffle(null);
+      }
+    });
+  }
+
+  static subscribeToAllRaffles(setRaffles) {
+    const rafflesRef = ref(db, "raffles");
+    return onValue(rafflesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const rafflesData = snapshot.val();
+        const rafflesArray = Object.entries(rafflesData).map(
+          ([id, raffle]) => ({
+            id,
+            ...raffle,
+          })
+        );
+        setRaffles(rafflesArray);
+      } else {
+        setRaffles([]);
+      }
+    });
   }
 }
 
