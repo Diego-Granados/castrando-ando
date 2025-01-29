@@ -21,13 +21,9 @@ class CampaignController {
   }
 
   static async verifyRole() {
-    try {
-      const { user, role } = await AuthController.getCurrentUser();
-      if (role !== "Admin") {
-        throw new Error("User is not an admin");
-      }
-    } catch (error) {
-      return NextResponse.error("User not authenticated", { status: 401 });
+    const { user, role } = await AuthController.getCurrentUser();
+    if (role !== "Admin") {
+      throw new Error("User is not an admin");
     }
   }
 
@@ -170,6 +166,9 @@ class CampaignController {
       const totalWeight = await Campaign.getInscriptionsWeight(campaignId);
       const medicines = await Medicine.getAllOnce();
       for (const medicine of medicines) {
+        if (medicine.weightMultiplier === 0) {
+          throw new Error("Division by 0");
+        }
         totals.push({
           name: medicine.name,
           total: Math.ceil(
