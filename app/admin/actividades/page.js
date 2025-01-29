@@ -35,6 +35,7 @@ export default function AdminActividades() {
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const [selectedActivityParticipants, setSelectedActivityParticipants] =
     useState([]);
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
 
   // Subscribe to activities updates
   const { loading, error } = useSubscription(
@@ -42,10 +43,11 @@ export default function AdminActividades() {
     []
   );
 
-  const handleActivityClick = (activity) => {
+  const handleActivityClick = (activity, id) => {
     setSelectedActivity(activity);
     setShowModal(true);
     setIsEditing(false);
+    setSelectedActivityId(id);
   };
 
   const handleCloseModal = () => {
@@ -62,7 +64,7 @@ export default function AdminActividades() {
 
   const handleEditSubmit = async () => {
     try {
-      const result = await ActivityController.updateActivity(editForm.id, {
+      const result = await ActivityController.updateActivity(selectedActivityId, {
         title: editForm.title,
         description: editForm.description,
         date: editForm.date,
@@ -189,7 +191,7 @@ export default function AdminActividades() {
                 <div className="mt-auto d-flex gap-2">
                   <Button
                     variant="outline-primary"
-                    onClick={() => handleActivityClick(activity)}
+                    onClick={() => handleActivityClick(activity, id)}
                     className="flex-grow-1"
                   >
                     Ver detalles

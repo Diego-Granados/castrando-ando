@@ -4,6 +4,7 @@ import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
 import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
+import { toast } from "react-toastify";
 import { formatNumber } from "@/utils/formatters";
 
 const RafflesPage = () => {

@@ -67,6 +67,19 @@ class BlogController {
       return false;
     }
   }
+
+  static async getBlogByIdOnce(blogId) {
+    try {
+      const blog = await Blog.getBlogByIdOnce(blogId);
+      if (!blog) {
+        throw new Error("Blog no encontrado");
+      }
+      return blog;
+    } catch (error) {
+      console.error("Error getting blog:", error);
+      throw error;
+    }
+  }
 }
 
 export default BlogController; 

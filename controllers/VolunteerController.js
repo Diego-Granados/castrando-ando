@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebase/config";
 import { ref, set, get, update, remove } from "firebase/database";
+import NotificationController from "@/controllers/NotificationController";
 
 class VolunteerController {
   static async createVolunteer(volunteerData) {
@@ -14,6 +15,16 @@ class VolunteerController {
       }
       const volunteerWithStatus = { ...data, status: "sent" };
       await set(volunteerRef, volunteerWithStatus);
+
+      // Send notification to admin about new volunteer
+      await NotificationController.createAdminNotification({
+        title: "Nueva Solicitud de Voluntariado",
+        message: `${data.name} ha enviado una solicitud para ser voluntario. Cédula: ${id}`,
+        type: "volunteer_application",
+        link: `/admin/volunteers`,
+        volunteerId: id
+      });
+
       return { id, ...volunteerWithStatus };
     } catch (error) {
       console.error("Error creating volunteer:", error);

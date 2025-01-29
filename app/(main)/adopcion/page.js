@@ -32,6 +32,7 @@ export default function AdoptionsPage() {
         let user = null;
         try {
           const authData = await AuthController.getCurrentUser();
+          console.log("Auth data:", authData);
           user = authData.user;
           setIsAuthenticated(true);
           setCurrentUser(user);

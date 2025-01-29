@@ -196,6 +196,37 @@ class Inscription {
     ] = present;
     await update(ref(db), updates);
   }
+
+  static async getCampaignParticipants(campaignId) {
+    try {
+      const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
+      const snapshot = await get(inscriptionsRef);
+      
+      if (!snapshot.exists()) {
+        return [];
+      }
+
+      const timeslots = snapshot.val();
+      const participants = new Set(); // Using Set to avoid duplicates
+
+      // Iterate through each timeslot
+      Object.values(timeslots).forEach(timeslot => {
+        if (timeslot.appointments) {
+          // Iterate through appointments and collect enabled ones
+          Object.values(timeslot.appointments).forEach(appointment => {
+            if (appointment.enabled) {
+              participants.add(appointment.id);
+            }
+          });
+        }
+      });
+
+      return Array.from(participants);
+    } catch (error) {
+      console.error("Error getting campaign participants:", error);
+      throw error;
+    }
+  }
 }
 
 export default Inscription;
