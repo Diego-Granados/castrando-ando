@@ -521,7 +521,6 @@ class EmailSender {
         email: "asociacioncastrandoando@gmail.com",
       };
       const result = await apiInstance.sendTransacEmail(smtpEmail);
-      console.log(result);
       return { ok: true };
     } catch (error) {
       console.error(error);
