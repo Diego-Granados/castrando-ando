@@ -225,28 +225,6 @@ class Notification {
         }
     }
 
-
-    static async getCedulaByUserId(userId) {
-        try {
-            const userRef = ref(db, `uidToCedula/${userId}`);
-            const snapshot = await get(userRef);
-            
-            if (!snapshot.exists()) {
-                throw new Error("User not found");
-            }
-
-            const userData = snapshot.val();
-            console.log(userData);
-            if (!userData) {
-                throw new Error("User does not have a cédula registered");
-            }
-
-            return userData;
-        } catch (error) {
-            console.error("Error getting cédula by user ID:", error);
-            throw error;
-        }
-    }
 }
 
 export default Notification; 
