@@ -54,7 +54,7 @@ class InscriptionController {
         type: "appointment",
         link: `/appointments`,
         userId: formData.id,
-        campaignId: formData.campaignId
+        campaignId: formData.campaignId,
       });
 
       // Register user activity for campaign signup
@@ -65,8 +65,8 @@ class InscriptionController {
           campaignId: formData.campaignId,
           appointmentKey: appointmentKey,
           date: formData.date,
-          timeslot: formData.timeslot
-        }
+          timeslot: formData.timeslot,
+        },
       });
 
       return NextResponse.json({
@@ -95,7 +95,6 @@ class InscriptionController {
 
   static async deleteAppointment(formData) {
     try {
-      console.log(formData);
       await Inscription.deleteAppointment(formData);
       const emailResponse = await sendCancelEmail(
         formData.email,
@@ -104,7 +103,6 @@ class InscriptionController {
         formData.date,
         formData.campaign
       );
-      console.log(formData);
       // Create notification for the user
       await NotificationController.createNotification({
         title: "Cita Cancelada",
@@ -112,10 +110,9 @@ class InscriptionController {
         type: "appointment_cancellation",
         link: `/campaign?id=${formData.campaignId}`,
         userId: formData.id,
-        campaignId: formData.campaignId
+        campaignId: formData.campaignId,
       });
 
-      console.log(emailResponse);
       return NextResponse.json({
         message: "Appointment deleted correctly!",
         emailResponse: emailResponse,

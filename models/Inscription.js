@@ -122,7 +122,15 @@ class Inscription {
 
   static async updateAppointment(formData, authenticated) {
     const updates = {};
-
+    if (!formData.appointmentKey) {
+      throw new Error("Appointment key is required");
+    }
+    if (!formData.campaignId) {
+      throw new Error("Campaign ID is required");
+    }
+    if (!formData.timeslot) {
+      throw new Error("Timeslot is required");
+    }
     const appointmentKey = formData.appointmentKey;
     updates[
       `/inscriptions/${formData.campaignId}/${formData.timeslot}/appointments/${appointmentKey}/animal`
@@ -201,7 +209,7 @@ class Inscription {
     try {
       const inscriptionsRef = ref(db, `inscriptions/${campaignId}`);
       const snapshot = await get(inscriptionsRef);
-      
+
       if (!snapshot.exists()) {
         return [];
       }
@@ -210,10 +218,10 @@ class Inscription {
       const participants = new Set(); // Using Set to avoid duplicates
 
       // Iterate through each timeslot
-      Object.values(timeslots).forEach(timeslot => {
+      Object.values(timeslots).forEach((timeslot) => {
         if (timeslot.appointments) {
           // Iterate through appointments and collect enabled ones
-          Object.values(timeslot.appointments).forEach(appointment => {
+          Object.values(timeslot.appointments).forEach((appointment) => {
             if (appointment.enabled) {
               participants.add(appointment.id);
             }
