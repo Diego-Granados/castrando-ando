@@ -123,9 +123,6 @@ function NavBar() {
                 <NavDropdown.Item>Ventas</NavDropdown.Item>
               </Link>
               <Link href="/funds" passHref legacyBehavior>
-                <NavDropdown.Item>Apoyo</NavDropdown.Item>
-              </Link>
-              <Link href="/funds" passHref legacyBehavior>
                 <NavDropdown.Item>Rifas</NavDropdown.Item>
               </Link>
             </NavDropdown>

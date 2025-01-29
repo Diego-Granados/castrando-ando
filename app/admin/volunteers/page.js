@@ -74,27 +74,32 @@ const VolunteersPage = () => {
 
       // Get the blob from the response
       const blob = await response.blob();
-      
+
       // Create a download link for local save
       const url = window.URL.createObjectURL(blob);
-      const dateForFilename = new Date().toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-      }).replace(/\//g, '-');
+      const dateForFilename = new Date()
+        .toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/\//g, "-");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Certificado-${volunteer.name.replace(/\s+/g, "-")}-${dateForFilename}.jpg`;
+      a.download = `Certificado-${volunteer.name.replace(
+        /\s+/g,
+        "-"
+      )}-${dateForFilename}.jpg`;
       document.body.appendChild(a);
       a.click();
-      
+
       // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       // Convert blob to buffer for email sending
       const arrayBuffer = await blob.arrayBuffer();
-      const base64String = Buffer.from(arrayBuffer).toString('base64');
+      const base64String = Buffer.from(arrayBuffer).toString("base64");
 
       // Send certificate via email directly using EmailSenderController
       const emailResponse = await sendCertificateEmail(
@@ -111,6 +116,31 @@ const VolunteersPage = () => {
     } catch (error) {
       console.error("Error handling certificate:", error);
       toast.error("Error al procesar el certificado");
+    }
+  };
+
+  const handleCertificateClick = async (volunteer) => {
+    try {
+      // Generar y enviar el certificado
+      await handleGenerateCertificate(volunteer);
+
+      // Actualizar el estado a "sent"
+      const updatedVolunteer = {
+        ...volunteer,
+        status: "sent",
+      };
+
+      await VolunteerController.updateVolunteer(volunteer.id, updatedVolunteer);
+
+      // Actualizar el estado local
+      setVolunteers(
+        volunteers.map((v) => (v.id === volunteer.id ? updatedVolunteer : v))
+      );
+
+      toast.success("Certificado enviado y estado actualizado");
+    } catch (error) {
+      console.error("Error updating volunteer status:", error);
+      toast.error("Error al actualizar el estado del voluntario");
     }
   };
 
@@ -141,7 +171,11 @@ const VolunteersPage = () => {
       </div>
 
       <div className={styles.info}>
-        <p>Los certificados se descargarán a su computadora y serán enviados al correo del voluntario también.</p>
+        <p>
+          Al presionar el botón de estrella se generará un certificado para la
+          persona el cual será descargado a su computadora y serán enviado al
+          correo del voluntario también.
+        </p>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -196,8 +230,9 @@ const VolunteersPage = () => {
                   <Button
                     variant="outline-success"
                     className={styles.actionButton}
-                    onClick={() => handleGenerateCertificate(volunteer)}
+                    onClick={() => handleCertificateClick(volunteer)}
                     title="Certificado"
+                    disabled={volunteer.status === "sent"}
                   >
                     <StarBorder />
                   </Button>

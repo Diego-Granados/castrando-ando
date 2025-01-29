@@ -10,10 +10,9 @@ import Modal from "react-bootstrap/Modal";
 import { toast } from "react-toastify";
 import useSubscription from "@/hooks/useSubscription";
 import CampaignController from "@/controllers/CampaignController";
-import Medicine from "@/models/Medicine";
+
 import Table from "react-bootstrap/Table";
 import Comments from "@/components/Comments";
-import { formatNumber } from "@/utils/formatters";
 
 export default function Campaign() {
   const searchParams = useSearchParams();
@@ -72,23 +71,11 @@ export default function Campaign() {
   const handleCalculateInventory = async () => {
     setCalculatingInventory(true);
     try {
-      const medicines = await Medicine.getAllOnce();
-      const totalWeight = await CampaignController.calculateMedicineNeeds(
-        campaignId,
-        medicines
+      
+      const totals = await CampaignController.calculateMedicineNeeds(
+        campaignId
       );
-      let totals = [];
-      for (const medicine of medicines) {
-        totals.push({
-          name: medicine.name,
-          total: Math.ceil(
-            medicine.amount *
-              Math.floor(totalWeight / medicine.weightMultiplier) *
-              medicine.daysOfTreatment
-          ),
-          unit: medicine.unit,
-        });
-      }
+      
       setInventoryEstimate(totals);
       setShowInventory(true);
     } catch (error) {
@@ -135,7 +122,7 @@ export default function Campaign() {
                     <ul>
                       {campaign.pricesData.map((price, index) => (
                         <li key={index}>
-                          ₡{formatNumber(price.price)}{" "}
+                          ₡{price.price}{" "}
                           {
                             typeof price.weight === "number"
                               ? price.weight !== 100
@@ -151,8 +138,8 @@ export default function Campaign() {
                     <p>
                       <strong>
                         Cargo adicional en casos especiales de ₡
-                        {formatNumber(campaign.priceSpecial)} (preñez, celo,
-                        piometra, perros XL, entre otros)
+                        {campaign.priceSpecial} (preñez, celo, piometra, perros
+                        XL, entre otros)
                       </strong>
                     </p>
 
@@ -232,11 +219,7 @@ export default function Campaign() {
 
             <Row className="mt-4">
               <Col xs={12}>
-                <Comments
-                  entityType="campaign"
-                  entityId={campaignId}
-                  isAdmin={true}
-                />
+                <Comments entityType="campaign" entityId={campaignId} isAdmin={true} />
               </Col>
             </Row>
 

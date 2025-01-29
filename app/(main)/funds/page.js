@@ -1,11 +1,16 @@
 "use client";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import styles from "./FundsPage.module.css";
 import RaffleController from "@/controllers/RaffleController";
 import NotificationController from "@/controllers/NotificationController";
 import Modal from "@/components/Modal";
+import useSubscription from "@/hooks/useSubscription";
+import { toast } from "react-toastify";
 
 const FundsPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedRaffle, setSelectedRaffle] = useState(null);
   const [raffles, setRaffles] = useState([]);
   const [showNumbers, setShowNumbers] = useState(false);
@@ -17,33 +22,87 @@ const FundsPage = () => {
     phone: "",
     receipt: null,
   });
-
   useEffect(() => {
-    const fetchRaffles = async () => {
+    const initializeRaffles = async () => {
       try {
-        const fetchedRaffles = await RaffleController.getAllRafflesOnce(
-          setRaffles
-        );
-        const rafflesArray = Object.entries(fetchedRaffles || {}).map(
-          ([id, raffle]) => ({
+        const fetchedRaffles = await RaffleController.getAllRafflesOnce();
+        const currentDate = new Date();
+
+        // Process and sort raffles
+        const processedRaffles = Object.entries(fetchedRaffles || {})
+          .map(([id, raffle]) => ({
             id,
             ...raffle,
-          })
+            status:
+              new Date(raffle.date) < currentDate ? "inactive" : raffle.status,
+          }))
+          .sort((a, b) => {
+            // Sort by active status first
+            if (a.status === "active" && b.status !== "active") return -1;
+            if (a.status !== "active" && b.status === "active") return 1;
+
+            // Then by date (most recent first)
+            return new Date(b.date) - new Date(a.date);
+          });
+
+        setRaffles(processedRaffles);
+
+        // Check for raffle ID in URL
+        const raffleId = searchParams.get("raffleId");
+        if (raffleId) {
+          const raffleFromUrl = processedRaffles.find((r) => r.id === raffleId);
+          if (raffleFromUrl) {
+            setSelectedRaffle(raffleFromUrl);
+            setShowNumbers(true);
+            return;
+          }
+        }
+
+        // If no URL parameter or raffle not found, select most recent active raffle
+        const activeRaffles = processedRaffles.filter(
+          (r) => r.status === "active"
         );
-        setRaffles(rafflesArray);
+        if (activeRaffles.length > 0) {
+          setSelectedRaffle(activeRaffles[0]);
+          router.push(`/funds?raffleId=${activeRaffles[0].id}`, {
+            scroll: false,
+          });
+        }
       } catch (error) {
         console.error("Error fetching raffles:", error);
-        setRaffles([]);
+        toast.error("Error cargando las rifas");
       }
     };
-    fetchRaffles();
-  }, []);
+
+    initializeRaffles();
+  }, [searchParams]);
+
+  // Suscripción a todas las rifas
+  const { loading: loadingRaffles, error: rafflesError } = useSubscription(
+    () => RaffleController.subscribeToAllRaffles(setRaffles),
+    []
+  );
+
+  // Suscripción a la rifa seleccionada cuando cambia
+  const { loading: loadingRaffle, error: raffleError } = useSubscription(
+    () =>
+      selectedRaffle?.id
+        ? RaffleController.subscribeToRaffle(
+            selectedRaffle.id,
+            setSelectedRaffle
+          )
+        : () => {},
+    [selectedRaffle?.id]
+  );
 
   const handleRaffleChange = (event) => {
     const raffleId = event.target.value;
     const raffle = raffles.find((r) => r.id === raffleId);
     setSelectedRaffle(raffle);
     setShowNumbers(false);
+    if (raffle) {
+      router.push(`/funds?raffleId=${raffle.id}`, { scroll: false });
+    }
   };
 
   const handleBuyClick = () => {
@@ -133,11 +192,31 @@ const FundsPage = () => {
         receipt: null,
       });
 
-      alert("Número reservado exitosamente");
+      toast.success("Número reservado exitosamente", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
       console.error("Error reserving number:", error);
-      alert("Error al reservar el número: " + error.message);
+      toast.error(`Error al reservar el número: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
+  };
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/funds?raffleId=${selectedRaffle.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link copiado al portapapeles");
   };
 
   const getNumberStatus = (numberData) => {
@@ -146,10 +225,18 @@ const FundsPage = () => {
     return "";
   };
 
+  if (loadingRaffles) return <div>Cargando rifas...</div>;
+  if (rafflesError)
+    return <div>Error al cargar las rifas: {rafflesError.message}</div>;
+
   return (
     <div className={styles.container}>
       <h1>Rifas</h1>
-      <select onChange={handleRaffleChange} className={styles.select}>
+      <select
+        onChange={handleRaffleChange}
+        className={styles.select}
+        value={selectedRaffle?.id || ""}
+      >
         <option value="">Seleccione una rifa</option>
         {raffles.map((raffle) => (
           <option key={raffle.id} value={raffle.id}>
@@ -157,6 +244,15 @@ const FundsPage = () => {
           </option>
         ))}
       </select>
+      {selectedRaffle && (
+        <button
+          onClick={handleCopyLink}
+          className={styles.copyButton}
+          title="Copiar link"
+        >
+          Copiar Link
+        </button>
+      )}
 
       {selectedRaffle && (
         <div className={styles.raffleInfo}>
