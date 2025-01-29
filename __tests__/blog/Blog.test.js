@@ -2,14 +2,14 @@ import { ref, get, set, push, remove } from "firebase/database";
 import Blog from "@/models/Blog";
 import { db } from "@/lib/firebase/config";
 
-// Mock Firebase configuration
+// Configuración del mock de Firebase
 jest.mock("@/lib/firebase/config", () => ({
   db: {},
   auth: {},
   storage: {}
 }));
 
-// Mock Firebase functions
+// Mock de las funciones de Firebase
 jest.mock("firebase/database", () => ({
   ref: jest.fn(),
   get: jest.fn(),
@@ -19,26 +19,26 @@ jest.mock("firebase/database", () => ({
   getDatabase: jest.fn()
 }));
 
-// Mock fetch for image deletion
+// Mock de fetch para eliminación de imágenes
 global.fetch = jest.fn();
 
 describe("Blog Model", () => {
   let consoleErrorSpy;
 
   beforeEach(() => {
-    // Clear all mocks before each test
+    // Limpiar todos los mocks antes de cada prueba
     jest.clearAllMocks();
-    // Spy on console.error
+    // Espiar console.error
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    // Restore console.error after each test
+    // Restaurar console.error después de cada prueba
     consoleErrorSpy.mockRestore();
   });
 
   describe("create", () => {
-    it("should create a new blog successfully", async () => {
+    it("debe crear un blog correctamente", async () => {
       const mockBlogData = {
         title: "Test Blog",
         content: "Test Content",
@@ -60,7 +60,7 @@ describe("Blog Model", () => {
       expect(result).toEqual({ id: "mock-blog-id" });
     });
 
-    it("should create a blog with default values when optional fields are missing", async () => {
+    it("debe crear un blog correctamente con valores por defecto cuando faltan campos opcionales", async () => {
       const mockBlogData = {
         title: "Test Blog",
         content: "Test Content",
@@ -87,8 +87,8 @@ describe("Blog Model", () => {
       );
     });
 
-    it("should handle errors during blog creation", async () => {
-      const error = new Error("Firebase error");
+    it("debe manejar errores durante la creación del blog", async () => {
+      const error = new Error("Error de Firebase");
       push.mockImplementation(() => {
         throw error;
       });
@@ -99,12 +99,12 @@ describe("Blog Model", () => {
         authorId: "123"
       };
 
-      await expect(Blog.create(mockBlogData)).rejects.toThrow("Firebase error");
+      await expect(Blog.create(mockBlogData)).rejects.toThrow("Error de Firebase");
     });
   });
 
   describe("getAll", () => {
-    it("should return all blogs sorted by date", async () => {
+    it("debe devolver todos los blogs ordenados por fecha", async () => {
       const mockBlogs = {
         "blog1": {
           title: "Blog 1",
@@ -139,7 +139,7 @@ describe("Blog Model", () => {
       ]);
     });
 
-    it("should return empty array when no blogs exist", async () => {
+    it("debe devolver un array vacío cuando no hay blogs", async () => {
       const mockSnapshot = {
         exists: () => false
       };
@@ -154,7 +154,7 @@ describe("Blog Model", () => {
   });
 
   describe("delete", () => {
-    it("should delete a blog successfully", async () => {
+    it("debe eliminar un blog correctamente", async () => {
       const blogId = "test-blog-id";
       const mockBlogData = {
         imageUrl: "http://example.com/image.jpg"
@@ -179,11 +179,11 @@ describe("Blog Model", () => {
       expect(result).toBe(true);
     });
 
-    it("should throw error when blog id is not provided", async () => {
+    it("debe lanzar error cuando no se proporciona el ID del blog", async () => {
       await expect(Blog.delete()).rejects.toThrow("ID del blog requerido");
     });
 
-    it("should throw error when blog does not exist", async () => {
+    it("debe lanzar error cuando el blog no existe", async () => {
       const blogId = "non-existent-id";
       const mockSnapshot = {
         exists: () => false
