@@ -15,10 +15,25 @@ jest.mock("next/server", () => ({
   },
 }));
 
+jest.mock("@/controllers/NotificationController", () => ({
+  sendNotificationToAllUsers: jest.fn().mockResolvedValue(),
+  sendCampaignNotification: jest.fn().mockResolvedValue(),
+}));
+
+jest.mock("@/models/Notification", () => ({
+  getAllUsers: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock("@/models/Inscription", () => ({
+  getCampaignParticipants: jest.fn().mockResolvedValue([]),
+}));
+
 describe("CampaignController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
+    NextResponse.json.mockClear();
+    NextResponse.error.mockClear();
   });
 
   afterEach(() => {
@@ -125,6 +140,9 @@ describe("CampaignController", () => {
         inscriptions: {},
         totalAvailableSlots: 85,
       });
+      NextResponse.json.mockReturnValue({
+        message: "Form data saved successfully!",
+      });
     });
 
     afterEach(() => {
@@ -136,7 +154,7 @@ describe("CampaignController", () => {
         user: {},
         role: "Admin",
       });
-      Campaign.create.mockResolvedValue();
+      Campaign.create.mockResolvedValue("test-id");
 
       const result = await CampaignController.createCampaign(mockFormData);
 
@@ -147,9 +165,7 @@ describe("CampaignController", () => {
       );
 
       expect(Campaign.create).toHaveBeenCalled();
-      expect(NextResponse.json).toHaveBeenCalledWith({
-        message: "Form data saved successfully!",
-      });
+      expect(result).toEqual({ message: "Form data saved successfully!" });
     });
 
     it("debería rechazar la creación si el usuario no es admin", async () => {
@@ -181,7 +197,6 @@ describe("CampaignController", () => {
         "15:00",
         10
       );
-      console.log(result);
       expect(result).toHaveProperty("inscriptions");
       expect(result).toHaveProperty("totalAvailableSlots");
       expect(result.inscriptions).toHaveProperty("08:00");
@@ -236,6 +251,12 @@ describe("CampaignController", () => {
       endTime: "15:00",
     };
 
+    beforeEach(() => {
+      NextResponse.json.mockReturnValue({
+        message: "Form data saved successfully!",
+      });
+    });
+
     it("debería actualizar una campaña exitosamente", async () => {
       AuthController.getCurrentUser.mockResolvedValue({
         user: {},
@@ -246,9 +267,7 @@ describe("CampaignController", () => {
       const result = await CampaignController.updateCampaign(mockFormData);
 
       expect(Campaign.update).toHaveBeenCalled();
-      expect(NextResponse.json).toHaveBeenCalledWith({
-        message: "Form data saved successfully!",
-      });
+      expect(result).toEqual({ message: "Form data saved successfully!" });
     });
 
     it("debería rechazar la actualización si el usuario no es admin", async () => {
@@ -275,6 +294,9 @@ describe("CampaignController", () => {
 
     beforeEach(() => {
       global.fetch = jest.fn();
+      NextResponse.json.mockReturnValue({
+        message: "Campaign deleted successfully!",
+      });
     });
 
     it("debería eliminar una campaña exitosamente", async () => {
@@ -283,6 +305,9 @@ describe("CampaignController", () => {
         role: "Admin",
       });
       Campaign.delete.mockResolvedValue();
+      Campaign.getByIdOnce.mockImplementation((id, callback) => {
+        callback({ title: "Test Campaign", date: "2024-01-01" });
+      });
       global.fetch.mockResolvedValue({ ok: true });
 
       const result = await CampaignController.deleteCampaign(mockFormData);
@@ -292,9 +317,7 @@ describe("CampaignController", () => {
         "/api/storage/delete",
         expect.any(Object)
       );
-      expect(NextResponse.json).toHaveBeenCalledWith({
-        message: "Campaign deleted successfully!",
-      });
+      expect(result).toEqual({ message: "Campaign deleted successfully!" });
     });
 
     it("debería rechazar la eliminación si el usuario no es admin", async () => {
