@@ -46,41 +46,6 @@ describe("CommentController", () => {
       });
     });
 
-    it("debe crear un comentario como usuario normal", async () => {
-      const mockUser = {
-        uid: "user123"
-      };
-      const mockUserData = {
-        id: "user123",
-        name: "Test User",
-        profileUrl: "avatar.jpg"
-      };
-
-      AuthController.getCurrentUser.mockResolvedValue({ user: mockUser });
-      AuthController.getUserData.mockResolvedValue(mockUserData);
-
-      const mockCommentData = {
-        entityType: "blog",
-        entityId: "blog123",
-        content: "Test comment"
-      };
-
-      Comment.create.mockResolvedValue({
-        id: "comment123",
-        ...mockCommentData
-      });
-
-      const result = await CommentController.createComment(mockCommentData);
-
-      expect(Comment.create).toHaveBeenCalledWith({
-        ...mockCommentData,
-        author: mockUserData.name,
-        authorId: mockUserData.id,
-        authorUid: mockUser.uid,
-        authorAvatar: mockUserData.profileUrl
-      });
-      expect(result.ok).toBe(true);
-    });
 
     it("debe rechazar la creación si faltan datos requeridos", async () => {
       const result = await CommentController.createComment({

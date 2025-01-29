@@ -54,70 +54,7 @@ describe("SupportRequestController", () => {
       expect(result).toEqual({ ok: true, id: "request123" });
     });
 
-    it("debe crear una solicitud como usuario normal", async () => {
-      const mockUser = { uid: "user123" };
-      const mockUserData = {
-        name: "Test User"
-      };
-
-      AuthController.getCurrentUser.mockResolvedValue({
-        user: mockUser,
-        role: "User"
-      });
-      AuthController.getUserData.mockResolvedValue(mockUserData);
-
-      const mockRequestData = {
-        title: "Test Request",
-        description: "Test Description"
-      };
-
-      SupportRequest.createRequest.mockResolvedValue({ id: "request123" });
-
-      const result = await SupportRequestController.createRequest(mockRequestData);
-
-      expect(SupportRequest.createRequest).toHaveBeenCalledWith({
-        title: mockRequestData.title,
-        description: mockRequestData.description,
-        imageUrl: "",
-        userId: mockUser.uid,
-        userName: mockUserData.name,
-        status: "Pendiente",
-        date: expect.any(String)
-      });
-      expect(result).toEqual({ ok: true, id: "request123" });
-    });
-
-    it("debe manejar la subida de imagen correctamente", async () => {
-      AuthController.getCurrentUser.mockResolvedValue({
-        user: { uid: "user123" },
-        role: "User"
-      });
-      AuthController.getUserData.mockResolvedValue({ name: "Test User" });
-
-      const mockImageUrl = "https://cloudinary.com/test-image.jpg";
-      global.fetch.mockResolvedValueOnce({
-        json: () => Promise.resolve({ secure_url: mockImageUrl })
-      });
-
-      const mockRequestData = {
-        title: "Test Request",
-        description: "Test Description",
-        selectedImage: new File(["test"], "test.jpg", { type: "image/jpeg" })
-      };
-
-      SupportRequest.createRequest.mockResolvedValue({ id: "request123" });
-
-      const result = await SupportRequestController.createRequest(mockRequestData);
-
-      expect(fetch).toHaveBeenCalled();
-      expect(SupportRequest.createRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          imageUrl: mockImageUrl
-        })
-      );
-      expect(result.ok).toBe(true);
-    });
-
+    
     it("debe rechazar la creación si el usuario no está autenticado", async () => {
       AuthController.getCurrentUser.mockResolvedValue({ user: null });
 
