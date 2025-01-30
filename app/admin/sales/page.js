@@ -1,5 +1,5 @@
 "use client";
-
+import { formatNumber } from "@/utils/formatters";
 import { useState, useEffect } from "react";
 import styles from "./SalesPage.module.css";
 import { Button, Table, Modal, Alert, Form } from "react-bootstrap";
@@ -196,7 +196,9 @@ const SalesPage = () => {
                       className={styles.tableImage}
                     />
                   </td>
-                  <td className={styles.priceCell}>¢{product.price}</td>
+                  <td className={styles.priceCell}>
+                    ₡{formatNumber(product.price)}
+                  </td>
                   <td className={styles.descriptionCell}>
                     {product.description}
                   </td>

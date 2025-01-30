@@ -4,6 +4,7 @@ import styles from "./SalesPage.module.css";
 import Modal from "@/components/Modal";
 import SalesController from "@/controllers/SalesController";
 import { ShoppingBag, Phone, Mail } from "lucide-react";
+import { formatNumber } from "@/utils/formatters";
 
 const SalesPage = () => {
   const [showContact, setShowContact] = useState(false);
@@ -54,7 +55,7 @@ const SalesPage = () => {
         <h3 className={styles.productName}>{product.name}</h3>
         <p className={styles.productDescription}>{product.description}</p>
         <div className={styles.productMeta}>
-          <span className={styles.price}>¢{product.price}</span>
+          <span className={styles.price}>₡{formatNumber(product.price)}</span>
           <span className={styles.stock}>
             {product.quantity > 0
               ? `${product.quantity} disponibles`
@@ -124,7 +125,9 @@ const SalesPage = () => {
               />
               <div className={styles.productDetails}>
                 <h3>{selectedProduct.name}</h3>
-                <p className={styles.modalPrice}>¢{selectedProduct.price}</p>
+                <p className={styles.modalPrice}>
+                  ₡{formatNumber(selectedProduct.price)}
+                </p>
               </div>
             </div>
             <div className={styles.contactInfo}>

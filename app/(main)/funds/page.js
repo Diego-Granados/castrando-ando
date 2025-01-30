@@ -6,6 +6,7 @@ import RaffleController from "@/controllers/RaffleController";
 import Modal from "@/components/Modal";
 import useSubscription from "@/hooks/useSubscription";
 import { toast } from "react-toastify";
+import { formatNumber } from "@/utils/formatters";
 
 const FundsPage = () => {
   const router = useRouter();
@@ -254,7 +255,7 @@ const FundsPage = () => {
                 <strong>Descripción:</strong> {selectedRaffle.description}
               </p>
               <p>
-                <strong>Precio:</strong> ¢{selectedRaffle.price}.00
+                <strong>Precio:</strong> ₡{formatNumber(selectedRaffle.price)}
               </p>
               <p>
                 <strong>Fecha:</strong>{" "}
