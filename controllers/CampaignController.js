@@ -141,7 +141,7 @@ class CampaignController {
       await NotificationController.sendCampaignNotification({
         title: "¡Actualización de Campaña!",
         message: `La campaña "${formData.title}" ha sido actualizada. Fecha: ${formData.date}. Lugar: ${formData.place}. Por favor revisa los detalles.`,
-        type: "campaign_update",
+        type: "CAMPAIGN_UPDATED",
         link: `/campaign?id=${campaignId}`,
         campaignId: campaignId
       });
@@ -193,8 +193,8 @@ class CampaignController {
         await NotificationController.sendCampaignNotification({
           title: "¡Campaña Cancelada!",
           message: `La campaña "${campaign.title}" programada para el ${campaign.date} ha sido cancelada.`,
-          type: "campaign_cancellation",
-          link: `/campaigns`,
+          type: "CAMPAIGN_CANCELED",
+          link: `/`,
           campaignId: campaignId
         });
       }

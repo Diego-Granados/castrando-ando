@@ -349,8 +349,16 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
                 type="text"
                 name="contact"
                 value={formData.contact}
-                onChange={handleInputChange}
-                placeholder="Número de teléfono o forma de contacto"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setFormData(prev => ({
+                    ...prev,
+                    contact: value
+                  }));
+                }}
+                placeholder="Número de teléfono"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
               />
             </Form.Group>

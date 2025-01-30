@@ -382,13 +382,21 @@ export default function AdoptionForms({ isAdmin = false, initialData = null, onS
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Número de Contacto</Form.Label>
+              <Form.Label>Contacto</Form.Label>
               <Form.Control
-                type="tel"
-                name="contact"
+                type="text"
+                name="contact" 
                 value={formData.contact}
-                onChange={handleInputChange}
-                placeholder="Ejemplo: +506 8888-8888"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setFormData(prev => ({
+                    ...prev,
+                    contact: value
+                  }));
+                }}
+                placeholder="Número de teléfono"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
               />
             </Form.Group>

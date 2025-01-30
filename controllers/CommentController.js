@@ -52,11 +52,14 @@ class CommentController {
         if (pet.userId !== userData.authorUid) {
           const ownerRole = await AuthController.getUserRole(pet.userId);
           let ownerCedula;
+          let link = `/animales_perdidos`;
           
           if (ownerRole === "Admin") {
             ownerCedula = "admin";
+            link = `admin/perdidos`;
           } else {
             ownerCedula = await AuthController.getCedulaByUserId(pet.userId);
+            link = `/animales_perdidos`;
           }
           
           await NotificationController.createNotification({
@@ -64,7 +67,7 @@ class CommentController {
             title: "Nuevo comentario en tu publicación",
             message: `${userData.author} comentó en tu publicación de ${pet.tipoAnimal} perdido del ${new Date(pet.createdAt).toLocaleDateString()}`,
             type: "lost_pet_comment",
-            link: `/animales_perdidos`, 
+            link: link
           });
         }
       }
