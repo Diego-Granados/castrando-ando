@@ -1,6 +1,12 @@
 "use client";
 import Comment from "@/models/Comment";
 import AuthController from "@/controllers/AuthController";
+import CampaignController from "@/controllers/CampaignController";
+import BlogController from "@/controllers/BlogController";
+import LostPetController from "@/controllers/LostPetController";
+import UserActivityController from "@/controllers/UserActivityController";
+import ActivityController from "@/controllers/ActivityController";
+import NotificationController from "@/controllers/NotificationController";
 
 class CommentController {
   static async createComment(commentData) {
@@ -12,7 +18,9 @@ class CommentController {
       }
 
       let userData;
+      let isAdmin = false;
       if (author === "Admin" && authorId === "admin") {
+        isAdmin = true;
         userData = {
           author: "Admin",
           authorId: "admin",
@@ -37,6 +45,91 @@ class CommentController {
         ...commentData,
         ...userData,
       });
+
+      if (entityType === 'lostPet' && !isAdmin) {
+        const pet = await LostPetController.getLostPetByIdOnce(entityId);
+        
+        if (pet.userId !== userData.authorUid) {
+          const ownerRole = await AuthController.getUserRole(pet.userId);
+          let ownerCedula;
+          let link = `/animales_perdidos`;
+          
+          if (ownerRole === "Admin") {
+            ownerCedula = "admin";
+            link = `admin/perdidos`;
+          } else {
+            ownerCedula = await AuthController.getCedulaByUserId(pet.userId);
+            link = `/animales_perdidos`;
+          }
+          
+          await NotificationController.createNotification({
+            userId: ownerCedula,
+            title: "Nuevo comentario en tu publicación",
+            message: `${userData.author} comentó en tu publicación de ${pet.tipoAnimal} perdido del ${new Date(pet.createdAt).toLocaleDateString()}`,
+            type: "lost_pet_comment",
+            link: link
+          });
+        }
+      }
+
+      // Register user activity only for non-admin users
+      if (!isAdmin) {
+        let activityType;
+        let activityDescription;
+        let entityName = '';
+        let campaign = null;
+
+        const setCampaign = (data) => {
+          campaign = data;
+        };
+        switch (entityType) {
+          case 'campaign':
+            await CampaignController.getCampaignByIdOnce(entityId, setCampaign);
+            entityName = campaign.title;
+            activityType = "CAMPAIGN_COMMENT";
+            activityDescription = `Comentó en la campaña "${entityName}"`;
+            break;
+          case 'blog':
+            const blog = await BlogController.getBlogByIdOnce(entityId);
+            entityName = blog.title;
+            activityType = "BLOG_COMMENT";
+            activityDescription = `Comentó en el blog "${entityName}"`;
+            break;
+          case 'messages':
+            entityName = "Foro";
+            activityType = "FORUM_POST";
+            activityDescription = `Publico un mensaje en el foro`;
+            break;
+          case 'lostPet':
+            const pet = await LostPetController.getLostPetByIdOnce(entityId);
+            entityName = pet.tipoAnimal;
+            activityType = "LOST_PET_COMMENT";
+            activityDescription = `Comentó en la publicación de mascota perdida "${entityName}"`;
+            break;
+          case 'activity':
+            const activity = await ActivityController.getActivityByIdOnce(entityId);
+            entityName = activity.title;
+            activityType = "ACTIVITY_COMMENT";
+            activityDescription = `Comentó en la actividad "${entityName}"`;
+            break;
+          default:
+            break;
+        }
+
+        // Only register activity if we have a valid type
+        if (activityType) {
+          await UserActivityController.registerActivity({
+            type: activityType,
+            description: activityDescription,
+            metadata: {
+              entityType,
+              entityId,
+              entityName,
+              commentId: result.id
+            }
+          });
+        }
+      }
 
       return { ok: true, comment: result };
     } catch (error) {

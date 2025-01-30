@@ -4,8 +4,8 @@ import { Button, Table, Modal, Form, Dropdown } from "react-bootstrap";
 import { Check, Trophy, Trash2, Pencil } from "lucide-react";
 import RaffleController from "@/controllers/RaffleController";
 import styles from "./RafflesPage.module.css";
+import { toast } from "react-toastify";
 import { formatNumber } from "@/utils/formatters";
-import { ToastContainer, toast } from "react-toastify";
 
 const RafflesPage = () => {
   const [raffles, setRaffles] = useState([]);
@@ -445,19 +445,6 @@ const RafflesPage = () => {
 
   return (
     <div className={styles.container}>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      {/* ...existing code... */}
       <div className={styles.header}>
         <h1>Administración de Rifas</h1>
         <div className={styles.buttonContainer}>

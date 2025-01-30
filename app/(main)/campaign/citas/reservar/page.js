@@ -182,6 +182,7 @@ export default function Reservar() {
         data,
         authenticated
       );
+      console.log(response);
       if (response.ok) {
         toast.success("¡Cita reservada con éxito!", {
           position: "top-center",
@@ -203,6 +204,7 @@ export default function Reservar() {
         throw new Error("Error al reservar la cita");
       }
     } catch (error) {
+      console.error(error);
       toast.error("¡Error al reservar la cita!", {
         position: "top-center",
         autoClose: 8000,

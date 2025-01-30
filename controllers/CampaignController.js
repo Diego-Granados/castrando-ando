@@ -3,6 +3,7 @@ import Campaign from "@/models/Campaign";
 import AuthController from "@/controllers/AuthController";
 import { NextResponse } from "next/server";
 import { ref, get } from "firebase/database";
+import NotificationController from "@/controllers/NotificationController";
 import Medicine from "@/models/Medicine";
 
 class CampaignController {
@@ -21,13 +22,9 @@ class CampaignController {
   }
 
   static async verifyRole() {
-    try {
-      const { user, role } = await AuthController.getCurrentUser();
-      if (role !== "Admin") {
-        throw new Error("User is not an admin");
-      }
-    } catch (error) {
-      return NextResponse.error("User not authenticated", { status: 401 });
+    const { user, role } = await AuthController.getCurrentUser();
+    if (role !== "Admin") {
+      throw new Error("User is not an admin");
     }
   }
 
@@ -51,7 +48,17 @@ class CampaignController {
       formData["available"] = totalAvailableSlots;
       formData["enabled"] = true;
 
-      Campaign.create(formData, inscriptions);
+      const campaignId = await Campaign.create(formData, inscriptions);
+      
+      // Send notification to all users about the new campaign
+      await NotificationController.sendNotificationToAllUsers({
+        title: "¡Nueva Campaña de Castración!",
+        message: `Nueva campaña: ${formData.title} el ${formData.date}. Lugar: ${formData.place}. ¡Reserva tu cupo!`,
+        type: "CAMPAIGN_CREATED",
+        link: `/campaign?id=${campaignId}`,
+        campaignId: campaignId
+      });
+
       console.log("CREATED");
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
@@ -130,6 +137,15 @@ class CampaignController {
         date: formData.date,
         place: formData.place,
       });
+
+      await NotificationController.sendCampaignNotification({
+        title: "¡Actualización de Campaña!",
+        message: `La campaña "${formData.title}" ha sido actualizada. Fecha: ${formData.date}. Lugar: ${formData.place}. Por favor revisa los detalles.`,
+        type: "CAMPAIGN_UPDATED",
+        link: `/campaign?id=${campaignId}`,
+        campaignId: campaignId
+      });
+
       return NextResponse.json({ message: "Form data saved successfully!" });
     } catch (error) {
       console.log(error);
@@ -139,6 +155,8 @@ class CampaignController {
   }
 
   static async deleteCampaign(formData) {
+    let campaign = null;
+    
     try {
       await CampaignController.verifyRole();
     } catch (error) {
@@ -146,6 +164,14 @@ class CampaignController {
     }
     try {
       const campaignId = formData.campaignId;
+
+      const setCampaign = (data) => {
+        campaign = data;
+      };
+
+      await Campaign.getByIdOnce(campaignId, setCampaign); 
+      
+      // Delete campaign and photos
       await Campaign.delete(campaignId);
       const photos = formData.photos;
       const deleteResponse = await fetch("/api/storage/delete", {
@@ -158,6 +184,21 @@ class CampaignController {
       if (!deleteResponse.ok) {
         throw new Error("Failed to delete old files");
       }
+
+      const campaignDate = new Date(campaign.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+
+      if (campaignDate >= today) {
+        await NotificationController.sendCampaignNotification({
+          title: "¡Campaña Cancelada!",
+          message: `La campaña "${campaign.title}" programada para el ${campaign.date} ha sido cancelada.`,
+          type: "CAMPAIGN_CANCELED",
+          link: `/`,
+          campaignId: campaignId
+        });
+      }
+
       return NextResponse.json({ message: "Campaign deleted successfully!" });
     } catch (error) {
       return NextResponse.error(error);
@@ -170,6 +211,9 @@ class CampaignController {
       const totalWeight = await Campaign.getInscriptionsWeight(campaignId);
       const medicines = await Medicine.getAllOnce();
       for (const medicine of medicines) {
+        if (medicine.weightMultiplier === 0) {
+          throw new Error("Division by 0");
+        }
         totals.push({
           name: medicine.name,
           total: Math.ceil(

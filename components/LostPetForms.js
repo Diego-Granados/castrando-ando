@@ -203,13 +203,25 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
 
     setLoading(true);
     const formData = new FormData(e.target);
+    
+    // Get existing photos that weren't deleted
+    const remainingPhotos = selectedFiles
+      .filter(file => !file.isNew)
+      .map(file => file.preview);
+
+    // Get new files that need to be uploaded
+    const newFiles = selectedFiles
+      .filter(file => file.isNew)
+      .map(file => file.file);
+
     const updateData = {
       tipoAnimal: formData.get("tipoAnimal"),
       status: formData.get("status"),
       descripcion: formData.get("descripcion"),
       location: formData.get("location"),
       contact: formData.get("contact"),
-      id: initialData.id
+      photos: remainingPhotos,
+      newFiles: newFiles
     };
 
     try {
@@ -337,15 +349,22 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
                 type="text"
                 name="contact"
                 value={formData.contact}
-                onChange={handleInputChange}
-                placeholder="Número de teléfono o forma de contacto"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setFormData(prev => ({
+                    ...prev,
+                    contact: value
+                  }));
+                }}
+                placeholder="Número de teléfono"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
               />
             </Form.Group>
 
             <Form.Group controlId="photos" className="mb-3">
               <Form.Label>Fotos (máximo 3)</Form.Label>
-              {!isEditing ? (
                 <>
                   <Form.Control
                     type="file"
@@ -361,11 +380,6 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
                     Formatos aceptados: JPG, PNG, GIF
                   </Form.Text>
                 </>
-              ) : (
-                <div className="text-muted">
-                  Las fotos no se pueden modificar después de crear la publicación.
-                </div>
-              )}
             </Form.Group>
 
             {selectedFiles.length > 0 && (
@@ -379,7 +393,6 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
                         alt={`Imagen ${index + 1}`}
                         style={imagePreviewStyle}
                       />
-                      {!isEditing && (
                         <Button 
                           variant="danger" 
                           size="sm"
@@ -389,7 +402,6 @@ export default function StrayForms({ isAdmin = false, initialData = null, onSubm
                         >
                           ×
                         </Button>
-                      )}
                     </div>
                   ))}
                 </div>

@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import styles from "./FundsPage.module.css";
 import RaffleController from "@/controllers/RaffleController";
+import NotificationController from "@/controllers/NotificationController";
 import Modal from "@/components/Modal";
 import useSubscription from "@/hooks/useSubscription";
 import { toast } from "react-toastify";
@@ -154,6 +155,17 @@ const FundsPage = () => {
         selectedNumber,
         numberData
       );
+
+      // Send notification to admin
+      await NotificationController.createAdminNotification({
+        title: "Nueva Compra de Rifa Pendiente",
+        message: `${formData.buyer} ha comprado el número ${selectedNumber} de la rifa "${selectedRaffle.name}". Pendiente de aprobación.`,
+        type: "RAFFLE_PURCHASE_PENDING",
+        link: `/admin/raffles`,
+        raffleId: selectedRaffle.id,
+        numberRequested: selectedNumber
+      });
+
 
       const fetchedRaffles = await RaffleController.getAllRafflesOnce(
         setRaffles

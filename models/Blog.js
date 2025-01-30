@@ -99,6 +99,25 @@ class Blog {
       throw error;
     }
   }
+
+  static async getBlogByIdOnce(blogId) {
+    try {
+      const blogRef = ref(db, `blogs/${blogId}`);
+      const snapshot = await get(blogRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error("Blog no encontrado");
+      }
+      
+      return {
+        id: snapshot.key,
+        ...snapshot.val()
+      };
+    } catch (error) {
+      console.error("Error getting blog:", error);
+      throw error;
+    }
+  }
 }
 
 export default Blog;

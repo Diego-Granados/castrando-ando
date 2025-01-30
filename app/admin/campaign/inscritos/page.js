@@ -14,6 +14,7 @@ import InscriptionController from "@/controllers/InscriptionController";
 import CampaignController from "@/controllers/CampaignController";
 import useSubscription from "@/hooks/useSubscription";
 import { sendReminder } from "@/controllers/EmailSenderController";
+import NotificationController from "@/controllers/NotificationController";
 
 import styles from "./Checkbox.module.css";
 
@@ -104,6 +105,22 @@ export default function Inscritos() {
                 if (!recordatorioEmail.ok) {
                   error = true;
                   toast.error("Error al enviar recordatorio");
+                }
+              }
+              console.log(inscription);
+              if (inscription.id) {
+                try {
+                  await NotificationController.createNotification({
+                    title: "¡Recordatorio de Cita!",
+                    message: `Recuerda tu cita para ${campaign.title} el día ${campaign.date} a las ${timeslot}. Lugar: ${campaign.place}`,
+                    type: "APPOINTMENT_REMINDER",
+                    link: `/appointments`,
+                    userId: inscription.id,
+                    campaignId: campaign.id
+                  });
+                } catch (notifError) {
+                  error = true;
+                  toast.error("Error al enviar notificación en la app");
                 }
               }
             }

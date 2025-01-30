@@ -240,6 +240,55 @@ class Auth {
       throw error;
     }
   }
+
+  static async getCedulaByUserId(userId) {
+    try {
+      const uidMapRef = ref(db, `uidToCedula/${userId}`);
+      const snapshot = await get(uidMapRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      const cedula = snapshot.val();
+      if (!cedula) {
+        throw new Error("Usuario no tiene cédula registrada");
+      }
+
+      return cedula;
+    } catch (error) {
+      console.error("Error obteniendo cédula por ID de usuario:", error);
+      throw error;
+    }
+  }
+
+  static async filterRegisteredUsers(cedulas) {
+    try {
+      const validCedulas = [];
+      const uidMapRef = ref(db, 'uidToCedula');
+      const snapshot = await get(uidMapRef);
+      
+      if (!snapshot.exists()) {
+        return validCedulas;
+      }
+
+      const uidMapping = snapshot.val();
+      // Create a Set of all cedulas in the uidToCedula mapping
+      const registeredCedulas = new Set(Object.values(uidMapping));
+      
+      // Filter cedulas that exist in the mapping
+      cedulas.forEach(cedula => {
+        if (registeredCedulas.has(cedula)) {
+          validCedulas.push(cedula);
+        }
+      });
+
+      return validCedulas;
+    } catch (error) {
+      console.error("Error filtering registered users:", error);
+      throw error;
+    }
+  }
 }
 
 export default Auth;
