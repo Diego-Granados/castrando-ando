@@ -845,41 +845,48 @@ class EmailSender {
       smtpEmail.to = [
         {
           email: email,
-          name: name
+          name: name,
         },
       ];
-      
+
       const title = "Certificado de Voluntariado";
       const subtitle = `¡Gracias por tu voluntariado, ${name}!`;
       const content = EmailSender.formatBodyContent(`
         Adjunto encontrarás tu certificado de voluntariado. 
         Agradecemos tu dedicación y compromiso con nuestra causa.
       `);
-      
+
       smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
         title,
         subtitle,
         content
       );
-      
+
       // Convert buffer to base64 string properly
-      const base64Certificate = certificateBuffer.toString('base64');
-      
+      const base64Certificate = certificateBuffer.toString("base64");
+
       // Get formatted date for filename
-      const dateForFilename = new Date().toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-      }).replace(/\//g, '-');
-      
-      smtpEmail.attachment = [{
-        content: base64Certificate,
-        name: `Certificado-${name.replace(/\s+/g, "-")}-${dateForFilename}.jpg`,
-        type: "image/jpeg"
-      }];
+      const dateForFilename = new Date()
+        .toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/\//g, "-");
+
+      smtpEmail.attachment = [
+        {
+          content: base64Certificate,
+          name: `Certificado-${name.replace(
+            /\s+/g,
+            "-"
+          )}-${dateForFilename}.jpg`,
+          type: "image/jpeg",
+        },
+      ];
 
       smtpEmail.sender = SENDER;
-      
+
       const result = await apiInstance.sendTransacEmail(smtpEmail);
       return { ok: true };
     } catch (error) {
