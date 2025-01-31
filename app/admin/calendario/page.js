@@ -70,12 +70,13 @@ export default function CalendarioCampanas() {
             // Determinar la ruta basada en el tipo
             let eventPath = '#';
             if (event.type === 'campaign') {
-              eventPath = '/';
+              eventPath = '/admin';
             } else if (event.type === 'activity') {
-              eventPath = '/actividades';
+              eventPath = '/admin/actividades';
             } else if (event.type === 'raffle') {
-              eventPath = '/funds';
+              eventPath = '/admin/raffles';
             }
+
 
             return (
               <Link 

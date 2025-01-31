@@ -50,7 +50,11 @@ export default function NavBarAdmin() {
               <Link href="/admin/medicines" passHref legacyBehavior>
                 <NavDropdown.Item>Administrar medicamentos</NavDropdown.Item>
               </Link>
+              <Link href="/admin/calendario" passHref legacyBehavior>
+                <NavDropdown.Item>Calendario</NavDropdown.Item>
+              </Link>
             </NavDropdown>
+
 
             <NavDropdown title="Comunidad" id="community-nav-dropdown">
               <Link href="/admin/actividades/crear" passHref legacyBehavior>

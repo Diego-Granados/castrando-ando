@@ -10,13 +10,6 @@ cloudinary.config({
 });
 
 class Storage {
-  //   static async uploadFile(file, path) {
-  //     const storageRef = ref(storage, `campaigns/${path}/${file.name}`);
-  //     await uploadBytes(storageRef, file);
-  //     const downloadURL = await getDownloadURL(storageRef);
-  //     return downloadURL;
-  //   }
-
   static async uploadFile(file, path) {
     try {
       // Create a form data object
