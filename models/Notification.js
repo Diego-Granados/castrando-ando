@@ -85,11 +85,7 @@ class Notification {
 
     static async getAll(userId, setNotifications, limit = null) {
         const notificationsRef = ref(db, `notifications/${userId}`);
-        let notificationsQuery = query(notificationsRef, orderByChild('date'));
-        
-        if (limit) {
-            notificationsQuery = query(notificationsQuery, limitToLast(limit));
-        }
+        const notificationsQuery = query(notificationsRef, orderByChild('date'));
 
         const unsubscribe = onValue(notificationsQuery, (snapshot) => {
             if (!snapshot.exists()) {
@@ -97,7 +93,24 @@ class Notification {
                 return;
             }
             const notifications = snapshot.val();
-            const filteredNotifications = Notification.filterEnabled(notifications);
+            console.log(notifications);
+            let filteredNotifications = Notification.filterEnabled(notifications);
+            
+            const sortedNotifications = Object.values(filteredNotifications)
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (limit) {
+                filteredNotifications = Object.fromEntries(
+                    sortedNotifications
+                        .slice(0, limit)
+                        .map(notification => [notification.id, notification])
+                );
+            } else {
+                filteredNotifications = Object.fromEntries(
+                    sortedNotifications.map(notification => [notification.id, notification])
+                );
+            }
+            
             setNotifications(filteredNotifications);
         });
 
