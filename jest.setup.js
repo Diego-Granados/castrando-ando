@@ -25,6 +25,5 @@ jest.mock('firebase/auth', () => ({
   })),
 }));
 
-jest.mock('firebase/storage', () => ({
-  getStorage: jest.fn(),
-}));
+import { config } from "dotenv";
+config({ path: ".env" });

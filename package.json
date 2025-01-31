@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:integration": "firebase emulators:exec \"jest --runInBand\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -25,7 +26,8 @@
     "cloudinary": "^2.5.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "firebase": "^10.13.1",
+    "dotenv": "^16.4.7",
+    "firebase": "^11.2.0",
     "lucide-react": "^0.439.0",
     "next": "^14.2.21",
     "next-cloudinary": "^6.16.0",
