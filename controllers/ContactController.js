@@ -25,7 +25,7 @@ export default class ContactController {
         await NotificationController.createAdminNotification({
           title: "Nuevo Mensaje de Contacto",
           message: `${contactData.name} ha enviado un mensaje de tipo: ${contactData.type}`,
-          type: "contact_form",
+          type: "CONTACT_FORM_CREATED",
           link: `/admin/contacto`,
           contactId: success.id
         });

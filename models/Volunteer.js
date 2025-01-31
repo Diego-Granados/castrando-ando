@@ -14,7 +14,7 @@ class VolunteerModel {
         );
       }
 
-      const volunteerWithStatus = { ...data, status: "sent" };
+      const volunteerWithStatus = { ...data, status: "pending" };
       await set(volunteerRef, volunteerWithStatus);
       return { id, ...volunteerWithStatus };
     } catch (error) {

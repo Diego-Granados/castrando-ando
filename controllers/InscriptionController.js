@@ -7,6 +7,7 @@ import {
 } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
 import UserActivityController from "@/controllers/UserActivityController";
+import AuthController from "@/controllers/AuthController";
 
 class InscriptionController {
   static async getCampaignInscriptions(
@@ -52,7 +53,7 @@ class InscriptionController {
         await NotificationController.createNotification({
           title: "¡Cita Reservada!",
           message: `Has reservado una cita para ${formData.campaign} en ${formData.place}. Fecha: ${formData.date}, Hora: ${formData.timeslot}.`,
-          type: "appointment",
+          type: "APPOINTMENT_RESERVED",
           link: `/appointments`,
           userId: formData.id,
           campaignId: formData.campaignId,

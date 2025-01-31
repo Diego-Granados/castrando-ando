@@ -124,7 +124,7 @@ const VolunteersPage = () => {
       // Generar y enviar el certificado
       await handleGenerateCertificate(volunteer);
 
-      // Actualizar el estado a "sent"
+      // Actualizar el estado a "sent" sin importar el estado anterior
       const updatedVolunteer = {
         ...volunteer,
         status: "sent",
@@ -232,7 +232,6 @@ const VolunteersPage = () => {
                     className={styles.actionButton}
                     onClick={() => handleCertificateClick(volunteer)}
                     title="Certificado"
-                    disabled={volunteer.status === "sent"}
                   >
                     <StarBorder />
                   </Button>

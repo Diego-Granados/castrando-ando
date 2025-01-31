@@ -7,6 +7,7 @@ import NotificationController from "@/controllers/NotificationController";
 import Modal from "@/components/Modal";
 import useSubscription from "@/hooks/useSubscription";
 import { toast } from "react-toastify";
+import { formatNumber } from "@/utils/formatters";
 
 const FundsPage = () => {
   const router = useRouter();
@@ -159,7 +160,7 @@ const FundsPage = () => {
       await NotificationController.createAdminNotification({
         title: "Nueva Compra de Rifa Pendiente",
         message: `${formData.buyer} ha comprado el número ${selectedNumber} de la rifa "${selectedRaffle.name}". Pendiente de aprobación.`,
-        type: "raffle_purchase",
+        type: "RAFFLE_PURCHASE_PENDING",
         link: `/admin/raffles`,
         raffleId: selectedRaffle.id,
         numberRequested: selectedNumber
@@ -266,7 +267,7 @@ const FundsPage = () => {
                 <strong>Descripción:</strong> {selectedRaffle.description}
               </p>
               <p>
-                <strong>Precio:</strong> ¢{selectedRaffle.price}.00
+                <strong>Precio:</strong> ₡{formatNumber(selectedRaffle.price)}
               </p>
               <p>
                 <strong>Fecha:</strong>{" "}

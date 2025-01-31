@@ -54,7 +54,7 @@ class CampaignController {
       await NotificationController.sendNotificationToAllUsers({
         title: "¡Nueva Campaña de Castración!",
         message: `Nueva campaña: ${formData.title} el ${formData.date}. Lugar: ${formData.place}. ¡Reserva tu cupo!`,
-        type: "campaign",
+        type: "CAMPAIGN_CREATED",
         link: `/campaign?id=${campaignId}`,
         campaignId: campaignId
       });
@@ -141,7 +141,7 @@ class CampaignController {
       await NotificationController.sendCampaignNotification({
         title: "¡Actualización de Campaña!",
         message: `La campaña "${formData.title}" ha sido actualizada. Fecha: ${formData.date}. Lugar: ${formData.place}. Por favor revisa los detalles.`,
-        type: "campaign_update",
+        type: "CAMPAIGN_UPDATED",
         link: `/campaign?id=${campaignId}`,
         campaignId: campaignId
       });
@@ -185,14 +185,19 @@ class CampaignController {
         throw new Error("Failed to delete old files");
       }
 
-      // Send notification to all campaign participants
-      await NotificationController.sendCampaignNotification({
-        title: "¡Campaña Cancelada!",
-        message: `La campaña "${campaign.title}" programada para el ${campaign.date} ha sido cancelada.`,
-        type: "campaign_cancellation",
-        link: `/campaigns`,
-        campaignId: campaignId
-      });
+      const campaignDate = new Date(campaign.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+
+      if (campaignDate >= today) {
+        await NotificationController.sendCampaignNotification({
+          title: "¡Campaña Cancelada!",
+          message: `La campaña "${campaign.title}" programada para el ${campaign.date} ha sido cancelada.`,
+          type: "CAMPAIGN_CANCELED",
+          link: `/`,
+          campaignId: campaignId
+        });
+      }
 
       return NextResponse.json({ message: "Campaign deleted successfully!" });
     } catch (error) {

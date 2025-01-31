@@ -29,52 +29,52 @@ const RafflesPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
+        console.log("Fetching raffles..."); // Debug
         const fetchedRaffles = await RaffleController.getAllRafflesOnce();
-        const currentDate = new Date();
+        console.log("Fetched raffles:", fetchedRaffles); // Debug
 
-        // Convert to array and process raffles
-        const processedRaffles = Object.values(fetchedRaffles).map((raffle) => {
-          const raffleDate = new Date(raffle.date);
-          if (raffleDate < currentDate) {
-            return { ...raffle, status: "inactive" };
-          }
-          return raffle;
-        });
+        if (Array.isArray(fetchedRaffles)) {
+          const currentDate = new Date();
 
-        // Sort raffles
-        const sortedRaffles = processedRaffles.sort((a, b) => {
-          if (a.status === "active" && b.status !== "active") return -1;
-          if (a.status !== "active" && b.status === "active") return 1;
+          // Procesar las rifas
+          const processedRaffles = fetchedRaffles.map((raffle) => ({
+            ...raffle,
+            status: new Date(raffle.date) < currentDate ? "inactive" : "active",
+          }));
 
-          const dateA = new Date(a.date);
-          const dateB = new Date(b.date);
-          return dateA - dateB;
-        });
-
-        // Set closest future raffle as active and selected
-        const futureRaffles = sortedRaffles.filter(
-          (raffle) => new Date(raffle.date) >= currentDate
-        );
-
-        if (futureRaffles.length > 0) {
-          const closestRaffle = futureRaffles[0];
-          await RaffleController.updateRaffle(closestRaffle.id, {
-            ...closestRaffle,
-            status: "active",
+          // Ordenar las rifas: activas primero, luego por fecha
+          const sortedRaffles = processedRaffles.sort((a, b) => {
+            if (a.status === "active" && b.status !== "active") return -1;
+            if (a.status !== "active" && b.status === "active") return 1;
+            return new Date(a.date) - new Date(b.date);
           });
-          sortedRaffles[sortedRaffles.indexOf(closestRaffle)].status = "active";
-          // Set as selected raffle
-          setSelectedRaffle(closestRaffle);
-        }
 
-        setRaffles(sortedRaffles);
+          setRaffles(sortedRaffles);
+
+          // Si hay una rifa seleccionada, actualizar su información
+          if (selectedRaffle) {
+            const updatedSelectedRaffle = sortedRaffles.find(
+              (raffle) => raffle.id === selectedRaffle.id
+            );
+            if (updatedSelectedRaffle) {
+              setSelectedRaffle(updatedSelectedRaffle);
+            }
+          } else if (sortedRaffles.length > 0) {
+            // Si no hay rifa seleccionada, seleccionar la primera activa
+            const activeRaffle = sortedRaffles.find(
+              (raffle) => raffle.status === "active"
+            );
+            setSelectedRaffle(activeRaffle || sortedRaffles[0]);
+          }
+        }
       } catch (error) {
         console.error("Error fetching raffles:", error);
+        toast.error("Error al cargar las rifas");
       }
     };
 
     fetchRaffles();
-  }, []);
+  }, [selectedRaffle?.id]); // Añadir selectedRaffle.id como dependencia
 
   const handleApprove = async () => {
     try {

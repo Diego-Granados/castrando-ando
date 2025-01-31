@@ -1,41 +1,82 @@
-import { ref, get, set, update, remove, onValue } from "firebase/database";
+import {
+  ref,
+  get,
+  set,
+  update as firebaseUpdate,
+  onValue,
+  remove,
+} from "firebase/database";
 import { db } from "@/lib/firebase/config";
 
 class Raffle {
-  static getAll(setRaffles) {
-    try {
-      const rafflesRef = ref(db, "raffles");
-      const unsubscribe = onValue(rafflesRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const rafflesData = snapshot.val();
-          const rafflesArray = Object.entries(rafflesData).map(
-            ([id, raffle]) => ({
-              id,
-              ...raffle,
-            })
-          );
-          setRaffles(rafflesArray);
-        } else {
-          setRaffles([]);
-        }
-      });
-
-      return unsubscribe;
-    } catch (error) {
-      console.error("Error in raffle model - getAll:", error);
-      throw error;
-    }
-  }
-
   static async getAllOnce() {
     try {
       const rafflesRef = ref(db, "raffles");
       const snapshot = await get(rafflesRef);
-      console.log("Raw snapshot:", snapshot.val()); // Debug
-      return snapshot.exists() ? snapshot.val() : {};
+
+      console.log("Firebase snapshot exists:", snapshot.exists()); // Debug
+
+      if (snapshot.exists()) {
+        const rafflesData = snapshot.val();
+        console.log("Raw raffles data:", rafflesData); // Debug
+
+        // Convertir el objeto de rifas a un array con IDs
+        const rafflesArray = Object.entries(rafflesData).map(
+          ([id, raffle]) => ({
+            id,
+            ...raffle,
+            numbers: raffle.numbers || {},
+            status: raffle.status || "inactive",
+          })
+        );
+
+        console.log("Processed raffles array:", rafflesArray); // Debug
+        return rafflesArray;
+      }
+
+      console.log("No raffles found in database"); // Debug
+      return [];
     } catch (error) {
-      console.error("Error getting all raffles:", error);
-      return {};
+      console.error("Error in getAllOnce:", error);
+      throw error;
+    }
+  }
+
+  static getAll(setRaffles) {
+    if (typeof setRaffles !== "function") {
+      console.error("setRaffles debe ser una función");
+      return () => {};
+    }
+
+    try {
+      const rafflesRef = ref(db, "raffles");
+      return onValue(
+        rafflesRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const rafflesData = snapshot.val();
+            const rafflesArray = Object.entries(rafflesData).map(
+              ([id, raffle]) => ({
+                id,
+                ...raffle,
+                numbers: raffle.numbers || {},
+                status: raffle.status || "inactive",
+              })
+            );
+            setRaffles(rafflesArray);
+          } else {
+            setRaffles([]);
+          }
+        },
+        (error) => {
+          console.error("Error en getAll:", error);
+          setRaffles([]);
+        }
+      );
+    } catch (error) {
+      console.error("Error en getAll:", error);
+      setRaffles([]);
+      return () => {};
     }
   }
 
@@ -105,7 +146,7 @@ class Raffle {
   static async updateRaffle(raffleId, data) {
     try {
       const raffleRef = ref(db, `raffles/${raffleId}`);
-      await update(raffleRef, data);
+      await firebaseUpdate(raffleRef, data);
       return true;
     } catch (error) {
       console.error("Error updating raffle:", error);
@@ -138,7 +179,7 @@ class Raffle {
         approved: numberData.approved || false,
       };
 
-      await update(numberRef, updateData);
+      await firebaseUpdate(numberRef, updateData);
       return true;
     } catch (error) {
       console.error("Error updating number:", error);

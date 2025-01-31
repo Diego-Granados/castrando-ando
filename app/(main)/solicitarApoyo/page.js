@@ -17,7 +17,10 @@ export default function SolicitarApoyo() {
       try {
         const result = await SupportRequestController.getRequests();
         if (result.ok) {
-          setRequests(result.requests);
+          const filteredRequests = result.requests.filter(request => 
+            request.status !== "Pendiente" && request.status !== "Cancelado"
+          );
+          setRequests(filteredRequests);
         } else {
           toast.error("Error al cargar las solicitudes");
         }

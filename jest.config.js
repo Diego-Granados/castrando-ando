@@ -10,6 +10,16 @@ const createJestConfig = nextJest({
   dir: "./",
 });
 
+const customJestConfig = {
+  testEnvironment: "jest-environment-jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/$1",
+  },
+  testPathIgnorePatterns: ["/node_modules/", "/.next/"],
+};
+
+module.exports = createJestConfig(customJestConfig);
 const config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,

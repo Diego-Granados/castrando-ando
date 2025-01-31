@@ -214,11 +214,14 @@ class Notification {
 
     static async getAllUsers() {
         try {
-            const usersSnapshot = await get(ref(db, 'users'));
-            if (!usersSnapshot.exists()) {
+            const uidMapRef = ref(db, 'uidToCedula');
+            const snapshot = await get(uidMapRef);
+            
+            if (!snapshot.exists()) {
                 return [];
             }
-            return Object.keys(usersSnapshot.val());
+
+            return Object.values(snapshot.val());
         } catch (error) {
             console.error("Error getting all users:", error);
             throw error;

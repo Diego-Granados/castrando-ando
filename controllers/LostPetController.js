@@ -57,7 +57,7 @@ class LostPetController {
       await NotificationController.sendNotificationToAllUsers({
         title: "¡Nueva Mascota Perdida!",
         message: `Se ha reportado una mascota ${formData.tipoAnimal} perdida en ${formData.location}. ¡Ayúdanos a encontrarla!`,
-        type: "lost_pet",
+        type: "LOST_PET_CREATED",
         link: `/animales_perdidos`,
       });
 
