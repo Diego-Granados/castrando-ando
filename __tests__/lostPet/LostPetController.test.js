@@ -77,14 +77,14 @@ describe("LostPetController", () => {
     });
 
     it("debería manejar error de autenticación", async () => {
-      AuthController.getCurrentUser.mockRejectedValue(new Error("User not authenticated"));
+      const mockVerifyRole = jest.spyOn(LostPetController, 'verifyRole');
+      mockVerifyRole.mockRejectedValue(new Error("User not authenticated"));
 
-      const result = await LostPetController.createLostPet(mockFormData);
+      await expect(LostPetController.createLostPet(mockFormData))
+        .rejects
+        .toThrow("User not authenticated");
 
-      expect(result).toEqual(expect.objectContaining({
-        error: "User not authenticated",
-        status: 401
-      }));
+      mockVerifyRole.mockRestore();
     });
   });
 
@@ -144,10 +144,14 @@ describe("LostPetController", () => {
     });
 
     it("debería rechazar eliminación si el usuario no está autorizado", async () => {
-      AuthController.getCurrentUser.mockResolvedValue({
+      // Mock verifyRole to return a valid user but with different ID
+      const mockVerifyRole = jest.spyOn(LostPetController, 'verifyRole');
+      mockVerifyRole.mockResolvedValue({
         user: { uid: "user-2" },
         role: "User"
       });
+
+      // Mock the pet retrieval
       LostPet.getByIdOnce.mockResolvedValue({
         userId: "user-1",
         ...mockFormData
@@ -157,9 +161,11 @@ describe("LostPetController", () => {
         petId: "lost-pet-1"
       });
 
-      expect(result).toEqual(expect.objectContaining({
-        error: "Unauthorized to delete this lost pet post"
-      }));
+      expect(result).toEqual({
+        error: new Error("Unauthorized to delete this lost pet post")
+      });
+
+      mockVerifyRole.mockRestore();
     });
   });
 

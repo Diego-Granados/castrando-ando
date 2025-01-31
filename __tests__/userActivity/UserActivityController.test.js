@@ -22,19 +22,34 @@ describe("UserActivityController", () => {
     };
 
     it("debería registrar una actividad exitosamente", async () => {
+      const userData = {
+        uid: "YRCEDDFSCvWjZcXSuJSWsb1jez22",
+        email: "dmm1462003@gmail.com",
+        name: "Diego Mora Montes"
+      };
+      
+      // Mock getCurrentUser
       AuthController.getCurrentUser.mockResolvedValue({
-        user: { uid: "YRCEDDFSCvWjZcXSuJSWsb1jez22" }
+        user: { uid: userData.uid }
       });
+
+      // Mock getCedulaByUserId
       AuthController.getCedulaByUserId.mockResolvedValue("118770213");
+
+      // Mock getUserData
+      AuthController.getUserData.mockResolvedValue(userData);
+
+      // Mock UserActivity.create
       UserActivity.create.mockResolvedValue("-OHeeMkfJenHvZ-sP0OG");
 
       const result = await UserActivityController.registerActivity(mockActivityData);
-      console.log(result);
 
       expect(result).toBe("-OHeeMkfJenHvZ-sP0OG");
       expect(UserActivity.create).toHaveBeenCalledWith(expect.objectContaining({
         type: mockActivityData.type,
-        userId: "118770213"
+        userId: "118770213",
+        userEmail: userData.email,
+        userName: userData.name
       }));
     });
 
