@@ -9,12 +9,12 @@ class NotificationController {
     try {
       const currentUser = await AuthController.getCurrentUser();
       if (!currentUser) throw new Error("No user authenticated");
-
-      // Validate target user exists (skip validation if it's an admin notification)
       if (data.userId !== 'admin') {
         const validUsers = await AuthController.filterRegisteredUsers([data.userId]);
-        if (validUsers.length === 0) {
-          return;
+        if (!validUsers) {
+          return { ok: true, message: "User not found" };
+        } else {
+          console.log("validUsers", validUsers);
         }
       }
 
