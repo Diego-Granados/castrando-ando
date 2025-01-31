@@ -114,7 +114,7 @@ export async function POST(request) {
 
     // Draw date and time
     y += canvas.width * 0.04;
-    ctx.font = `42px Montserrat_Bold`;
+    ctx.font = `37px Montserrat_Bold`;
     ctx.fillStyle = "#4fc53d";
     const dateObj = new Date(date + "T12:00:00Z");
     const formattedDate = dateObj

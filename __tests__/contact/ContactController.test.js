@@ -1,6 +1,9 @@
 import ContactController from "@/controllers/ContactController";
 import ContactRequest from "@/models/ContactRequest";
-import { sendContactEmail, sendReply } from "@/controllers/EmailSenderController";
+import {
+  sendContactEmail,
+  sendReply,
+} from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
 
 // Mock dependencies
@@ -10,10 +13,10 @@ jest.mock("@/controllers/NotificationController");
 
 describe("ContactController", () => {
   let mockContactData;
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockContactData = {
       idNumber: "118790545",
       name: "Diego Granados",
@@ -21,7 +24,7 @@ describe("ContactController", () => {
       message: "Hola, quería consultar si castran canarios",
       type: "Consulta",
       date: "2025-01-13T00:25:46.283Z",
-      read: false
+      read: false,
     };
   });
 
@@ -32,7 +35,9 @@ describe("ContactController", () => {
       sendContactEmail.mockResolvedValue({ ok: true });
       NotificationController.createAdminNotification.mockResolvedValue();
 
-      const result = await ContactController.createContactRequest(mockContactData);
+      const result = await ContactController.createContactRequest(
+        mockContactData
+      );
 
       expect(result).toEqual({ id: mockId });
       expect(ContactRequest.create).toHaveBeenCalledWith(mockContactData);
@@ -42,12 +47,14 @@ describe("ContactController", () => {
         mockContactData.name,
         mockContactData.type
       );
-      expect(NotificationController.createAdminNotification).toHaveBeenCalledWith({
+      expect(
+        NotificationController.createAdminNotification
+      ).toHaveBeenCalledWith({
         title: "Nuevo Mensaje de Contacto",
         message: `${mockContactData.name} ha enviado un mensaje de tipo: ${mockContactData.type}`,
-        type: "contact_form",
+        type: "CONTACT_FORM_CREATED",
         link: "/admin/contacto",
-        contactId: mockId
+        contactId: mockId,
       });
     });
 
@@ -57,7 +64,9 @@ describe("ContactController", () => {
       sendContactEmail.mockResolvedValue({ ok: false });
       NotificationController.createAdminNotification.mockResolvedValue();
 
-      const result = await ContactController.createContactRequest(mockContactData);
+      const result = await ContactController.createContactRequest(
+        mockContactData
+      );
 
       expect(result).toEqual({ id: mockId });
       expect(ContactRequest.create).toHaveBeenCalledWith(mockContactData);
@@ -67,11 +76,13 @@ describe("ContactController", () => {
     it("debería lanzar error si falla la creación de la solicitud", async () => {
       ContactRequest.create.mockRejectedValue(new Error("Error de creación"));
 
-      await expect(ContactController.createContactRequest(mockContactData))
-        .rejects
-        .toThrow("Error de creación");
-        
-      expect(NotificationController.createAdminNotification).not.toHaveBeenCalled();
+      await expect(
+        ContactController.createContactRequest(mockContactData)
+      ).rejects.toThrow("Error de creación");
+
+      expect(
+        NotificationController.createAdminNotification
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -89,9 +100,9 @@ describe("ContactController", () => {
     it("debería lanzar error si falla la obtención de solicitudes", async () => {
       ContactRequest.getAll.mockRejectedValue(new Error("Error de obtención"));
 
-      await expect(ContactController.getAllContactRequests())
-        .rejects
-        .toThrow("Error de obtención");
+      await expect(ContactController.getAllContactRequests()).rejects.toThrow(
+        "Error de obtención"
+      );
     });
   });
 
@@ -101,7 +112,10 @@ describe("ContactController", () => {
       const updateData = { ...mockContactData, read: true };
       ContactRequest.update.mockResolvedValue(true);
 
-      const result = await ContactController.updateContactRequest(requestId, updateData);
+      const result = await ContactController.updateContactRequest(
+        requestId,
+        updateData
+      );
 
       expect(result).toBe(true);
       expect(ContactRequest.update).toHaveBeenCalledWith(requestId, updateData);
@@ -109,11 +123,13 @@ describe("ContactController", () => {
 
     it("debería lanzar error si falla la actualización", async () => {
       const requestId = "OGS2LFl7hKrJTdV2Am0";
-      ContactRequest.update.mockRejectedValue(new Error("Error de actualización"));
+      ContactRequest.update.mockRejectedValue(
+        new Error("Error de actualización")
+      );
 
-      await expect(ContactController.updateContactRequest(requestId, mockContactData))
-        .rejects
-        .toThrow("Error de actualización");
+      await expect(
+        ContactController.updateContactRequest(requestId, mockContactData)
+      ).rejects.toThrow("Error de actualización");
     });
   });
 
@@ -135,7 +151,7 @@ describe("ContactController", () => {
         "OGS2LFl7hKrJTdV2Am0",
         expect.objectContaining({
           reply: mockReplyMessage,
-          read: true
+          read: true,
         })
       );
       expect(sendReply).toHaveBeenCalledWith(
@@ -149,22 +165,26 @@ describe("ContactController", () => {
     it("debería lanzar error si falla la actualización de la solicitud", async () => {
       ContactRequest.update.mockResolvedValue(false);
 
-      await expect(ContactController.replyToContactRequest(
-        "OGS2LFl7hKrJTdV2Am0",
-        mockContactData,
-        mockReplyMessage
-      )).rejects.toThrow("Failed to update contact request");
+      await expect(
+        ContactController.replyToContactRequest(
+          "OGS2LFl7hKrJTdV2Am0",
+          mockContactData,
+          mockReplyMessage
+        )
+      ).rejects.toThrow("Failed to update contact request");
     });
 
     it("debería lanzar error si falla el envío del email de respuesta", async () => {
       ContactRequest.update.mockResolvedValue(true);
       sendReply.mockResolvedValue({ ok: false });
 
-      await expect(ContactController.replyToContactRequest(
-        "OGS2LFl7hKrJTdV2Am0",
-        mockContactData,
-        mockReplyMessage
-      )).rejects.toThrow("Failed to send email");
+      await expect(
+        ContactController.replyToContactRequest(
+          "OGS2LFl7hKrJTdV2Am0",
+          mockContactData,
+          mockReplyMessage
+        )
+      ).rejects.toThrow("Failed to send email");
     });
   });
-}); 
+});
