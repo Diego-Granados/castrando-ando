@@ -257,9 +257,9 @@ class Auth {
   static async filterRegisteredUsers(cedulas) {
     try {
       const validCedulas = [];
-      const uidMapRef = ref(db, 'uidToCedula');
+      const uidMapRef = ref(db, "uidToCedula");
       const snapshot = await get(uidMapRef);
-      
+
       if (!snapshot.exists()) {
         return validCedulas;
       }
@@ -267,9 +267,9 @@ class Auth {
       const uidMapping = snapshot.val();
       // Create a Set of all cedulas in the uidToCedula mapping
       const registeredCedulas = new Set(Object.values(uidMapping));
-      
+
       // Filter cedulas that exist in the mapping
-      cedulas.forEach(cedula => {
+      cedulas.forEach((cedula) => {
         if (registeredCedulas.has(cedula)) {
           validCedulas.push(cedula);
         }

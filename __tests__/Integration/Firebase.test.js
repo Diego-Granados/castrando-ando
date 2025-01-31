@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-
 describe("Pruebas de integración con Firebase", () => {
   beforeAll(() => {
     // Clear module mocks
@@ -13,7 +11,6 @@ describe("Pruebas de integración con Firebase", () => {
 
   describe("Realtime Database", () => {
     it("debería leer una campaña de Firebase", async () => {
-      // Use jest.isolateModules to ensure fresh module loading
       await jest.isolateModules(async () => {
         const Campaign = (await import("@/models/Campaign")).default;
         let fetchedCampaign = null;
