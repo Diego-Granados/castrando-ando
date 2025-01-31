@@ -17,6 +17,8 @@ class UserActivity {
         this.type = data.type;
         this.description = data.description;
         this.userId = data.userId;
+        this.userName = data.userName;
+        this.userEmail = data.userEmail;
         this.points = data.points || this.getPointsForType(data.type);
         this.timestamp = data.timestamp || new Date().toISOString();
         this.metadata = data.metadata || {};
@@ -52,6 +54,8 @@ class UserActivity {
             type: this.type,
             description: this.description,
             userId: this.userId,
+            userName: this.userName,
+            userEmail: this.userEmail,
             points: this.points,
             timestamp: this.timestamp,
             metadata: this.metadata,
