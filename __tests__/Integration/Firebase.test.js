@@ -52,7 +52,6 @@ describe("Pruebas de integración con Firebase", () => {
           title: "Campaña de Castración para Perros y Gatos",
         };
 
-        // Create a promise to wait for the callback
         const campaignPromise = new Promise((resolve) => {
           const setCampaign = (campaign) => {
             fetchedCampaign = campaign;
@@ -62,7 +61,6 @@ describe("Pruebas de integración con Firebase", () => {
           Campaign.getByIdOnce("-OHmVkASCPe9_7K3p9xJ", setCampaign);
         });
 
-        // Wait for the campaign to be fetched
         await campaignPromise;
 
         expect(fetchedCampaign).not.toBeNull();
