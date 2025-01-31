@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Modal, Alert } from "react-bootstrap";
 import VolunteerController from "@/controllers/VolunteerController";
 import styles from "./VolunteersPage.module.css";
+import { toast } from "react-toastify";
 
 const VolunteersPage = () => {
   const [id, setId] = useState("");
@@ -46,7 +47,8 @@ const VolunteersPage = () => {
       if (isEditing) {
         await VolunteerController.updateVolunteer(id, newVolunteer);
       } else {
-        await VolunteerController.createVolunteer(newVolunteer);
+        const result = await VolunteerController.createVolunteer(newVolunteer);
+        toast.success(result.message);
       }
       setId("");
       setName("");
