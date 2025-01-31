@@ -15,6 +15,7 @@ import CampaignController from "@/controllers/CampaignController";
 import useSubscription from "@/hooks/useSubscription";
 import { sendReminder } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
+import AuthController from "@/controllers/AuthController";
 
 import styles from "./Checkbox.module.css";
 
@@ -109,18 +110,21 @@ export default function Inscritos() {
               }
               console.log(inscription);
               if (inscription.id) {
-                try {
-                  await NotificationController.createNotification({
-                    title: "¡Recordatorio de Cita!",
-                    message: `Recuerda tu cita para ${campaign.title} el día ${campaign.date} a las ${timeslot}. Lugar: ${campaign.place}`,
-                    type: "APPOINTMENT_REMINDER",
-                    link: `/appointments`,
-                    userId: inscription.id,
-                    campaignId: campaign.id
-                  });
-                } catch (notifError) {
-                  error = true;
-                  toast.error("Error al enviar notificación en la app");
+                const validUsers = await AuthController.filterRegisteredUsers([inscription.id]);
+                if (validUsers.length > 0) {
+                  try {
+                    await NotificationController.createNotification({
+                      title: "¡Recordatorio de Cita!",
+                      message: `Recuerda tu cita para ${campaign.title} el día ${campaign.date} a las ${timeslot}. Lugar: ${campaign.place}`,
+                      type: "appointment_reminder",
+                      link: `/appointments`,
+                      userId: inscription.id,
+                      campaignId: campaign.id
+                    });
+                    toast.success("Notificación enviada correctamente");
+                  } catch (notifError) {
+                    console.log("No se pudo enviar notificación al usuario:", inscription.id);
+                  }
                 }
               }
             }

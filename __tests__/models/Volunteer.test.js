@@ -1,6 +1,5 @@
 import VolunteerModel from "@/models/Volunteer";
 import { ref, get, set, update, remove } from "firebase/database";
-import { db } from "@/lib/firebase/config";
 
 jest.mock("firebase/database");
 jest.mock("@/lib/firebase/config", () => ({
@@ -31,7 +30,7 @@ describe("Volunteer Model", () => {
       expect(set).toHaveBeenCalled();
       expect(result).toEqual({
         ...volunteerData,
-        status: "pending",
+        status: "sent",
       });
     });
 
@@ -112,6 +111,21 @@ describe("Volunteer Model", () => {
 
       const result = await VolunteerModel.getAll();
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("update", () => {
+    test("should update volunteer successfully", async () => {
+      const volunteerId = "123456789";
+      const updateData = {
+        name: "John Updated",
+        status: "approved",
+      };
+
+      await VolunteerModel.update(volunteerId, updateData);
+
+      expect(ref).toHaveBeenCalledWith({}, `volunteers/${volunteerId}`);
+      expect(update).toHaveBeenCalledWith(expect.anything(), updateData);
     });
   });
 

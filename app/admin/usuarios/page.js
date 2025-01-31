@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Table, Badge, Form } from "react-bootstrap";
 import UserActivityController from "@/controllers/UserActivityController";
 import UserActivity from "@/models/UserActivity";
-import AuthController from "@/controllers/AuthController";
 
 export default function AdminUsuarios() {
   const [activities, setActivities] = useState([]);
@@ -41,7 +40,6 @@ export default function AdminUsuarios() {
       try {
         // Load all activities
         await UserActivityController.getAllActivities((activitiesData) => {
-          // Convert activities object to array and add IDs
           const activitiesArray = Object.entries(activitiesData).map(([id, activity]) => ({
             id,
             ...activity
@@ -49,27 +47,8 @@ export default function AdminUsuarios() {
           setActivities(activitiesArray);
         });
 
-        // Get monthly ranking
-        const monthlyRanking = await UserActivity.getAllMonthlyPoints();
-        
-        // Get user names for all users in ranking
-        const userNamesMap = {};
-        for (const user of monthlyRanking) {
-          try {
-            const userData = await AuthController.getUserData(user.userId);
-            userNamesMap[user.userId] = `${userData.nombre} ${userData.apellido}`;
-          } catch (error) {
-            console.error(`Error getting name for user ${user.userId}:`, error);
-            userNamesMap[user.userId] = user.userId; // Fallback to userId if name not found
-          }
-        }
-        setUserNames(userNamesMap);
-
-        const top10 = monthlyRanking.slice(0, 10).map(user => ({
-          userId: user.userId,
-          nombre: userNamesMap[user.userId] || user.userId,
-          puntos: user.points
-        }));
+        // Get top 10 users
+        const top10 = await UserActivityController.getTop10Users();
         setRanking(top10);
 
       } catch (error) {
@@ -261,7 +240,10 @@ export default function AdminUsuarios() {
                     {getActivityIcon(activity.type)} {ACTIVITY_TYPES[activity.type] || activity.type}
                   </td>
                   <td>{activity.description}</td>
-                  <td>{activity.userId}</td>
+                  <td>
+                    <div>{activity.userName || 'N/A'}</div>
+                    <small className="text-muted">{activity.userEmail || activity.userId}</small>
+                  </td>
                   <td>+{activity.points}</td>
                   <td>{new Date(activity.timestamp).toLocaleString()}</td>
                 </tr>
@@ -303,7 +285,10 @@ export default function AdminUsuarios() {
                           index + 1
                         )}
                       </td>
-                      <td>{user.nombre}</td>
+                      <td>
+                        <div>{user.nombre}</div>
+                        <small className="text-muted">{user.email}</small>
+                      </td>
                       <td>
                         <Badge bg="primary" pill>
                           {user.puntos}

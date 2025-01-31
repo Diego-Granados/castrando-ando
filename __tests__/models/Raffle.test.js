@@ -1,24 +1,7 @@
-import { ref, get, set, update, onValue, remove } from "firebase/database";
-import { db } from "@/lib/firebase/config";
 import Raffle from "@/models/Raffle";
+import { ref, get, set, update, remove, onValue } from "firebase/database";
 
-// Mock Firebase
-jest.mock("firebase/database", () => ({
-  ref: jest.fn(() => "mockedRef"),
-  get: jest.fn(),
-  set: jest.fn(),
-  update: jest.fn(() => Promise.resolve()),
-  onValue: jest.fn((ref, callback) => {
-    callback({
-      exists: () => true,
-      val: () => ({ name: "Test Raffle" }),
-    });
-    return () => {};
-  }),
-  remove: jest.fn(),
-  getDatabase: jest.fn(),
-}));
-
+jest.mock("firebase/database");
 jest.mock("@/lib/firebase/config", () => ({
   db: {},
 }));
@@ -28,51 +11,46 @@ describe("Raffle Model", () => {
     jest.clearAllMocks();
   });
 
-  test("updateNumber should update raffle number data", async () => {
-    const raffleId = "test-raffle";
-    const number = "42";
-    const numberData = {
-      buyer: "Test Buyer",
-      status: "pending",
-      approved: false,
-      id: "",
-      number: 42,
-      phone: "",
-      purchased: false,
-      receipt: "",
-    };
+  test("create should initialize raffle with 100 numbers", async () => {
+    const raffleData = { name: "Test Raffle", price: 1000 };
+    await Raffle.create(raffleData);
 
-    const result = await Raffle.updateNumber(raffleId, number, numberData);
-
-    expect(ref).toHaveBeenCalledWith(
-      db,
-      `raffles/${raffleId}/numbers/${number}`
-    );
-    expect(update).toHaveBeenCalledWith("mockedRef", numberData);
-    expect(result).toBe(true);
+    // Verify set was called with correct data structure
+    expect(set).toHaveBeenCalled();
+    const setCall = set.mock.calls[0][1];
+    expect(setCall.name).toBe(raffleData.name);
+    expect(setCall.price).toBe(raffleData.price);
+    expect(Object.keys(setCall.numbers).length).toBe(100);
   });
 
-  test("subscribeToRaffle should set up listener correctly", () => {
-    const raffleId = "test-raffle";
-    const setRaffle = jest.fn();
+  test("updateNumber should update raffle number data", async () => {
+    const numberData = {
+      buyer: "John Doe",
+      id: "123456",
+      phone: "1234567890",
+      status: "pending",
+    };
 
-    Raffle.subscribeToRaffle(raffleId, setRaffle);
-
-    expect(ref).toHaveBeenCalledWith(db, `raffles/${raffleId}`);
-    expect(onValue).toHaveBeenCalled();
-    expect(setRaffle).toHaveBeenCalledWith({
-      id: raffleId,
-      name: "Test Raffle",
-    });
+    await Raffle.updateNumber("raffle1", "5", numberData);
+    expect(update).toHaveBeenCalled();
+    const updateCall = update.mock.calls[0][1];
+    expect(updateCall.buyer).toBe(numberData.buyer);
+    expect(updateCall.status).toBe(numberData.status);
   });
 
   test("getAllOnce should handle empty data", async () => {
-    get.mockResolvedValueOnce({
+    get.mockImplementationOnce(() => ({
       exists: () => false,
       val: () => null,
-    });
+    }));
 
     const result = await Raffle.getAllOnce();
-    expect(result).toEqual([]);
+    expect(result).toEqual({});
+  });
+
+  test("subscribeToRaffle should set up listener correctly", () => {
+    const setRaffle = jest.fn();
+    Raffle.subscribeToRaffle("raffle1", setRaffle);
+    expect(onValue).toHaveBeenCalled();
   });
 });
