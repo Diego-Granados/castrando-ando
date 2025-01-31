@@ -698,12 +698,12 @@ class EmailSender {
       ];
 
       const title = "Respuesta a su mensaje";
-      const subtitle = "Hola ${name},";
+      const subtitle = `Hola ${name},`;
       const content = EmailSender.formatBodyContent(`
       Hemos recibido su mensaje:
       "${msg}"
       
-      Nuestra respuesta:
+      Nuestra respuesta es:
       ${adminReply}
       
       --
