@@ -92,8 +92,12 @@ export default function AdminUsuarios() {
     if (!activity.enabled) return false;
     
     const matchesTipo = !appliedFilters.tipo || activity.type === appliedFilters.tipo;
+    
+    // Modified user filter to check both name and email
     const matchesUsuario = !appliedFilters.usuario || 
-      activity.userId.toString().toLowerCase().includes(appliedFilters.usuario.toLowerCase());
+      (activity.userName && activity.userName.toLowerCase().includes(appliedFilters.usuario.toLowerCase())) ||
+      (activity.userEmail && activity.userEmail.toLowerCase().includes(appliedFilters.usuario.toLowerCase()));
+    
     const activityDate = new Date(activity.timestamp);
     const matchesFechaInicio = !appliedFilters.fechaInicio || 
       activityDate >= new Date(appliedFilters.fechaInicio);
