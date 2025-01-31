@@ -287,7 +287,7 @@ export default function AdminAdopcion() {
                   <BsCalendar className="me-2" />
                   <h5 className="mb-0">Fecha de Publicación</h5>
                 </div>
-                <p>{new Date(selectedAdoption.date).toLocaleDateString()}</p>
+                <p>{new Date(selectedAdoption.createdAt).toLocaleDateString()}</p>
               </div>
 
               <div className="mb-3">
