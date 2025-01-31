@@ -1,6 +1,4 @@
 "use server";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase/config";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
