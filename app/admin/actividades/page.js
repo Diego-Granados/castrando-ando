@@ -102,7 +102,7 @@ export default function AdminActividades() {
 
   const handleConfirmDelete = async () => {
     try {
-      const result = await ActivityController.deleteActivity(activityToDelete);
+      const result = await ActivityController.deleteActivity(activityToDelete, selectedActivityId);
       if (result.ok) {
         setShowDeleteModal(false);
         setShowModal(false);
@@ -188,19 +188,13 @@ export default function AdminActividades() {
                   <BsGeoAlt className="me-2" />
                   {activity.location}
                 </Card.Text>
-                <div className="mt-auto d-flex gap-2">
+                <div className="mt-auto">
                   <Button
                     variant="outline-primary"
                     onClick={() => handleActivityClick(activity, id)}
-                    className="flex-grow-1"
+                    className="w-100"
                   >
                     Ver detalles
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    onClick={() => handleDeleteClick(activity)}
-                  >
-                    <BsTrash />
                   </Button>
                 </div>
               </Card.Body>

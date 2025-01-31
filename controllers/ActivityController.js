@@ -214,10 +214,24 @@ class ActivityController {
     }
   }
 
-  static async deleteActivity(activity) {
-    console.log(activity.id);
+  static async deleteActivity(activity, id) {
     try {
       console.log(activity);
+      
+      const activityDate = new Date(activity.date);
+      const now = new Date();
+      const isUpcoming = activityDate > now;
+
+      if (isUpcoming && activity.registeredUsers) {
+        await NotificationController.sendNotificationToActivityParticipants({
+          title: "¡Actividad Cancelada!",
+          message: `La actividad "${activity.title}" programada para el ${activity.date} a las ${activity.hour} ha sido cancelada.`,
+          type: "ACTIVITY_CANCELLED",
+          link: "/actividades",
+          activityId: id
+        });
+      }
+
       // Delete images if they exist
       if (activity.images && activity.images.length > 0) {
         const deleteResponse = await fetch("/api/storage/delete", {
@@ -233,7 +247,7 @@ class ActivityController {
         }
       }
 
-      const success = await Activity.delete(activity.id);
+      const success = await Activity.delete(id);
       if (!success) {
         throw new Error("Error al eliminar la actividad");
       }
