@@ -155,7 +155,7 @@ export default function Campaign() {
                         variant="outline-primary"
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_BASE_URL}/campaign?id=${campaignId}`
+                            `${process.env.NEXT_PUBLIC_BASE_URL}campaign?id=${campaignId}`
                           );
                           toast.success("Link copiado al portapapeles");
                         }}
