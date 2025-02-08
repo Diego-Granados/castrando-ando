@@ -13,7 +13,10 @@ import Modal from "react-bootstrap/Modal";
 import InscriptionController from "@/controllers/InscriptionController";
 import CampaignController from "@/controllers/CampaignController";
 import useSubscription from "@/hooks/useSubscription";
-import { sendReminder } from "@/controllers/EmailSenderController";
+import {
+  sendReminder,
+  sendAfterSurgeryEmail,
+} from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
 import AuthController from "@/controllers/AuthController";
 
@@ -110,7 +113,9 @@ export default function Inscritos() {
               }
               console.log(inscription);
               if (inscription.id) {
-                const validUsers = await AuthController.filterRegisteredUsers([inscription.id]);
+                const validUsers = await AuthController.filterRegisteredUsers([
+                  inscription.id,
+                ]);
                 if (validUsers.length > 0) {
                   try {
                     await NotificationController.createNotification({
@@ -119,11 +124,14 @@ export default function Inscritos() {
                       type: "appointment_reminder",
                       link: `/appointments`,
                       userId: inscription.id,
-                      campaignId: campaign.id
+                      campaignId: campaign.id,
                     });
                     toast.success("Notificación enviada correctamente");
                   } catch (notifError) {
-                    console.log("No se pudo enviar notificación al usuario:", inscription.id);
+                    console.log(
+                      "No se pudo enviar notificación al usuario:",
+                      inscription.id
+                    );
                   }
                 }
               }
@@ -148,7 +156,8 @@ export default function Inscritos() {
       campaignId,
       timeslot,
       inscriptionId,
-      present
+      present,
+      inscription
     );
     if (response.ok) {
       toast.success(
@@ -156,6 +165,10 @@ export default function Inscritos() {
           present ? "marcada como presente." : "desmarcada como presente."
         }`
       );
+      const { emailResponse } = await response.json();
+      if (emailResponse?.ok) {
+        toast.success("Email enviado correctamente");
+      }
       inscription.present = present;
     } else {
       toast.error("Error al marcar la asistencia.");
@@ -195,6 +208,7 @@ export default function Inscritos() {
                               <th>Cédula</th>
                               <th>Nombre</th>
                               <th>Teléfono</th>
+                              <th>Email</th>
                               <th>Mascota</th>
                               <th>Especie</th>
                               <th>Sexo</th>
@@ -219,6 +233,7 @@ export default function Inscritos() {
                                     <td>{inscription.id}</td>
                                     <td>{inscription.name}</td>
                                     <td>{inscription.phone}</td>
+                                    <td>{inscription.email}</td>
                                     <td>{inscription.pet}</td>
                                     <td>
                                       {inscription.animal ? "Perro" : "Gato"}

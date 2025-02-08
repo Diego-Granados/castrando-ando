@@ -155,7 +155,7 @@ class EmailSender {
          }
  </style>
  <style>
- @media (max-width: 620px) {
+ @media (max-width: 820px) {
  .pc-project-body {min-width: 0px !important;}
  .pc-project-container {width: 100% !important;}
  .pc-sm-hide, .pc-w620-gridCollapsed-1 > tbody > tr > .pc-sm-hide {display: none !important;}
@@ -188,7 +188,7 @@ class EmailSender {
  .pc-w620-tableCollapsed-1.pc-width-fill > tbody > tr > td,.pc-w620-tableCollapsed-1.pc-width-fill > tr > td {width: 100% !important;box-sizing: border-box !important;}
  .pc-w620-tableCollapsed-1.pc-w620-width-fill > tbody > tr > td,.pc-w620-tableCollapsed-1.pc-w620-width-fill > tr > td {width: 100% !important;box-sizing: border-box !important;}
  }
- @media (max-width: 520px) {
+ @media (max-width: 720px) {
  .pc-w520-padding-25-30-0-30 {padding: 25px 30px 0px 30px !important;}
  .pc-w520-padding-5-0-15-0 {padding: 5px 0px 15px 0px !important;}
  .pc-w520-padding-15-30-0-30 {padding: 15px 30px 0px 30px !important;}
@@ -222,7 +222,7 @@ class EmailSender {
  <table class="pc-project-body" style="table-layout: fixed; min-width: 600px; background-color: #ffffff;" bgcolor="#ffffff" width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
   <tr>
    <td align="center" valign="top">
-    <table class="pc-project-container" align="center" width="600" style="width: 600px; max-width: 600px;" border="0" cellpadding="0" cellspacing="0" role="presentation">
+    <table class="pc-project-container" align="center" width="600" style="width: 600px; max-width: 800px;" border="0" cellpadding="0" cellspacing="0" role="presentation">
      <tr>
       <td style="padding: 20px 0px 20px 0px;" align="left" valign="top">
        <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="width: 100%;">
@@ -528,6 +528,83 @@ class EmailSender {
     }
   }
 
+  static async sendAfterSurgeryEmail(email, name) {
+    const smtpEmail = new SendSmtpEmail();
+    try {
+      smtpEmail.subject = "Cuidados después de la cirugía de castración";
+      smtpEmail.to = [
+        {
+          email: email,
+          name: name,
+        },
+      ];
+
+      const title = "Ciudados";
+      const subtitle = `${name},`;
+      const content = `
+      ${EmailSender.formatBodyContent(
+        `Muchas gracias por haber asistido a la campaña de castración. Le recordamos las siguientes medidas de ciudado para después de la cirugía de castración.
+        
+        <ol>
+        <li>
+          Colocar al animal en el suelo, en lugar cerrado, tranquilo y caliente
+          para que salga completamente del efecto de la anestesia.
+        </li>
+        <li>
+          Cuando despierte <strong>TOTALMENTE</strong> se puede ofrecer un poco
+          de agua y comida en dosis pequeñas.
+        </li>
+        <li>
+          Si el animal vomitara en las primeras horas después de la cirugía, es
+          <strong>NORMAL</strong>. Si el vómito persiste después de las primeras
+          36 horas <strong>LLAMAR AL NÚMERO BRINDADO</strong> (ver abajo).
+        </li>
+        <li>
+          Administrar los medicamentos indicados con el estómago lleno para
+          evitar alteraciones gástricas.
+        </li>
+        <li>
+          La herida se debe limpiar a <strong>DIARIO</strong> con agua y jabón y
+          secarla muy bien. Es recomendable aplicar algún cicatrizante en crema
+          o spray 2-3 veces al día por 12 días. (la Violetta <strong>NO</strong>
+          es aconsejable)
+        </li>
+        <li>
+          Los puntos externos se caen solos al mes de la cirugía. Si se decide
+          quitarlos antes, se puede realizar a partir del día doce después de
+          la cirugía.
+        </li>
+        <li>
+          Por ningún motivo se debe de dejar que el paciente se lama la herida.
+          Esto es <strong>TOTALMENTE PROHIBIDO</strong>. Se aconseja ponerles un
+          collar isabelino.
+        </li>
+        <li>
+          Se considera <strong>NORMAL</strong> si a las hembras se les hace un
+          abultamiento en la herida o al lado de la herida. A los machos es
+          <strong>NORMAL</strong> que se les inflame un poco y que el escroto
+          tome una coloración azulada.
+        </li>
+      </ol>
+      
+      <strong>Dra. Carol Miranda. Tel: 2237-1312.</strong>`
+      )}
+      `;
+
+      smtpEmail.htmlContent = EmailSender.formatEmailTemplate(
+        title,
+        subtitle,
+        content
+      );
+      smtpEmail.sender = SENDER;
+      const result = await apiInstance.sendTransacEmail(smtpEmail);
+      return { ok: true };
+    } catch (error) {
+      console.error(error);
+      return { ok: false };
+    }
+  }
+
   static async sendConfirmationEmail(
     email,
     name,
@@ -580,7 +657,7 @@ class EmailSender {
             <!-- Add QR Code -->
             <div style="margin-top: 20px; text-align: center; background-color: #ffffff;">
               <span style="font-family: 'Nunito Sans', Arial, Helvetica, sans-serif; font-size: 20px; line-height: 1.5; text-decoration: none; text-transform: none;">Muestre este código QR para que los voluntarios lo reciban:</span>
-            </div>.
+            </div>
             <img src="${qrCodeUrl}" alt="QR Code" style="width: 150px; height: 150px; margin: 30px 0;"/>
           </td>
         </tr>
@@ -676,11 +753,7 @@ class EmailSender {
       );
       smtpEmail.sender = SENDER;
       const result = await apiInstance.sendTransacEmail(smtpEmail);
-      if (result.ok) {
-        return { ok: true };
-      } else {
-        return { ok: false };
-      }
+      return { ok: true };
     } catch (error) {
       return { ok: false };
     }

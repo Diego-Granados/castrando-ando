@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import {
   sendConfirmationEmail,
   sendCancelEmail,
+  sendAfterSurgeryEmail,
 } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
 import UserActivityController from "@/controllers/UserActivityController";
@@ -251,12 +252,17 @@ describe("InscriptionController", () => {
   describe("updateAttendance", () => {
     it("debería actualizar la asistencia exitosamente", async () => {
       Inscription.updateAttendance.mockResolvedValue();
+      sendAfterSurgeryEmail.mockResolvedValue({ ok: true });
 
       const result = await InscriptionController.updateAttendance(
         "campaign-1",
         "10:00",
         "inscription-1",
-        true
+        true,
+        {
+          email: "dandiego235@gmail.com",
+          name: "Daniel Granados Retana",
+        }
       );
 
       expect(Inscription.updateAttendance).toHaveBeenCalledWith(
@@ -265,7 +271,10 @@ describe("InscriptionController", () => {
         "inscription-1",
         true
       );
-      expect(result).toEqual({ message: "Attendance updated correctly!" });
+      expect(result).toEqual({
+        message: "Attendance updated correctly!",
+        emailResponse: { ok: true },
+      });
     });
 
     it("debería manejar errores al actualizar la asistencia", async () => {

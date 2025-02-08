@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import {
   sendConfirmationEmail,
   sendCancelEmail,
+  sendAfterSurgeryEmail,
 } from "@/controllers/EmailSenderController";
 import NotificationController from "@/controllers/NotificationController";
 import UserActivityController from "@/controllers/UserActivityController";
@@ -128,7 +129,13 @@ class InscriptionController {
     }
   }
 
-  static async updateAttendance(campaignId, timeslot, inscriptionId, present) {
+  static async updateAttendance(
+    campaignId,
+    timeslot,
+    inscriptionId,
+    present,
+    inscription
+  ) {
     try {
       await Inscription.updateAttendance(
         campaignId,
@@ -136,7 +143,17 @@ class InscriptionController {
         inscriptionId,
         present
       );
-      return NextResponse.json({ message: "Attendance updated correctly!" });
+      let emailResponse = null;
+      if (present) {
+        emailResponse = await sendAfterSurgeryEmail(
+          inscription.email,
+          inscription.name
+        );
+      }
+      return NextResponse.json({
+        message: "Attendance updated correctly!",
+        emailResponse: emailResponse,
+      });
     } catch (error) {
       console.error(error);
       return NextResponse.error(error);

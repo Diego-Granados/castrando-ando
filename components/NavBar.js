@@ -58,26 +58,25 @@ function NavBar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <NavDropdown
-              title="Campañas de castración"
-              id="campaigns-nav-dropdown"
-            >
-              <Link href="/" passHref legacyBehavior>
-                <NavDropdown.Item>Campañas</NavDropdown.Item>
-              </Link>
-              <Link href="/appointments" passHref legacyBehavior>
-                <NavDropdown.Item>Citas</NavDropdown.Item>
-              </Link>
-              <Link href="/calendario" passHref legacyBehavior>
-                <NavDropdown.Item>Calendario</NavDropdown.Item>
-              </Link>
-            </NavDropdown>
-
+            <Link href="/" passHref legacyBehavior>
+              <Nav.Link>Campañas</Nav.Link>
+            </Link>
+            <Link href="/appointments" passHref legacyBehavior>
+              <Nav.Link>Citas</Nav.Link>
+            </Link>
+            <Link href="/sales" passHref legacyBehavior>
+              <Nav.Link>Ventas</Nav.Link>
+            </Link>
+            {/* <Link href="/funds" passHref legacyBehavior>
+              <Nav.Link>Rifas</Nav.Link>
+            </Link> */}
             <NavDropdown title="Comunidad" id="community-nav-dropdown">
               <Link href="/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Actividades</NavDropdown.Item>
               </Link>
-
+              <Link href="/calendario" passHref legacyBehavior>
+                <NavDropdown.Item>Calendario</NavDropdown.Item>
+              </Link>
               <Link href="/blog" passHref legacyBehavior>
                 <NavDropdown.Item>Blog</NavDropdown.Item>
               </Link>
@@ -113,17 +112,6 @@ function NavBar() {
               </Link>
               <Link href="/solicitarApoyo" passHref legacyBehavior>
                 <NavDropdown.Item>Solicitar apoyo</NavDropdown.Item>
-              </Link>
-            </NavDropdown>
-            <NavDropdown
-              title="Recaudación de fondos"
-              id="fundraising-nav-dropdown"
-            >
-              <Link href="/sales" passHref legacyBehavior>
-                <NavDropdown.Item>Ventas</NavDropdown.Item>
-              </Link>
-              <Link href="/funds" passHref legacyBehavior>
-                <NavDropdown.Item>Rifas</NavDropdown.Item>
               </Link>
             </NavDropdown>
           </Nav>

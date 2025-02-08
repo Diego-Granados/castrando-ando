@@ -71,11 +71,10 @@ export default function Campaign() {
   const handleCalculateInventory = async () => {
     setCalculatingInventory(true);
     try {
-      
       const totals = await CampaignController.calculateMedicineNeeds(
         campaignId
       );
-      
+
       setInventoryEstimate(totals);
       setShowInventory(true);
     } catch (error) {
@@ -152,6 +151,17 @@ export default function Campaign() {
                           Ver inscritos
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline-primary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_BASE_URL}/campaign?id=${campaignId}`
+                          );
+                          toast.success("Link copiado al portapapeles");
+                        }}
+                      >
+                        Copiar enlace de la campaña
+                      </Button>
                       {active && (
                         <Link href={`/admin/campaign/editar?id=${campaignId}`}>
                           <Button
@@ -219,7 +229,11 @@ export default function Campaign() {
 
             <Row className="mt-4">
               <Col xs={12}>
-                <Comments entityType="campaign" entityId={campaignId} isAdmin={true} />
+                <Comments
+                  entityType="campaign"
+                  entityId={campaignId}
+                  isAdmin={true}
+                />
               </Col>
             </Row>
 
