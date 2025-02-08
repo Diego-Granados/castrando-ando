@@ -70,6 +70,9 @@ function NavBar() {
             {/* <Link href="/funds" passHref legacyBehavior>
               <Nav.Link>Rifas</Nav.Link>
             </Link> */}
+            <Link href="/ayuda" passHref legacyBehavior>
+              <NavDropdown.Item>Ayuda</NavDropdown.Item>
+            </Link>
             <NavDropdown title="Comunidad" id="community-nav-dropdown">
               <Link href="/actividades" passHref legacyBehavior>
                 <NavDropdown.Item>Actividades</NavDropdown.Item>
@@ -97,9 +100,6 @@ function NavBar() {
               </Link>
               <Link href="/contacto" passHref legacyBehavior>
                 <NavDropdown.Item>Contacto</NavDropdown.Item>
-              </Link>
-              <Link href="/ayuda" passHref legacyBehavior>
-                <NavDropdown.Item>Ayuda</NavDropdown.Item>
               </Link>
             </NavDropdown>
 
