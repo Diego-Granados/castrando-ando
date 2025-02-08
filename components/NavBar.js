@@ -71,7 +71,7 @@ function NavBar() {
               <Nav.Link>Rifas</Nav.Link>
             </Link> */}
             <Link href="/ayuda" passHref legacyBehavior>
-              <NavDropdown.Item>Ayuda</NavDropdown.Item>
+              <Nav.Link>Ayuda</Nav.Link>
             </Link>
             <NavDropdown title="Comunidad" id="community-nav-dropdown">
               <Link href="/actividades" passHref legacyBehavior>
