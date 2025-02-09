@@ -226,10 +226,10 @@ class RaffleController {
 
   static async announceWinner(raffleId, winningNumber) {
     try {
-      const raffle = await Raffle.getById(raffleId);
+      const raffle = await Raffle.getByIdOnce(raffleId);
       const winningData = raffle.numbers[winningNumber];
 
-      if (!winningData?.purchased) {
+      if (!winningData?.status || winningData.status !== "approved") {
         return { winner: false };
       }
 
@@ -242,8 +242,8 @@ class RaffleController {
       });
 
       return {
-        winner: true,
-        purchaser: winningData.buyer,
+        status: "winner",
+        buyer: winningData.buyer,
       };
     } catch (error) {
       throw new Error(`Error announcing winner: ${error.message}`);

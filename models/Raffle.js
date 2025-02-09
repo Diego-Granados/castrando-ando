@@ -55,22 +55,48 @@ class Raffle {
     });
   }
 
-  static getById(raffleId, setRaffle) {
+  static getById(raffleId, callback) {
     try {
-      const raffleRef = ref(db, `raffles/${raffleId}`);
-      const unsubscribe = onValue(raffleRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const raffleData = snapshot.val();
-          setRaffle({ id: raffleId, ...raffleData });
-        } else {
-          setRaffle(null);
-        }
-      });
+      if (!raffleId) {
+        console.error("No raffleId provided");
+        return;
+      }
 
-      return unsubscribe;
+      if (typeof callback !== "function") {
+        console.error("Callback must be a function");
+        return;
+      }
+
+      const raffleRef = ref(db, `raffles/${raffleId}`);
+      return onValue(
+        raffleRef,
+        (snapshot) => {
+          try {
+            if (snapshot.exists()) {
+              const raffle = snapshot.val();
+              const processedRaffle = {
+                id: raffleId,
+                ...raffle,
+                numbers: raffle.numbers || {},
+                status: raffle.status || "inactive",
+              };
+              callback(processedRaffle);
+            } else {
+              callback(null);
+            }
+          } catch (error) {
+            console.error("Error processing raffle data:", error);
+            callback(null);
+          }
+        },
+        (error) => {
+          console.error("Error subscribing to raffle:", error);
+          callback(null);
+        }
+      );
     } catch (error) {
-      console.error("Error in raffle model - getById:", error);
-      throw error;
+      console.error("Error in getById:", error);
+      callback(null);
     }
   }
 
