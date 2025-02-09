@@ -223,13 +223,13 @@ const RafflesPage = () => {
         winningNumber
       );
 
-      if (result.winner) {
+      if (result.status === "winner") {
         // Update the local state with winner information
         const updatedRaffle = {
           ...selectedRaffle,
           status: "finished",
           winner: winningNumber,
-          winnerName: result.purchaser,
+          winnerName: result.buyer,
         };
 
         setRaffles(
@@ -240,7 +240,7 @@ const RafflesPage = () => {
         setSelectedRaffle(updatedRaffle);
 
         toast.error(
-          `El ganador es el número ${winningNumber}, comprado por ${result.purchaser}`
+          `El ganador es el número ${winningNumber}, comprado por ${result.buyer}`
         );
       } else {
         toast.error(`Nadie compró el número ${winningNumber}`);
@@ -286,7 +286,7 @@ const RafflesPage = () => {
         console.log("Raffle created with data:", raffleData);
       }
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,
@@ -370,7 +370,7 @@ const RafflesPage = () => {
 
       await RaffleController.deleteRaffle(selectedRaffle.id);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       setRaffles(Object.values(fetchedRaffles || {}));
 
       setSelectedRaffle(null);
@@ -414,7 +414,7 @@ const RafflesPage = () => {
 
       await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,
@@ -432,10 +432,24 @@ const RafflesPage = () => {
       setSelectedRaffle(null);
 
       toast.success("Rifa actualizada exitosamente");
+      window.location.reload();
     } catch (error) {
       console.error("Error updating raffle:", error);
       toast.error(`Error: ${error.message}`);
     }
+  };
+
+  const handleDateChange = (e) => {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      toast.error("La fecha no puede ser anterior a hoy");
+      setRaffleDate("");
+      return;
+    }
+    setRaffleDate(e.target.value);
   };
 
   const handleShowImageModal = (numberData) => {
@@ -646,7 +660,8 @@ const RafflesPage = () => {
             <Form.Control
               type="date"
               value={raffleDate}
-              onChange={(e) => setRaffleDate(e.target.value)}
+              onChange={handleDateChange}
+              min={new Date().toISOString().split("T")[0]}
               required
             />
           </Form.Group>
@@ -824,7 +839,9 @@ const RafflesPage = () => {
               <Form.Control
                 type="date"
                 value={raffleDate}
-                onChange={(e) => setRaffleDate(e.target.value)}
+                onChange={handleDateChange}
+                min={new Date().toISOString().split("T")[0]}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
