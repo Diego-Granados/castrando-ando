@@ -32,13 +32,14 @@ const RafflesPage = () => {
         const fetchedRaffles = await RaffleController.getAllRafflesOnce();
         const currentDate = new Date();
 
-        // Convert to array and process raffles
+        // Process raffles locally without updating database
         const processedRaffles = Object.values(fetchedRaffles).map((raffle) => {
           const raffleDate = new Date(raffle.date);
-          if (raffleDate < currentDate) {
-            return { ...raffle, status: "inactive" };
-          }
-          return raffle;
+          // Only update status in UI, not in database
+          return {
+            ...raffle,
+            status: raffleDate < currentDate ? "inactive" : raffle.status,
+          };
         });
 
         // Sort raffles
@@ -51,20 +52,13 @@ const RafflesPage = () => {
           return dateA - dateB;
         });
 
-        // Set closest future raffle as active and selected
+        // Set closest future raffle as selected without updating database
         const futureRaffles = sortedRaffles.filter(
           (raffle) => new Date(raffle.date) >= currentDate
         );
 
         if (futureRaffles.length > 0) {
-          const closestRaffle = futureRaffles[0];
-          await RaffleController.updateRaffle(closestRaffle.id, {
-            ...closestRaffle,
-            status: "active",
-          });
-          sortedRaffles[sortedRaffles.indexOf(closestRaffle)].status = "active";
-          // Set as selected raffle
-          setSelectedRaffle(closestRaffle);
+          setSelectedRaffle(futureRaffles[0]);
         }
 
         setRaffles(sortedRaffles);
