@@ -286,7 +286,7 @@ const RafflesPage = () => {
         console.log("Raffle created with data:", raffleData);
       }
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,
@@ -370,7 +370,7 @@ const RafflesPage = () => {
 
       await RaffleController.deleteRaffle(selectedRaffle.id);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       setRaffles(Object.values(fetchedRaffles || {}));
 
       setSelectedRaffle(null);
@@ -414,7 +414,7 @@ const RafflesPage = () => {
 
       await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,

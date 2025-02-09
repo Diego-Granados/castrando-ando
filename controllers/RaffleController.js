@@ -296,7 +296,7 @@ class RaffleController {
   static async deleteRaffle(raffleId) {
     try {
       // Obtener la rifa antes de eliminarla para tener acceso a las imágenes
-      const raffle = await Raffle.getById(raffleId);
+      const raffle = await Raffle.getByIdOnce(raffleId);
 
       if (!raffle) {
         throw new Error("Rifa no encontrada");
