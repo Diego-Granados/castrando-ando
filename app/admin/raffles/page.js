@@ -29,9 +29,8 @@ const RafflesPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        console.log("Fetching raffles..."); // Debug
         const fetchedRaffles = await RaffleController.getAllRafflesOnce();
-        console.log("Fetched raffles:", fetchedRaffles); // Debug
+        const currentDate = new Date();
 
         // Process raffles locally without updating database
         const processedRaffles = Object.values(fetchedRaffles).map((raffle) => {
@@ -43,11 +42,10 @@ const RafflesPage = () => {
           };
         });
 
-          // Procesar las rifas
-          const processedRaffles = fetchedRaffles.map((raffle) => ({
-            ...raffle,
-            status: new Date(raffle.date) < currentDate ? "inactive" : "active",
-          }));
+        // Sort raffles
+        const sortedRaffles = processedRaffles.sort((a, b) => {
+          if (a.status === "active" && b.status !== "active") return -1;
+          if (a.status !== "active" && b.status === "active") return 1;
 
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
@@ -63,32 +61,14 @@ const RafflesPage = () => {
           setSelectedRaffle(futureRaffles[0]);
         }
 
-          setRaffles(sortedRaffles);
-
-          // Si hay una rifa seleccionada, actualizar su información
-          if (selectedRaffle) {
-            const updatedSelectedRaffle = sortedRaffles.find(
-              (raffle) => raffle.id === selectedRaffle.id
-            );
-            if (updatedSelectedRaffle) {
-              setSelectedRaffle(updatedSelectedRaffle);
-            }
-          } else if (sortedRaffles.length > 0) {
-            // Si no hay rifa seleccionada, seleccionar la primera activa
-            const activeRaffle = sortedRaffles.find(
-              (raffle) => raffle.status === "active"
-            );
-            setSelectedRaffle(activeRaffle || sortedRaffles[0]);
-          }
-        }
+        setRaffles(sortedRaffles);
       } catch (error) {
         console.error("Error fetching raffles:", error);
-        toast.error("Error al cargar las rifas");
       }
     };
 
     fetchRaffles();
-  }, [selectedRaffle?.id]); // Añadir selectedRaffle.id como dependencia
+  }, []);
 
   const handleApprove = async () => {
     try {
