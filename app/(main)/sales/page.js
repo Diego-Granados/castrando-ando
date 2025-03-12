@@ -134,11 +134,11 @@ const SalesPage = () => {
               <p>Para adquirir este producto, contáctenos:</p>
               <div className={styles.contactMethod}>
                 <Phone size={20} />
-                <span>8888-8888</span>
+                <span>8702-9011</span>
               </div>
               <div className={styles.contactMethod}>
                 <Mail size={20} />
-                <span>vendedor@example.com</span>
+                <span>asociacioncastrandoando@gmail.com</span>
               </div>
             </div>
             <button className={styles.closeButton} onClick={handleCloseModal}>
