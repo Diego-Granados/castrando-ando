@@ -134,7 +134,7 @@ const SalesPage = () => {
               <p>Para adquirir este producto, contáctenos:</p>
               <div className={styles.contactMethod}>
                 <Phone size={20} />
-                <span>8702-9011</span>
+                <span>8761-0142</span>
               </div>
               <div className={styles.contactMethod}>
                 <Mail size={20} />
