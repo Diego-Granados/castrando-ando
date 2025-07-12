@@ -40,8 +40,10 @@ export async function POST(request) {
     const currentDate = new Date().toLocaleDateString("es-ES", {
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
+      timeZone: "America/Costa_Rica"
     });
+    
     
     ctx.font = "24px Montserrat_Bold";
     ctx.fillText(currentDate, templateImage.width / 2, templateImage.height * 0.56);
@@ -53,7 +55,8 @@ export async function POST(request) {
     const dateForFilename = new Date().toLocaleDateString("es-ES", {
       year: "numeric",
       month: "2-digit",
-      day: "2-digit"
+      day: "2-digit",
+      timeZone: "America/Costa_Rica"
     }).replace(/\//g, '-');
 
     // Return the image with updated filename

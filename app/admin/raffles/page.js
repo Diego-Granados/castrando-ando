@@ -29,52 +29,46 @@ const RafflesPage = () => {
   useEffect(() => {
     const fetchRaffles = async () => {
       try {
-        console.log("Fetching raffles..."); // Debug
         const fetchedRaffles = await RaffleController.getAllRafflesOnce();
-        console.log("Fetched raffles:", fetchedRaffles); // Debug
+        const currentDate = new Date();
 
-        if (Array.isArray(fetchedRaffles)) {
-          const currentDate = new Date();
-
-          // Procesar las rifas
-          const processedRaffles = fetchedRaffles.map((raffle) => ({
+        // Process raffles locally without updating database
+        const processedRaffles = Object.values(fetchedRaffles).map((raffle) => {
+          const raffleDate = new Date(raffle.date);
+          // Only update status in UI, not in database
+          return {
             ...raffle,
-            status: new Date(raffle.date) < currentDate ? "inactive" : "active",
-          }));
+            status: raffleDate < currentDate ? "inactive" : raffle.status,
+          };
+        });
 
-          // Ordenar las rifas: activas primero, luego por fecha
-          const sortedRaffles = processedRaffles.sort((a, b) => {
-            if (a.status === "active" && b.status !== "active") return -1;
-            if (a.status !== "active" && b.status === "active") return 1;
-            return new Date(a.date) - new Date(b.date);
-          });
+        // Sort raffles
+        const sortedRaffles = processedRaffles.sort((a, b) => {
+          if (a.status === "active" && b.status !== "active") return -1;
+          if (a.status !== "active" && b.status === "active") return 1;
 
-          setRaffles(sortedRaffles);
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA - dateB;
+        });
 
-          // Si hay una rifa seleccionada, actualizar su información
-          if (selectedRaffle) {
-            const updatedSelectedRaffle = sortedRaffles.find(
-              (raffle) => raffle.id === selectedRaffle.id
-            );
-            if (updatedSelectedRaffle) {
-              setSelectedRaffle(updatedSelectedRaffle);
-            }
-          } else if (sortedRaffles.length > 0) {
-            // Si no hay rifa seleccionada, seleccionar la primera activa
-            const activeRaffle = sortedRaffles.find(
-              (raffle) => raffle.status === "active"
-            );
-            setSelectedRaffle(activeRaffle || sortedRaffles[0]);
-          }
+        // Set closest future raffle as selected without updating database
+        const futureRaffles = sortedRaffles.filter(
+          (raffle) => new Date(raffle.date) >= currentDate
+        );
+
+        if (futureRaffles.length > 0) {
+          setSelectedRaffle(futureRaffles[0]);
         }
+
+        setRaffles(sortedRaffles);
       } catch (error) {
         console.error("Error fetching raffles:", error);
-        toast.error("Error al cargar las rifas");
       }
     };
 
     fetchRaffles();
-  }, [selectedRaffle?.id]); // Añadir selectedRaffle.id como dependencia
+  }, []);
 
   const handleApprove = async () => {
     try {
@@ -223,13 +217,13 @@ const RafflesPage = () => {
         winningNumber
       );
 
-      if (result.winner) {
+      if (result.status === "winner") {
         // Update the local state with winner information
         const updatedRaffle = {
           ...selectedRaffle,
           status: "finished",
           winner: winningNumber,
-          winnerName: result.purchaser,
+          winnerName: result.buyer,
         };
 
         setRaffles(
@@ -240,7 +234,7 @@ const RafflesPage = () => {
         setSelectedRaffle(updatedRaffle);
 
         toast.error(
-          `El ganador es el número ${winningNumber}, comprado por ${result.purchaser}`
+          `El ganador es el número ${winningNumber}, comprado por ${result.buyer}`
         );
       } else {
         toast.error(`Nadie compró el número ${winningNumber}`);
@@ -286,7 +280,7 @@ const RafflesPage = () => {
         console.log("Raffle created with data:", raffleData);
       }
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,
@@ -370,7 +364,7 @@ const RafflesPage = () => {
 
       await RaffleController.deleteRaffle(selectedRaffle.id);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       setRaffles(Object.values(fetchedRaffles || {}));
 
       setSelectedRaffle(null);
@@ -414,7 +408,7 @@ const RafflesPage = () => {
 
       await RaffleController.updateRaffle(selectedRaffle.id, raffleData);
 
-      const fetchedRaffles = await RaffleController.getAllRaffles();
+      const fetchedRaffles = await RaffleController.getAllRafflesOnce();
       const rafflesArray = Object.entries(fetchedRaffles || {}).map(
         ([id, raffle]) => ({
           id,
@@ -432,10 +426,24 @@ const RafflesPage = () => {
       setSelectedRaffle(null);
 
       toast.success("Rifa actualizada exitosamente");
+      window.location.reload();
     } catch (error) {
       console.error("Error updating raffle:", error);
       toast.error(`Error: ${error.message}`);
     }
+  };
+
+  const handleDateChange = (e) => {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      toast.error("La fecha no puede ser anterior a hoy");
+      setRaffleDate("");
+      return;
+    }
+    setRaffleDate(e.target.value);
   };
 
   const handleShowImageModal = (numberData) => {
@@ -646,7 +654,8 @@ const RafflesPage = () => {
             <Form.Control
               type="date"
               value={raffleDate}
-              onChange={(e) => setRaffleDate(e.target.value)}
+              onChange={handleDateChange}
+              min={new Date().toISOString().split("T")[0]}
               required
             />
           </Form.Group>
@@ -824,7 +833,9 @@ const RafflesPage = () => {
               <Form.Control
                 type="date"
                 value={raffleDate}
-                onChange={(e) => setRaffleDate(e.target.value)}
+                onChange={handleDateChange}
+                min={new Date().toISOString().split("T")[0]}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">

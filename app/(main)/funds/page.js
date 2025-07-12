@@ -163,9 +163,8 @@ const FundsPage = () => {
         type: "RAFFLE_PURCHASE_PENDING",
         link: `/admin/raffles`,
         raffleId: selectedRaffle.id,
-        numberRequested: selectedNumber
+        numberRequested: selectedNumber,
       });
-
 
       const fetchedRaffles = await RaffleController.getAllRafflesOnce(
         setRaffles
@@ -300,9 +299,7 @@ const FundsPage = () => {
               </p>
             </div>
           ) : (
-            <button onClick={handleBuyClick} className={styles.buyButton}>
-              Ver Números
-            </button>
+            <p>Números</p>
           )}
 
           {showNumbers && (

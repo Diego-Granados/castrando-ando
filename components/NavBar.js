@@ -67,9 +67,9 @@ function NavBar() {
             <Link href="/sales" passHref legacyBehavior>
               <Nav.Link>Ventas</Nav.Link>
             </Link>
-            {/* <Link href="/funds" passHref legacyBehavior>
+            <Link href="/funds" passHref legacyBehavior>
               <Nav.Link>Rifas</Nav.Link>
-            </Link> */}
+            </Link>
             <Link href="/ayuda" passHref legacyBehavior>
               <Nav.Link>Ayuda</Nav.Link>
             </Link>
