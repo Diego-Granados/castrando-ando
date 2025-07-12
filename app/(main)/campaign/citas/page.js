@@ -77,19 +77,32 @@ export default function Citas() {
                     </td>
                     <td>{timeslots[timeslot].available}</td>
                     <td>
-                      <Link
-                        href={`/campaign/citas/reservar?id=${campaignId}&hora=${timeslot}`}
-                      >
+                      {timeslots[timeslot].available !== 0 ? (
+                        <Link
+                          href={`/campaign/citas/reservar?id=${campaignId}&hora=${timeslot}`}
+                        >
+                          <Button
+                            variant="primary"
+                            aria-label={`Reservar a las ${
+                              timeslot.split(":")[0]
+                            } horas en ${campaign.place} el día ${
+                              campaign.date
+                            }`}
+                          >
+                            AGENDAR CITA
+                          </Button>
+                        </Link>
+                      ) : (
                         <Button
                           variant="primary"
-                          disabled={timeslots[timeslot].available === 0}
-                          aria-label={`Reservar a las ${
+                          aria-label={`Agotadas las citas a las ${
                             timeslot.split(":")[0]
                           } horas en ${campaign.place} el día ${campaign.date}`}
+                          disabled
                         >
-                          AGENDAR CITA
+                          AGOTADAS
                         </Button>
-                      </Link>
+                      )}
                     </td>
                   </tr>
                 );
