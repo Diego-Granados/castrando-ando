@@ -344,6 +344,8 @@ function CreateForm() {
                 />
               </Form.Group>
             </Col>
+          </Row>
+          <Row className="mt-2">
             <Col>
               <Form.Group
                 controlId="slotsNumber"
@@ -366,8 +368,8 @@ function CreateForm() {
               </Form.Group>
             </Col>
           </Row>
-          <Row className="mt-2">
-            <Col>
+          <Row>
+            <Col className="mt-2">
               <Form.Group
                 controlId="startTime"
                 className="d-flex align-items-center"
@@ -387,12 +389,12 @@ function CreateForm() {
               </Form.Group>
             </Col>
 
-            <Col>
+            <Col className="mt-2">
               <Form.Group
                 controlId="endTime"
                 className="d-flex align-items-center"
               >
-                <Form.Label className="fw-semibold me-2 mb-0">
+                <Form.Label className="fw-semibold me-2 mt-2">
                   Hora de la última cita:
                 </Form.Label>
                 <Form.Control
@@ -468,7 +470,7 @@ function CreateForm() {
               100kg.
             </Form.Text>
             {prices}
-            <div className="container">
+            <div className="container mt-2">
               {prices.length < 5 && (
                 <button
                   className="active:opacity-55 btn"
